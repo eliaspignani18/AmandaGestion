@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amanda Gráficos — Gestión</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --black: #1c1c20;
+            --gray-100: #f5f5f5;
+            --gray-200: #e8e8e8;
+            --gray-300: #d0d0d0;
+            --gray-500: #888;
+            --gray-700: #444;
+            --white: #ffffff;
+            --yellow: #ffd23f;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-100);
+            color: var(--black);
+            min-height: 100vh;
+        }
+
+        /* LOGIN */
+        #view-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--black);
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-card h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+        .login-card .subtitle { color: var(--gray-500); font-size: 14px; margin-bottom: 32px; }
+
+        /* APP LAYOUT */
+        #app { display: none; min-height: 100vh; }
+
+        .sidebar {
+            width: 220px;
+            background: var(--black);
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+        }
+
+        .sidebar-logo {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 16px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-logo span { color: var(--yellow); }
+
+        .sidebar nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--gray-300);
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+        .nav-btn.active { background: var(--yellow); color: var(--black); }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: left;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+
+        .logout-btn:hover { color: var(--white); }
+
+        .main { margin-left: 220px; padding: 40px; min-height: 100vh; }
+
+        /* VIEWS */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .view-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .view-header h2 { font-size: 28px; font-weight: 700; }
+
+        /* STAT CARDS */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .card-value { font-size: 32px; font-weight: 700; }
+        .card-value.green { color: #16a34a; }
+        .card-value.orange { color: #ea580c; }
+
+        /* PIPELINE */
+        .pipeline {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .pipeline-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+
+        .pipeline-stages { display: flex; gap: 8px; }
+
+        .pipeline-stage { flex: 1; text-align: center; }
+        .stage-count { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+        .stage-name { font-size: 11px; color: var(--gray-500); font-weight: 500; }
+        .stage-bar { height: 4px; border-radius: 2px; margin-top: 8px; }
+
+        /* TABLE */
+        .table-wrap {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .table-wrap-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table-wrap-header h3 { font-size: 16px; font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-100);
+        }
+
+        td {
+            padding: 14px 24px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; cursor: pointer; }
+
+        /* BADGES */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-recibido    { background: #f1f5f9; color: #64748b; }
+        .badge-diseno      { background: #dbeafe; color: #1d4ed8; }
+        .badge-plotter     { background: #f3e8ff; color: #7c3aed; }
+        .badge-retirar     { background: #ffedd5; color: #c2410c; }
+        .badge-preparacion { background: #fef9c3; color: #a16207; }
+        .badge-cortar      { background: #ffe4e6; color: #be123c; }
+        .badge-listo       { background: #ccfbf1; color: #0f766e; }
+        .badge-entregado   { background: #dcfce7; color: #15803d; }
+
+        .badge-gplotter  { background: #f3e8ff; color: #7c3aed; }
+        .badge-compras   { background: #dbeafe; color: #1d4ed8; }
+        .badge-insumos   { background: #ffedd5; color: #c2410c; }
+        .badge-packaging { background: #ccfbf1; color: #0f766e; }
+        .badge-stock     { background: #fef9c3; color: #854d0e; }
+
+        .card-value.red { color: var(--red); }
+
+        /* FORM */
+        .form-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 32px;
+            max-width: 720px;
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+
+        input, select, textarea {
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--black);
+            transition: border 0.15s;
+            background: var(--white);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--black);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary { background: var(--black); color: var(--white); border-color: var(--black); }
+        .btn-primary:hover:not(:disabled) { background: #333; border-color: #333; }
+
+        .btn-yellow { background: var(--yellow); color: var(--black); border-color: var(--black); }
+        .btn-yellow:hover:not(:disabled) { background: #f0c030; }
+
+        .btn-ghost { background: none; color: var(--gray-700); border-color: var(--gray-300); }
+        .btn-ghost:hover:not(:disabled) { background: var(--gray-100); }
+
+        .btn-danger { background: none; color: var(--red); border-color: var(--red); }
+        .btn-danger:hover:not(:disabled) { background: #fef2f2; }
+
+        .form-actions { display: flex; gap: 12px; margin-top: 32px; align-items: center; }
+
+        /* FILTERS */
+        .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 100px;
+            border: 1px solid var(--gray-300);
+            background: var(--white);
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .filter-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+
+        .cobro-btn {
+            padding: 3px 10px;
+            border-radius: 100px;
+            border: 1px solid var(--gray-300);
+            background: var(--white);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cobro-btn:hover { background: var(--yellow); border-color: var(--black); }
+        .cobro-cobrado {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #16a34a;
+        }
+        .cobro-deshacer {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-500);
+            font-size: 15px;
+            line-height: 1;
+            padding: 0 2px;
+        }
+        .cobro-deshacer:hover { color: var(--red); }
+        .cobro-btn-active { background: var(--yellow); border-color: var(--black); }
+
+        .estado-select {
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--white);
+            font-family: inherit;
+        }
+        .estado-select:focus { outline: none; border-color: var(--black); }
+
+        .delete-row-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 4px;
+            opacity: 0.6;
+            transition: opacity 0.15s;
+        }
+        .delete-row-btn:hover { opacity: 1; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 { font-size: 20px; font-weight: 700; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-500);
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .detail-item .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .detail-item .detail-value { font-size: 15px; }
+        .detail-item.full { grid-column: 1 / -1; }
+
+        /* UTILS */
+        .text-green { color: #16a34a; font-weight: 600; }
+        .text-red { color: var(--red); font-weight: 600; }
+        .text-gray { color: var(--gray-500); }
+        .text-bold { font-weight: 700; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        .error-msg { color: var(--red); font-size: 13px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="view-login">
+    <div class="login-card">
+        <h1>Amanda <span style="color:#ffd23f">Gráficos</span></h1>
+        <p class="subtitle">Panel de gestión interno</p>
+        <div class="form-group" style="margin-bottom:16px">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email">
+        </div>
+        <div class="form-group" style="margin-bottom:24px">
+            <label>Contraseña</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="login()">Entrar</button>
+        <p id="login-error" class="error-msg" style="text-align:center;display:none"></p>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <img src="amanda%20graficos%20png.png" alt="Amanda Gráficos" style="width:140px;display:block;margin-bottom:4px">
+        </div>
+        <nav>
+            <button class="nav-btn active" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
+            <button class="nav-btn" data-view="pedidos" onclick="showView('pedidos')">📋 Pedidos</button>
+            <button class="nav-btn" data-view="nuevo" onclick="showView('nuevo')">＋ Nuevo pedido</button>
+            <button class="nav-btn" data-view="gastos" onclick="showView('gastos')">💸 Gastos</button>
+            <button class="nav-btn" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')">＋ Nuevo gasto</button>
+            <button class="nav-btn" data-view="stock" onclick="showView('stock')">📦 Stock</button>
+            <button class="nav-btn" data-view="nuevo-stock" onclick="showView('nuevo-stock')">＋ Nuevo ítem</button>
+            <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')">📐 Cotizador vinilo</button>
+        </nav>
+        <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+    </div>
+
+    <div class="main">
+
+        <!-- DASHBOARD -->
+        <div id="view-dashboard" class="view active">
+            <div class="view-header">
+                <h2>Dashboard</h2>
+                <span id="dashboard-date" class="text-gray" style="font-size:14px"></span>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-label">Pedidos activos</div>
+                    <div class="card-value" id="stat-activos">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">A cobrar</div>
+                    <div class="card-value orange" id="stat-acobrar">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Total cobrado</div>
+                    <div class="card-value green" id="stat-cobrado">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Saldo real</div>
+                    <div class="card-value" id="stat-saldo">—</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px">
+                <div class="pipeline">
+                    <div class="pipeline-title">Pipeline de producción</div>
+                    <div class="pipeline-stages" id="pipeline-stages"></div>
+                </div>
+                <div class="pipeline">
+                    <div class="pipeline-title">Amanda debe a</div>
+                    <div id="deuda-amanda"></div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-wrap-header">
+                    <h3>Pedidos en curso</h3>
+                </div>
+                <div id="dashboard-table"></div>
+            </div>
+        </div>
+
+        <!-- PEDIDOS -->
+        <div id="view-pedidos" class="view">
+            <div class="view-header">
+                <h2>Pedidos</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo')">＋ Nuevo pedido</button>
+            </div>
+            <div class="filters">
+                <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
+                <button class="filter-btn" onclick="setFilter('recibido', this)">Recibido</button>
+                <button class="filter-btn" onclick="setFilter('diseno', this)">En diseño</button>
+                <button class="filter-btn" onclick="setFilter('plotter', this)">Plotter</button>
+                <button class="filter-btn" onclick="setFilter('retirar', this)">Retirar</button>
+                <button class="filter-btn" onclick="setFilter('preparacion', this)">Preparación</button>
+                <button class="filter-btn" onclick="setFilter('cortar', this)">Falta cortar</button>
+                <button class="filter-btn" onclick="setFilter('listo', this)">Listo para entregar</button>
+                <button class="filter-btn" onclick="setFilter('entregado', this)">Entregado</button>
+            </div>
+            <div class="table-wrap">
+                <div id="pedidos-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO / EDITAR -->
+        <div id="view-nuevo" class="view">
+            <div class="view-header">
+                <h2 id="form-title">Nuevo pedido</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="pedido-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del cliente *</label>
+                        <input type="text" id="f-nombre" placeholder="Ej: Sofía Napoli">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="text" id="f-whatsapp" placeholder="+54 9 341 375 4131">
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción del pedido *</label>
+                        <textarea id="f-descripcion" placeholder="Ej: 100 stickers circulares 5cm, diseño logo empresa..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="f-estado">
+                            <option value="recibido">Recibido</option>
+                            <option value="diseno">En diseño</option>
+                            <option value="plotter">Enviado al plotter</option>
+                            <option value="retirar">Listo para retirar</option>
+                            <option value="preparacion">En preparación</option>
+                            <option value="cortar">Falta cortar</option>
+                            <option value="listo">Listo para entregar</option>
+                            <option value="entregado">Entregado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha retiro del plotter</label>
+                        <input type="date" id="f-fecha-retiro">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio al cliente ($)</label>
+                        <input type="number" id="f-precio" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>¿Cobrado?</label>
+                        <input type="hidden" id="f-cobrado" value="false">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="cobrado-btn-no" onclick="seleccionarCobrado('false')">No cobrado</button>
+                            <button type="button" class="cobro-btn" id="cobrado-btn-si" onclick="seleccionarCobrado('true')">Cobrado ✓</button>
+                        </div>
+                    </div>
+                    <div class="form-group" id="cobrado-por-group" style="display:none">
+                        <label>¿Quién cobró?</label>
+                        <input type="hidden" id="f-cobrado-por" value="Eli">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="cobro-btn-eli" onclick="seleccionarCobrador('Eli')">Eli</button>
+                            <button type="button" class="cobro-btn" id="cobro-btn-sofi" onclick="seleccionarCobrador('Sofi')">Sofi</button>
+                        </div>
+                    </div>
+                    <div class="form-group full">
+                        <label>Notas internas</label>
+                        <textarea id="f-notas" placeholder="Cualquier detalle extra..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Cargado por</label>
+                        <input type="hidden" id="f-cargado-por" value="Eli">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="cargado-btn-eli" onclick="seleccionarCargadoPor('Eli')">Eli</button>
+                            <button type="button" class="cobro-btn" id="cargado-btn-sofi" onclick="seleccionarCargadoPor('Sofi')">Sofi</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Origen del pedido</label>
+                        <input type="hidden" id="f-origen" value="">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <button type="button" class="cobro-btn" id="origen-btn-web" onclick="seleccionarOrigen('web')">Web</button>
+                            <button type="button" class="cobro-btn" id="origen-btn-instagram" onclick="seleccionarOrigen('instagram')">Instagram</button>
+                            <button type="button" class="cobro-btn" id="origen-btn-recomendacion" onclick="seleccionarOrigen('recomendacion')">Recomendación</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar" onclick="savePedido()">Guardar pedido</button>
+                    <button class="btn btn-ghost" id="btn-cancelar" onclick="cancelForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete" style="display:none;margin-left:auto" onclick="deletePedido()">Eliminar</button>
+                </div>
+                <p id="form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
+        <!-- GASTOS -->
+        <div id="view-gastos" class="view">
+            <div class="view-header">
+                <h2>Gastos</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo-gasto')">＋ Nuevo gasto</button>
+            </div>
+            <div class="table-wrap">
+                <div id="gastos-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO GASTO / EDITAR GASTO -->
+        <div id="view-nuevo-gasto" class="view">
+            <div class="view-header">
+                <h2 id="gasto-form-title">Nuevo gasto</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="gasto-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="g-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría *</label>
+                        <select id="g-categoria" onchange="toggleStockFields()">
+                            <option value="plotter">Plotter</option>
+                            <option value="compras">Compras</option>
+                            <option value="insumos">Insumos</option>
+                            <option value="packaging">Packaging</option>
+                            <option value="stock">Stock</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label id="g-observacion-label">Observación</label>
+                        <textarea id="g-observacion" placeholder="Detalle del gasto..."></textarea>
+                    </div>
+                    <div class="form-group" id="g-cantidad-group" style="display:none">
+                        <label>Cantidad</label>
+                        <input type="number" id="g-cantidad" placeholder="1" step="1" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Monto ($) *</label>
+                        <input type="number" id="g-monto" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Pagado por</label>
+                        <input type="hidden" id="g-pagado-por" value="Eli">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="pagado-btn-eli" onclick="seleccionarPagadoPor('Eli')">Eli</button>
+                            <button type="button" class="cobro-btn" id="pagado-btn-sofi" onclick="seleccionarPagadoPor('Sofi')">Sofi</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-gasto" onclick="saveGasto()">Guardar gasto</button>
+                    <button class="btn btn-ghost" id="btn-cancelar-gasto" onclick="cancelGastoForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-gasto" style="display:none;margin-left:auto" onclick="deleteGasto()">Eliminar</button>
+                </div>
+                <p id="gasto-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
+        <!-- COTIZADOR VINILO -->
+        <div id="view-cotizador" class="view">
+            <div class="view-header">
+                <h2>Cotizador de vinilo</h2>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
+                <div class="card">
+                    <div class="card-label">Costo plotter (por m²)</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                        <span style="font-size:18px;font-weight:700">$</span>
+                        <input type="number" id="c-costo-m2" value="20000" step="500" min="0"
+                            oninput="cotizarPreview()"
+                            style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Multiplicador de venta</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                        <input type="number" id="c-multiplicador" value="2.5" step="0.1" min="1"
+                            oninput="cotizarPreview()"
+                            style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
+                        <span style="font-size:14px;color:var(--gray-500)">× costo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Ancho (cm)</label>
+                        <input type="number" id="c-ancho" placeholder="100" step="1" min="1" oninput="cotizarPreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Alto (cm)</label>
+                        <input type="number" id="c-alto" placeholder="5" step="1" min="1" oninput="cotizarPreview()">
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción (opcional)</label>
+                        <input type="text" id="c-desc" placeholder="Ej: Frente del local, vidrio lateral...">
+                    </div>
+                </div>
+
+                <div id="c-preview" style="display:none;margin-top:20px;padding:16px;background:var(--gray-100);border-radius:10px;border:1px solid var(--gray-200)">
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                        <div>
+                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Área</div>
+                            <div id="c-prev-area" style="font-size:16px;font-weight:700"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Costo</div>
+                            <div id="c-prev-costo" style="font-size:16px;font-weight:700;color:#ea580c"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Precio venta</div>
+                            <div id="c-prev-venta" style="font-size:16px;font-weight:700;color:#16a34a"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia</div>
+                            <div id="c-prev-ganancia" style="font-size:16px;font-weight:700"></div>
+                        </div>
+                    </div>
+                    <div id="c-prev-minimo" style="display:none;margin-top:10px;font-size:12px;color:var(--gray-500)">
+                        ⚠ Mínimo facturable: 1m × 5cm (0.05 m²)
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-yellow" onclick="agregarVinilo()">＋ Agregar al pedido</button>
+                    <button class="btn btn-ghost" onclick="limpiarCotizador()">Limpiar</button>
+                </div>
+            </div>
+
+            <div id="c-lista-wrap" style="display:none;max-width:720px">
+                <div class="table-wrap">
+                    <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <h3>Piezas del pedido</h3>
+                        <button class="btn btn-ghost" style="font-size:12px" onclick="vaciarCotizador()">Vaciar todo</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Medidas</th>
+                                <th>Área</th>
+                                <th>Costo</th>
+                                <th>Precio venta</th>
+                                <th>Ganancia</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="c-tabla-body"></tbody>
+                    </table>
+                    <div id="c-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+                    </div>
+                    <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
+                        <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()">📋 Copiar cotización para cliente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STOCK -->
+        <div id="view-stock" class="view">
+            <div class="view-header">
+                <h2>Stock</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo-stock')">＋ Nuevo ítem</button>
+            </div>
+            <div class="table-wrap">
+                <div id="stock-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO ÍTEM DE STOCK / EDITAR -->
+        <div id="view-nuevo-stock" class="view">
+            <div class="view-header">
+                <h2 id="stock-form-title">Nuevo ítem</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="stock-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="s-nombre" placeholder="Ej: Tijeras">
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad *</label>
+                        <input type="number" id="s-cantidad" placeholder="1" step="1" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio ($)</label>
+                        <input type="number" id="s-precio" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de compra</label>
+                        <input type="date" id="s-fecha">
+                    </div>
+                    <div class="form-group full">
+                        <label>Notas</label>
+                        <textarea id="s-notas" placeholder="Marca, modelo, condición..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-stock" onclick="saveStock()">Guardar ítem</button>
+                    <button class="btn btn-ghost" id="btn-cancelar-stock" onclick="cancelStockForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-stock" style="display:none;margin-left:auto" onclick="deleteStock()">Eliminar</button>
+                </div>
+                <p id="stock-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+const SUPABASE_URL = 'https://cbpfixrgkcekscfqhvnf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNicGZpeHJna2Nla3NjZnFodm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0ODg3NDUsImV4cCI6MjA5NTA2NDc0NX0.GPevt5MU7CvLYqoSFeYrL9Z__xH8vrEh1yw3gXrpxy0';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ESTADOS = [
+    { key: 'recibido',    label: 'Recibido',    color: '#94a3b8' },
+    { key: 'diseno',      label: 'En diseño',   color: '#3b82f6' },
+    { key: 'plotter',     label: 'Plotter',     color: '#a855f7' },
+    { key: 'retirar',     label: 'Retirar',     color: '#f97316' },
+    { key: 'preparacion', label: 'Preparación', color: '#eab308' },
+    { key: 'cortar',      label: 'Falta cortar', color: '#f43f5e' },
+    { key: 'listo',       label: 'Listo para entregar', color: '#14b8a6' },
+    { key: 'entregado',   label: 'Entregado',    color: '#22c55e' },
+];
+
+let currentFilter = 'todos';
+let allPedidos = [];
+let allGastos = [];
+let allStock = [];
+
+const CATEGORIAS_GASTO = {
+    plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
+    compras:   { label: 'Compras',   badge: 'badge-compras'  },
+    insumos:   { label: 'Insumos',   badge: 'badge-insumos'  },
+    packaging: { label: 'Packaging', badge: 'badge-packaging' },
+    stock:     { label: 'Stock',     badge: 'badge-stock'    },
+};
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+
+async function checkAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    session ? showApp() : showLogin();
+}
+
+function showLogin() {
+    document.getElementById('view-login').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+}
+
+function showApp() {
+    document.getElementById('view-login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('dashboard-date').textContent =
+        new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    loadAll();
+}
+
+async function login() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+        errEl.textContent = 'Email o contraseña incorrectos.';
+        errEl.style.display = 'block';
+    } else {
+        showApp();
+    }
+}
+
+async function logout() {
+    await sb.auth.signOut();
+    showLogin();
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+});
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+
+function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+    document.getElementById('view-' + name).classList.add('active');
+    document.querySelector(`.nav-btn[data-view="${name}"]`)?.classList.add('active');
+
+    if (name === 'nuevo')        resetForm();
+    if (name === 'pedidos')      renderPedidosTable();
+    if (name === 'dashboard')    renderDashboard();
+    if (name === 'gastos')       renderGastosTable();
+    if (name === 'nuevo-gasto')  resetGastoForm();
+    if (name === 'stock')        renderStockTable();
+    if (name === 'nuevo-stock')  resetStockForm();
+}
+
+function cancelForm() {
+    const prevView = document.getElementById('pedido-id').value ? 'pedidos' : 'dashboard';
+    showView(prevView);
+}
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+
+async function loadAll() {
+    const [resPedidos, resGastos, resStock] = await Promise.all([
+        sb.from('pedidos').select('*').order('created_at', { ascending: false }),
+        sb.from('gastos').select('*').order('fecha', { ascending: false }),
+        sb.from('stock').select('*').order('nombre'),
+    ]);
+    if (!resPedidos.error) allPedidos = resPedidos.data || [];
+    if (!resGastos.error)  allGastos  = resGastos.data  || [];
+    if (!resStock.error)   allStock   = resStock.data   || [];
+    renderDashboard();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+
+function renderDashboard() {
+    const activos      = allPedidos.filter(p => p.estado !== 'entregado');
+    const aCobrar      = allPedidos.filter(p => !p.cobrado)
+                                   .reduce((s, p) => s + (p.precio_cliente || 0), 0);
+    const totalCobrado = allPedidos.filter(p => p.cobrado)
+                                   .reduce((s, p) => s + (p.precio_cliente || 0), 0);
+    const totalGastos  = allGastos.reduce((s, g) => s + (g.monto || 0), 0);
+    const saldo        = totalCobrado - totalGastos;
+
+    document.getElementById('stat-activos').textContent  = activos.length;
+    document.getElementById('stat-acobrar').textContent  = formatPeso(aCobrar);
+    document.getElementById('stat-cobrado').textContent  = formatPeso(totalCobrado);
+    const saldoEl = document.getElementById('stat-saldo');
+    saldoEl.textContent = formatPeso(saldo);
+    saldoEl.className   = 'card-value ' + (saldo >= 0 ? 'green' : 'red');
+
+    // Balance por persona:
+    // cobros cobrados por Eli/Sofi → tienen plata de Amanda → le deben a Amanda (positivo)
+    // gastos pagados por Eli/Sofi de su bolsillo → Amanda les debe (negativo)
+    const balance = { Eli: 0, Sofi: 0 };
+    allPedidos.filter(p => p.cobrado && (p.cobrado_por === 'Eli' || p.cobrado_por === 'Sofi')).forEach(p => {
+        balance[p.cobrado_por] += (p.precio_cliente || 0);
+    });
+    allGastos.filter(g => g.pagado_por === 'Eli' || g.pagado_por === 'Sofi').forEach(g => {
+        balance[g.pagado_por] -= (g.monto || 0);
+    });
+
+    const deudaHtml = ['Eli', 'Sofi'].map(nombre => {
+        const monto = balance[nombre] || 0;
+        if (monto === 0) {
+            return `<div style="padding:10px 0;border-bottom:1px solid var(--gray-200)">
+                <div style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${nombre}</div>
+                <div style="font-size:15px;color:var(--gray-500)">Sin deuda</div>
+            </div>`;
+        }
+        const positivo = monto > 0;
+        const texto = positivo ? `${nombre} le debe a Amanda` : `Amanda le debe a ${nombre}`;
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--gray-200)">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${texto}</div>
+            <div style="font-size:18px;font-weight:700;color:${positivo ? '#ef4444' : '#16a34a'}">${formatPeso(Math.abs(monto))}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('deuda-amanda').innerHTML = deudaHtml;
+
+    document.getElementById('pipeline-stages').innerHTML = ESTADOS.map(e => {
+        const count = allPedidos.filter(p => p.estado === e.key).length;
+        return `
+            <div class="pipeline-stage">
+                <div class="stage-count">${count}</div>
+                <div class="stage-name">${e.label}</div>
+                <div class="stage-bar" style="background:${count > 0 ? e.color : '#e2e8f0'}"></div>
+            </div>`;
+    }).join('');
+
+    const enCurso = allPedidos.filter(p => p.estado !== 'entregado' || !p.cobrado);
+    document.getElementById('dashboard-table').innerHTML =
+        enCurso.length ? buildTable(enCurso) : '<div class="empty-state">No hay pedidos activos</div>';
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+
+function buildTable(pedidos) {
+    return `
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Cargado por</th>
+                    <th>Origen</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Precio</th>
+                    <th>Cobrado</th>
+                    <th>Retiro plotter</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${pedidos.map(p => `
+                    <tr>
+                        <td>
+                            <div class="text-bold">${esc(p.cliente_nombre)}</div>
+                            ${p.cliente_whatsapp ? `<div class="text-gray" style="font-size:12px">${esc(p.cliente_whatsapp)}</div>` : ''}
+                        </td>
+                        <td class="text-gray">${esc(p.cargado_por || '—')}</td>
+                        <td>${origenLabel(p.origen)}</td>
+                        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.descripcion)}</td>
+                        <td>
+                            <select class="estado-select" onchange="cambiarEstado('${p.id}', this.value)">
+                                ${ESTADOS.map(e => `<option value="${e.key}" ${p.estado === e.key ? 'selected' : ''}>${e.label}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td>${p.precio_cliente ? formatPeso(p.precio_cliente) : '<span class="text-gray">—</span>'}</td>
+                        <td>
+                            ${p.cobrado
+                                ? `<span class="cobro-cobrado">✓ ${esc(p.cobrado_por || 'Sí')}<button class="cobro-deshacer" onclick="desmarcarCobrado('${p.id}')" title="Desmarcar">×</button></span>`
+                                : `<button class="cobro-btn" onclick="marcarCobrado('${p.id}','Eli')">Eli</button>
+                                   <button class="cobro-btn" onclick="marcarCobrado('${p.id}','Sofi')" style="margin-left:4px">Sofi</button>`
+                            }
+                        </td>
+                        <td>${p.fecha_retiro_plotter ? formatDate(p.fecha_retiro_plotter) : '<span class="text-gray">—</span>'}</td>
+                        <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+                        <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function renderPedidosTable() {
+    const list = currentFilter === 'todos'
+        ? allPedidos
+        : allPedidos.filter(p => p.estado === currentFilter);
+    document.getElementById('pedidos-table').innerHTML =
+        list.length ? buildTable(list) : '<div class="empty-state">No hay pedidos en este estado</div>';
+}
+
+function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPedidosTable();
+}
+
+
+// ─── FORM ─────────────────────────────────────────────────────────────────────
+
+function resetForm() {
+    document.getElementById('pedido-id').value = '';
+    document.getElementById('form-title').textContent = 'Nuevo pedido';
+    document.getElementById('btn-delete').style.display = 'none';
+    document.getElementById('form-error').style.display = 'none';
+    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio','f-fecha-retiro']
+        .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('f-estado').value      = 'recibido';
+    seleccionarCargadoPor('Eli');
+    seleccionarCobrado('false');
+    seleccionarCobrador('Eli');
+    seleccionarOrigen('');
+    document.getElementById('cobrado-por-group').style.display = 'none';
+}
+
+function editPedido(id) {
+    const p = allPedidos.find(x => x.id === id);
+    if (!p) return;
+
+    showView('nuevo');
+    document.getElementById('form-title').textContent   = 'Editar pedido';
+    document.getElementById('pedido-id').value          = p.id;
+    document.getElementById('f-nombre').value           = p.cliente_nombre || '';
+    document.getElementById('f-whatsapp').value         = p.cliente_whatsapp || '';
+    document.getElementById('f-descripcion').value      = p.descripcion || '';
+    document.getElementById('f-estado').value           = p.estado || 'recibido';
+    document.getElementById('f-precio').value           = p.precio_cliente || '';
+    seleccionarCobrado(p.cobrado ? 'true' : 'false');
+    seleccionarCobrador(p.cobrado_por || 'Eli');
+    document.getElementById('f-fecha-retiro').value     = p.fecha_retiro_plotter || '';
+    document.getElementById('f-notas').value            = p.notas || '';
+    seleccionarCargadoPor(p.cargado_por || 'Eli');
+    seleccionarOrigen(p.origen || '');
+    document.getElementById('btn-delete').style.display = 'inline-flex';
+}
+
+function setFormLoading(loading) {
+    const btnGuardar  = document.getElementById('btn-guardar');
+    const btnCancelar = document.getElementById('btn-cancelar');
+    const btnDelete   = document.getElementById('btn-delete');
+    btnGuardar.disabled    = loading;
+    btnCancelar.disabled   = loading;
+    btnDelete.disabled     = loading;
+    btnGuardar.textContent = loading ? 'Guardando...' : 'Guardar pedido';
+}
+
+async function savePedido() {
+    const id     = document.getElementById('pedido-id').value;
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const desc   = document.getElementById('f-descripcion').value.trim();
+    const errEl  = document.getElementById('form-error');
+
+    if (!nombre || !desc) {
+        errEl.textContent = 'Nombre y descripción son obligatorios.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+    setFormLoading(true);
+
+    const payload = {
+        cliente_nombre:       nombre,
+        cliente_whatsapp:     document.getElementById('f-whatsapp').value.trim() || null,
+        descripcion:          desc,
+        estado:               document.getElementById('f-estado').value,
+        precio_cliente:       parseFloat(document.getElementById('f-precio').value) || null,
+        cobrado:              document.getElementById('f-cobrado').value === 'true',
+        cobrado_por:          document.getElementById('f-cobrado').value === 'true' ? document.getElementById('f-cobrado-por').value : null,
+        fecha_retiro_plotter: document.getElementById('f-fecha-retiro').value || null,
+        notas:                document.getElementById('f-notas').value.trim() || null,
+        cargado_por:          document.getElementById('f-cargado-por').value,
+        origen:               document.getElementById('f-origen').value || null,
+    };
+
+    const { error } = id
+        ? await sb.from('pedidos').update(payload).eq('id', id)
+        : await sb.from('pedidos').insert(payload);
+
+    setFormLoading(false);
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('pedidos');
+}
+
+async function deletePedido() {
+    const id = document.getElementById('pedido-id').value;
+    if (!id || !confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+
+    const btnDelete = document.getElementById('btn-delete');
+    btnDelete.disabled    = true;
+    btnDelete.textContent = 'Eliminando...';
+
+    const { error } = await sb.from('pedidos').delete().eq('id', id);
+
+    btnDelete.disabled    = false;
+    btnDelete.textContent = 'Eliminar';
+
+    if (error) {
+        const errEl = document.getElementById('form-error');
+        errEl.textContent = 'No se pudo eliminar el pedido. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('pedidos');
+}
+
+async function cambiarEstado(id, nuevoEstado) {
+    await sb.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
+    await loadAll();
+    if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
+    else renderDashboard();
+}
+
+async function deleteRowPedido(id) {
+    if (!confirm('¿Eliminar este pedido?')) return;
+    await sb.from('pedidos').delete().eq('id', id);
+    await loadAll();
+    if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
+    else renderDashboard();
+}
+
+async function deleteRowGasto(id) {
+    if (!confirm('¿Eliminar este gasto?')) return;
+    const gasto = allGastos.find(g => g.id === id);
+    if (gasto?.stock_id) {
+        await sb.from('stock').delete().eq('id', gasto.stock_id);
+    }
+    await sb.from('gastos').delete().eq('id', id);
+    await loadAll();
+    renderGastosTable();
+}
+
+async function marcarCobrado(id, quien) {
+    await sb.from('pedidos').update({ cobrado: true, cobrado_por: quien }).eq('id', id);
+    await loadAll();
+    if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
+    else renderDashboard();
+}
+
+async function desmarcarCobrado(id) {
+    await sb.from('pedidos').update({ cobrado: false, cobrado_por: null }).eq('id', id);
+    await loadAll();
+    if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
+    else renderDashboard();
+}
+
+function seleccionarCobrado(valor) {
+    document.getElementById('f-cobrado').value = valor;
+    document.getElementById('cobrado-btn-no').classList.toggle('cobro-btn-active', valor === 'false');
+    document.getElementById('cobrado-btn-si').classList.toggle('cobro-btn-active', valor === 'true');
+    toggleCobradoPor();
+}
+
+function toggleCobradoPor() {
+    const cobrado = document.getElementById('f-cobrado').value === 'true';
+    document.getElementById('cobrado-por-group').style.display = cobrado ? 'flex' : 'none';
+    if (cobrado) seleccionarCobrador(document.getElementById('f-cobrado-por').value || 'Eli');
+}
+
+function seleccionarCobrador(quien) {
+    document.getElementById('f-cobrado-por').value = quien;
+    document.getElementById('cobro-btn-eli').classList.toggle('cobro-btn-active', quien === 'Eli');
+    document.getElementById('cobro-btn-sofi').classList.toggle('cobro-btn-active', quien === 'Sofi');
+}
+
+function seleccionarCargadoPor(quien) {
+    document.getElementById('f-cargado-por').value = quien;
+    document.getElementById('cargado-btn-eli').classList.toggle('cobro-btn-active', quien === 'Eli');
+    document.getElementById('cargado-btn-sofi').classList.toggle('cobro-btn-active', quien === 'Sofi');
+}
+
+function seleccionarOrigen(valor) {
+    const actual = document.getElementById('f-origen').value;
+    const nuevo = actual === valor ? '' : valor;
+    document.getElementById('f-origen').value = nuevo;
+    document.getElementById('origen-btn-web').classList.toggle('cobro-btn-active', nuevo === 'web');
+    document.getElementById('origen-btn-instagram').classList.toggle('cobro-btn-active', nuevo === 'instagram');
+    document.getElementById('origen-btn-recomendacion').classList.toggle('cobro-btn-active', nuevo === 'recomendacion');
+}
+
+function seleccionarPagadoPor(quien) {
+    document.getElementById('g-pagado-por').value = quien;
+    document.getElementById('pagado-btn-eli').classList.toggle('cobro-btn-active', quien === 'Eli');
+    document.getElementById('pagado-btn-sofi').classList.toggle('cobro-btn-active', quien === 'Sofi');
+}
+
+// ─── GASTOS ───────────────────────────────────────────────────────────────────
+
+function renderGastosTable() {
+    const el = document.getElementById('gastos-table');
+    if (!allGastos.length) {
+        el.innerHTML = '<div class="empty-state">No hay gastos cargados</div>';
+        return;
+    }
+    el.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Observación</th>
+                    <th>Monto</th>
+                    <th>Pagado por</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allGastos.map(g => {
+                    const cat = CATEGORIAS_GASTO[g.categoria] || { label: g.categoria, badge: '' };
+                    return `
+                    <tr onclick="editGasto('${g.id}')" style="cursor:pointer">
+                        <td>${formatDate(g.fecha)}</td>
+                        <td><span class="badge ${cat.badge}">${cat.label}</span></td>
+                        <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(g.observacion || '—')}</td>
+                        <td class="text-bold">${formatPeso(g.monto)}</td>
+                        <td class="text-gray">${esc(g.pagado_por || '—')}</td>
+                        <td onclick="event.stopPropagation()"><button class="delete-row-btn" onclick="deleteRowGasto('${g.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>`;
+}
+
+function resetGastoForm() {
+    document.getElementById('gasto-id').value = '';
+    document.getElementById('gasto-form-title').textContent = 'Nuevo gasto';
+    document.getElementById('btn-delete-gasto').style.display = 'none';
+    document.getElementById('gasto-form-error').style.display = 'none';
+    document.getElementById('g-observacion').value = '';
+    document.getElementById('g-monto').value = '';
+    document.getElementById('g-categoria').value = 'plotter';
+    seleccionarPagadoPor('Eli');
+    document.getElementById('g-fecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('g-cantidad').value = '1';
+    document.getElementById('g-cantidad-group').style.display = 'none';
+    document.getElementById('g-observacion-label').textContent = 'Observación';
+}
+
+function toggleStockFields() {
+    const isStock = document.getElementById('g-categoria').value === 'stock';
+    document.getElementById('g-cantidad-group').style.display = isStock ? 'flex' : 'none';
+    document.getElementById('g-observacion-label').textContent = isStock ? 'Nombre del ítem *' : 'Observación';
+}
+
+function cancelGastoForm() {
+    const prevView = document.getElementById('gasto-id').value ? 'gastos' : 'dashboard';
+    showView(prevView);
+}
+
+function editGasto(id) {
+    const g = allGastos.find(x => x.id === id);
+    if (!g) return;
+    showView('nuevo-gasto');
+    document.getElementById('gasto-form-title').textContent = 'Editar gasto';
+    document.getElementById('gasto-id').value        = g.id;
+    document.getElementById('g-fecha').value         = g.fecha || '';
+    document.getElementById('g-categoria').value     = g.categoria || 'plotter';
+    document.getElementById('g-observacion').value   = g.observacion || '';
+    document.getElementById('g-monto').value         = g.monto || '';
+    seleccionarPagadoPor(g.pagado_por || 'Eli');
+    document.getElementById('btn-delete-gasto').style.display = 'inline-flex';
+    toggleStockFields();
+    if (g.stock_id) {
+        const stockItem = allStock.find(s => s.id === g.stock_id);
+        document.getElementById('g-cantidad').value = stockItem?.cantidad || 1;
+    }
+}
+
+async function saveGasto() {
+    const id         = document.getElementById('gasto-id').value;
+    const fecha      = document.getElementById('g-fecha').value;
+    const monto      = parseFloat(document.getElementById('g-monto').value);
+    const categoria  = document.getElementById('g-categoria').value;
+    const observacion = document.getElementById('g-observacion').value.trim();
+    const errEl      = document.getElementById('gasto-form-error');
+
+    if (!fecha || !monto) {
+        errEl.textContent = 'Fecha y monto son obligatorios.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (categoria === 'stock' && !observacion) {
+        errEl.textContent = 'El nombre del ítem es obligatorio para la categoría Stock.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const btnGuardar = document.getElementById('btn-guardar-gasto');
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
+    const existingGasto = id ? allGastos.find(g => g.id === id) : null;
+    let stockId = null;
+
+    if (categoria === 'stock') {
+        const cantidad = parseInt(document.getElementById('g-cantidad').value) || 1;
+        const stockPayload = { nombre: observacion, cantidad, precio: monto, fecha_compra: fecha };
+        if (existingGasto?.stock_id) {
+            await sb.from('stock').update(stockPayload).eq('id', existingGasto.stock_id);
+            stockId = existingGasto.stock_id;
+        } else {
+            const { data } = await sb.from('stock').insert(stockPayload).select().single();
+            stockId = data?.id || null;
+        }
+    } else if (existingGasto?.stock_id) {
+        await sb.from('stock').delete().eq('id', existingGasto.stock_id);
+    }
+
+    const payload = {
+        fecha,
+        categoria,
+        observacion: observacion || null,
+        monto,
+        pagado_por: document.getElementById('g-pagado-por').value,
+        stock_id: stockId,
+    };
+
+    const { error } = id
+        ? await sb.from('gastos').update(payload).eq('id', id)
+        : await sb.from('gastos').insert(payload);
+
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar gasto';
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('gastos');
+}
+
+async function deleteGasto() {
+    const id = document.getElementById('gasto-id').value;
+    if (!id || !confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.')) return;
+
+    const gasto = allGastos.find(g => g.id === id);
+    const btnDelete = document.getElementById('btn-delete-gasto');
+    btnDelete.disabled = true;
+    btnDelete.textContent = 'Eliminando...';
+
+    if (gasto?.stock_id) {
+        await sb.from('stock').delete().eq('id', gasto.stock_id);
+    }
+
+    const { error } = await sb.from('gastos').delete().eq('id', id);
+
+    btnDelete.disabled = false;
+    btnDelete.textContent = 'Eliminar';
+
+    if (error) {
+        const errEl = document.getElementById('gasto-form-error');
+        errEl.textContent = 'No se pudo eliminar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('gastos');
+}
+
+// ─── COTIZADOR VINILO ─────────────────────────────────────────────────────────
+
+const COTIZADOR_MIN_M2 = 0.05; // 1m × 5cm
+let cotizadorPiezas = [];
+
+function cotizarCalc(anchoCm, altoCm) {
+    const costoM2  = parseFloat(document.getElementById('c-costo-m2').value)  || 20000;
+    const multi    = parseFloat(document.getElementById('c-multiplicador').value) || 2.5;
+    const areaReal = (anchoCm / 100) * (altoCm / 100);
+    const areaCob  = Math.max(areaReal, COTIZADOR_MIN_M2);
+    const costo    = Math.round(areaCob * costoM2);
+    const venta    = Math.round(costo * multi);
+    const ganancia = venta - costo;
+    return { areaReal, areaCob, costo, venta, ganancia, esMinimo: areaReal < COTIZADOR_MIN_M2 };
+}
+
+function cotizarPreview() {
+    const ancho = parseFloat(document.getElementById('c-ancho').value);
+    const alto  = parseFloat(document.getElementById('c-alto').value);
+    const prev  = document.getElementById('c-preview');
+    if (!ancho || !alto || ancho <= 0 || alto <= 0) { prev.style.display = 'none'; return; }
+    const r = cotizarCalc(ancho, alto);
+    prev.style.display = '';
+    document.getElementById('c-prev-area').textContent     = r.areaCob.toFixed(4) + ' m²' + (r.esMinimo ? ' (mín)' : '');
+    document.getElementById('c-prev-costo').textContent    = formatPeso(r.costo);
+    document.getElementById('c-prev-venta').textContent    = formatPeso(r.venta);
+    document.getElementById('c-prev-ganancia').textContent = formatPeso(r.ganancia);
+    document.getElementById('c-prev-minimo').style.display = r.esMinimo ? '' : 'none';
+}
+
+function agregarVinilo() {
+    const ancho = parseFloat(document.getElementById('c-ancho').value);
+    const alto  = parseFloat(document.getElementById('c-alto').value);
+    if (!ancho || !alto || ancho <= 0 || alto <= 0) return;
+    const desc = document.getElementById('c-desc').value.trim() || '—';
+    const r    = cotizarCalc(ancho, alto);
+    cotizadorPiezas.push({ ancho, alto, desc, ...r });
+    document.getElementById('c-ancho').value = '';
+    document.getElementById('c-alto').value  = '';
+    document.getElementById('c-desc').value  = '';
+    document.getElementById('c-preview').style.display = 'none';
+    renderCotizador();
+}
+
+function limpiarCotizador() {
+    document.getElementById('c-ancho').value = '';
+    document.getElementById('c-alto').value  = '';
+    document.getElementById('c-desc').value  = '';
+    document.getElementById('c-preview').style.display = 'none';
+}
+
+function vaciarCotizador() {
+    cotizadorPiezas = [];
+    renderCotizador();
+}
+
+function renderCotizador() {
+    const wrap = document.getElementById('c-lista-wrap');
+    if (!cotizadorPiezas.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+
+    document.getElementById('c-tabla-body').innerHTML = cotizadorPiezas.map((p, i) => `
+        <tr>
+            <td>${esc(p.desc)}</td>
+            <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
+            <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
+            <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
+            <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
+            <td class="text-bold">${formatPeso(p.ganancia)}</td>
+            <td><button class="delete-row-btn" onclick="quitarVinilo(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+        </tr>`).join('');
+
+    const totCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
+    const totVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
+    const totGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
+    const pctMargen   = Math.round((totGanancia / totVenta) * 100);
+
+    document.getElementById('c-totales').innerHTML = `
+        <div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total costo</div>
+            <div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totCosto)}</div>
+        </div>
+        <div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total venta</div>
+            <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVenta)}</div>
+        </div>
+        <div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia · ${pctMargen}% margen</div>
+            <div style="font-size:22px;font-weight:700">${formatPeso(totGanancia)}</div>
+        </div>`;
+}
+
+function quitarVinilo(i) {
+    cotizadorPiezas.splice(i, 1);
+    renderCotizador();
+}
+
+async function copiarCotizacion() {
+    if (!cotizadorPiezas.length) return;
+    const totVenta = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
+    let texto = 'Cotización de vinilo — Amanda Gráficos\n\n';
+    cotizadorPiezas.forEach(p => {
+        const desc = p.desc !== '—' ? p.desc + ' — ' : '';
+        texto += `▸ ${desc}${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
+    });
+    texto += `\nTotal: ${formatPeso(totVenta)}`;
+
+    const btn = document.getElementById('c-copiar-btn');
+    try {
+        await navigator.clipboard.writeText(texto);
+        btn.textContent = '✓ Copiado';
+        btn.style.background = '#16a34a';
+        setTimeout(() => {
+            btn.textContent = '📋 Copiar cotización para cliente';
+            btn.style.background = '';
+        }, 2000);
+    } catch {
+        btn.textContent = 'Error al copiar';
+        setTimeout(() => { btn.textContent = '📋 Copiar cotización para cliente'; }, 2000);
+    }
+}
+
+// ─── STOCK ────────────────────────────────────────────────────────────────────
+
+function renderStockTable() {
+    const el = document.getElementById('stock-table');
+    if (!allStock.length) {
+        el.innerHTML = '<div class="empty-state">No hay ítems cargados</div>';
+        return;
+    }
+    el.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Fecha compra</th>
+                    <th>Notas</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allStock.map(s => `
+                <tr>
+                    <td class="text-bold">${esc(s.nombre)}</td>
+                    <td>${s.cantidad}</td>
+                    <td>${s.precio ? formatPeso(s.precio) : '<span class="text-gray">—</span>'}</td>
+                    <td>${s.fecha_compra ? formatDate(s.fecha_compra) : '<span class="text-gray">—</span>'}</td>
+                    <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="text-gray">${esc(s.notas || '—')}</td>
+                    <td><button class="delete-row-btn" onclick="deleteRowStock('${s.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+                    <td><button class="delete-row-btn" onclick="editStock('${s.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function resetStockForm() {
+    document.getElementById('stock-id').value = '';
+    document.getElementById('stock-form-title').textContent = 'Nuevo ítem';
+    document.getElementById('btn-delete-stock').style.display = 'none';
+    document.getElementById('stock-form-error').style.display = 'none';
+    document.getElementById('s-nombre').value   = '';
+    document.getElementById('s-cantidad').value = '1';
+    document.getElementById('s-precio').value   = '';
+    document.getElementById('s-fecha').value    = '';
+    document.getElementById('s-notas').value    = '';
+}
+
+function cancelStockForm() {
+    showView(document.getElementById('stock-id').value ? 'stock' : 'stock');
+}
+
+function editStock(id) {
+    const s = allStock.find(x => x.id === id);
+    if (!s) return;
+    showView('nuevo-stock');
+    document.getElementById('stock-form-title').textContent = 'Editar ítem';
+    document.getElementById('stock-id').value   = s.id;
+    document.getElementById('s-nombre').value   = s.nombre || '';
+    document.getElementById('s-cantidad').value = s.cantidad || 1;
+    document.getElementById('s-precio').value   = s.precio || '';
+    document.getElementById('s-fecha').value    = s.fecha_compra || '';
+    document.getElementById('s-notas').value    = s.notas || '';
+    document.getElementById('btn-delete-stock').style.display = 'inline-flex';
+}
+
+async function saveStock() {
+    const id     = document.getElementById('stock-id').value;
+    const nombre = document.getElementById('s-nombre').value.trim();
+    const cantidad = parseInt(document.getElementById('s-cantidad').value) || 1;
+    const errEl  = document.getElementById('stock-form-error');
+
+    if (!nombre) {
+        errEl.textContent = 'El nombre es obligatorio.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const btnGuardar = document.getElementById('btn-guardar-stock');
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
+    const payload = {
+        nombre,
+        cantidad,
+        precio:       parseFloat(document.getElementById('s-precio').value) || null,
+        fecha_compra: document.getElementById('s-fecha').value || null,
+        notas:        document.getElementById('s-notas').value.trim() || null,
+    };
+
+    const { error } = id
+        ? await sb.from('stock').update(payload).eq('id', id)
+        : await sb.from('stock').insert(payload);
+
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar ítem';
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('stock');
+}
+
+async function deleteStock() {
+    const id = document.getElementById('stock-id').value;
+    if (!id || !confirm('¿Eliminar este ítem? Esta acción no se puede deshacer.')) return;
+
+    const btnDelete = document.getElementById('btn-delete-stock');
+    btnDelete.disabled = true;
+    btnDelete.textContent = 'Eliminando...';
+
+    const { error } = await sb.from('stock').delete().eq('id', id);
+
+    btnDelete.disabled = false;
+    btnDelete.textContent = 'Eliminar';
+
+    if (error) {
+        const errEl = document.getElementById('stock-form-error');
+        errEl.textContent = 'No se pudo eliminar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('stock');
+}
+
+async function deleteRowStock(id) {
+    if (!confirm('¿Eliminar este ítem?')) return;
+    await sb.from('stock').delete().eq('id', id);
+    await loadAll();
+    renderStockTable();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function formatPeso(n) {
+    return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function formatDate(d) {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+}
+
+function estadoLabel(key) {
+    return ESTADOS.find(e => e.key === key)?.label || key;
+}
+
+const ORIGENES = { web: 'Web', instagram: 'Instagram', recomendacion: 'Recomendación' };
+function origenLabel(key) {
+    if (!key) return '<span class="text-gray">—</span>';
+    return `<span class="text-gray" style="font-size:12px">${ORIGENES[key] || key}</span>`;
+}
+
+function esc(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+checkAuth();
+</script>
+</body>
+</html>
