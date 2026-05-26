@@ -7,6 +7,7 @@
     <link rel="apple-touch-icon" href="amanda graficos png.png">
     <title>Amanda Gráficos — Gestión</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -93,6 +94,7 @@
 
         .nav-btn:hover { background: rgba(255,255,255,0.08); color: var(--white); }
         .nav-btn.active { background: var(--yellow); color: var(--black); }
+        .nav-btn svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 7px; flex-shrink: 0; }
 
         .logout-btn {
             background: none;
@@ -293,6 +295,7 @@
         }
 
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
         .btn-primary { background: var(--black); color: var(--white); border-color: var(--black); }
         .btn-primary:hover:not(:disabled) { background: #333; border-color: #333; }
@@ -481,14 +484,14 @@
             <img src="amanda%20graficos%20png.png" alt="Amanda Gráficos" style="width:140px;display:block;margin-bottom:4px">
         </div>
         <nav>
-            <button class="nav-btn active" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
-            <button class="nav-btn" data-view="pedidos" onclick="showView('pedidos')">📋 Pedidos</button>
-            <button class="nav-btn" data-view="nuevo" onclick="showView('nuevo')">＋ Nuevo pedido</button>
-            <button class="nav-btn" data-view="gastos" onclick="showView('gastos')">💸 Gastos</button>
-            <button class="nav-btn" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')">＋ Nuevo gasto</button>
-            <button class="nav-btn" data-view="stock" onclick="showView('stock')">📦 Stock</button>
-            <button class="nav-btn" data-view="nuevo-stock" onclick="showView('nuevo-stock')">＋ Nuevo ítem</button>
-            <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')">📐 Cotizador vinilo</button>
+            <button class="nav-btn active" data-view="dashboard" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+            <button class="nav-btn" data-view="pedidos" onclick="showView('pedidos')"><i data-lucide="clipboard-list"></i> Pedidos</button>
+            <button class="nav-btn" data-view="nuevo" onclick="showView('nuevo')"><i data-lucide="plus-circle"></i> Nuevo pedido</button>
+            <button class="nav-btn" data-view="gastos" onclick="showView('gastos')"><i data-lucide="receipt"></i> Gastos</button>
+            <button class="nav-btn" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')"><i data-lucide="plus-circle"></i> Nuevo gasto</button>
+            <button class="nav-btn" data-view="stock" onclick="showView('stock')"><i data-lucide="package"></i> Stock</button>
+            <button class="nav-btn" data-view="nuevo-stock" onclick="showView('nuevo-stock')"><i data-lucide="plus-circle"></i> Nuevo ítem</button>
+            <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="ruler"></i> Cotizador vinilo</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -809,7 +812,7 @@
                     <div id="c-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
                     </div>
                     <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
-                        <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()">📋 Copiar cotización para cliente</button>
+                        <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()"><i data-lucide="copy"></i> Copiar cotización para cliente</button>
                     </div>
                 </div>
             </div>
@@ -1596,15 +1599,21 @@ async function copiarCotizacion() {
     const btn = document.getElementById('c-copiar-btn');
     try {
         await navigator.clipboard.writeText(texto);
-        btn.textContent = '✓ Copiado';
+        btn.innerHTML = '<i data-lucide="check"></i> Copiado';
         btn.style.background = '#16a34a';
+        lucide.createIcons({ nodes: [btn] });
         setTimeout(() => {
-            btn.textContent = '📋 Copiar cotización para cliente';
+            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización para cliente';
             btn.style.background = '';
+            lucide.createIcons({ nodes: [btn] });
         }, 2000);
     } catch {
-        btn.textContent = 'Error al copiar';
-        setTimeout(() => { btn.textContent = '📋 Copiar cotización para cliente'; }, 2000);
+        btn.innerHTML = '<i data-lucide="copy"></i> Error al copiar';
+        lucide.createIcons({ nodes: [btn] });
+        setTimeout(() => {
+            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización para cliente';
+            lucide.createIcons({ nodes: [btn] });
+        }, 2000);
     }
 }
 
@@ -1778,6 +1787,7 @@ function esc(str) {
 
 // ─── INIT ──────────────────────────────────────────────────────────────────────
 checkAuth();
+lucide.createIcons();
 </script>
 </body>
 </html>
