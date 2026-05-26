@@ -96,6 +96,34 @@
         .nav-btn.active { background: var(--yellow); color: var(--black); }
         .nav-btn svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 7px; flex-shrink: 0; }
 
+        .nav-group { display: flex; flex-direction: column; }
+        .nav-parent { display: flex; align-items: center; width: 100%; font-family: inherit; }
+        .nav-parent .nav-chevron { width: 14px !important; height: 14px !important; margin-left: auto; margin-right: 0 !important; transition: transform 0.2s; }
+        .nav-parent.open .nav-chevron { transform: rotate(90deg); }
+        .nav-sub { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; padding-left: 8px; }
+        .nav-sub.open { max-height: 200px; }
+        .nav-child { font-size: 13px !important; }
+
+        /* AUTOCOMPLETE */
+        .ac-wrap { position: relative; }
+        .ac-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+            background: var(--white); border: 1px solid var(--gray-200);
+            border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            max-height: 220px; overflow-y: auto; display: none;
+        }
+        .ac-dropdown.open { display: block; }
+        .ac-item {
+            padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            font-size: 14px; border-bottom: 1px solid var(--gray-100);
+        }
+        .ac-item:last-child { border-bottom: none; }
+        .ac-item:hover { background: var(--gray-100); }
+        .ac-item-name { font-weight: 600; }
+        .ac-item-sub { font-size: 12px; color: var(--gray-500); }
+        .badge-particular { background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 99px; }
+        .badge-empresa    { background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 99px; }
+
         .logout-btn {
             background: none;
             border: none;
@@ -484,13 +512,36 @@
             <img src="amanda%20graficos%20png.png" alt="Amanda Gráficos" style="width:140px;display:block;margin-bottom:4px">
         </div>
         <nav>
-            <button class="nav-btn active" data-view="dashboard" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-            <button class="nav-btn" data-view="pedidos" onclick="showView('pedidos')"><i data-lucide="clipboard-list"></i> Pedidos</button>
-            <button class="nav-btn" data-view="nuevo" onclick="showView('nuevo')"><i data-lucide="plus-circle"></i> Nuevo pedido</button>
-            <button class="nav-btn" data-view="gastos" onclick="showView('gastos')"><i data-lucide="receipt"></i> Gastos</button>
-            <button class="nav-btn" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')"><i data-lucide="plus-circle"></i> Nuevo gasto</button>
-            <button class="nav-btn" data-view="stock" onclick="showView('stock')"><i data-lucide="package"></i> Stock</button>
-            <button class="nav-btn" data-view="nuevo-stock" onclick="showView('nuevo-stock')"><i data-lucide="plus-circle"></i> Nuevo ítem</button>
+            <button class="nav-btn" data-view="dashboard" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+
+            <div class="nav-group">
+                <button class="nav-btn nav-parent" data-group="pedidos" onclick="navGroupClick('pedidos')"><i data-lucide="clipboard-list"></i> Pedidos<i data-lucide="chevron-right" class="nav-chevron"></i></button>
+                <div class="nav-sub" id="group-pedidos">
+                    <button class="nav-btn nav-child" data-view="nuevo" onclick="showView('nuevo')"><i data-lucide="plus-circle"></i> Nuevo pedido</button>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <button class="nav-btn nav-parent" data-group="gastos" onclick="navGroupClick('gastos')"><i data-lucide="receipt"></i> Gastos<i data-lucide="chevron-right" class="nav-chevron"></i></button>
+                <div class="nav-sub" id="group-gastos">
+                    <button class="nav-btn nav-child" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')"><i data-lucide="plus-circle"></i> Nuevo gasto</button>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <button class="nav-btn nav-parent" data-group="stock" onclick="navGroupClick('stock')"><i data-lucide="package"></i> Stock<i data-lucide="chevron-right" class="nav-chevron"></i></button>
+                <div class="nav-sub" id="group-stock">
+                    <button class="nav-btn nav-child" data-view="nuevo-stock" onclick="showView('nuevo-stock')"><i data-lucide="plus-circle"></i> Nuevo ítem</button>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <button class="nav-btn nav-parent" data-group="clientes" onclick="navGroupClick('clientes')"><i data-lucide="users"></i> Clientes<i data-lucide="chevron-right" class="nav-chevron"></i></button>
+                <div class="nav-sub" id="group-clientes">
+                    <button class="nav-btn nav-child" data-view="nuevo-cliente" onclick="showView('nuevo-cliente')"><i data-lucide="plus-circle"></i> Nuevo cliente</button>
+                </div>
+            </div>
+
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="ruler"></i> Cotizador vinilo</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
@@ -572,10 +623,14 @@
             </div>
             <div class="form-card">
                 <input type="hidden" id="pedido-id">
+                <input type="hidden" id="f-cliente-id">
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nombre del cliente *</label>
-                        <input type="text" id="f-nombre" placeholder="Ej: Sofía Napoli">
+                        <div class="ac-wrap">
+                            <input type="text" id="f-nombre" placeholder="Ej: Sofía Napoli" oninput="acBuscarCliente(this.value)" autocomplete="off">
+                            <div class="ac-dropdown" id="ac-dropdown"></div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>WhatsApp</label>
@@ -867,6 +922,67 @@
             </div>
         </div>
 
+        <!-- CLIENTES -->
+        <div id="view-clientes" class="view">
+            <div class="view-header">
+                <h2>Clientes</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo-cliente')">＋ Nuevo cliente</button>
+            </div>
+            <div class="table-wrap">
+                <div id="clientes-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO / EDITAR CLIENTE -->
+        <div id="view-nuevo-cliente" class="view">
+            <div class="view-header">
+                <h2 id="cliente-form-title">Nuevo cliente</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="cliente-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="cl-nombre" placeholder="Ej: Sofía Napoli">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de cliente</label>
+                        <input type="hidden" id="cl-tipo" value="particular">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="tipo-btn-particular" onclick="seleccionarTipoCliente('particular')">Particular</button>
+                            <button type="button" class="cobro-btn" id="tipo-btn-empresa" onclick="seleccionarTipoCliente('empresa')">Empresa</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="text" id="cl-whatsapp" placeholder="+54 9 341 375 4131">
+                    </div>
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <input type="text" id="cl-instagram" placeholder="@usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="cl-email" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="cl-direccion" placeholder="Ej: Mitre 1234, Rosario">
+                    </div>
+                    <div class="form-group full">
+                        <label>Notas</label>
+                        <textarea id="cl-notas" placeholder="Preferencias, detalles del cliente..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-cliente" onclick="saveCliente()">Guardar cliente</button>
+                    <button class="btn btn-ghost" id="btn-cancelar-cliente" onclick="cancelClienteForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-cliente" style="display:none;margin-left:auto" onclick="deleteCliente()">Eliminar</button>
+                </div>
+                <p id="cliente-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -893,6 +1009,7 @@ let currentFilter = 'todos';
 let allPedidos = [];
 let allGastos = [];
 let allStock = [];
+let allClientes = [];
 
 const CATEGORIAS_GASTO = {
     plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
@@ -948,20 +1065,41 @@ document.getElementById('login-password').addEventListener('keydown', e => {
 
 // ─── VIEWS ────────────────────────────────────────────────────────────────────
 
+const NAV_GROUPS = {
+    pedidos: 'pedidos', nuevo: 'pedidos',
+    gastos: 'gastos',   'nuevo-gasto': 'gastos',
+    stock: 'stock',     'nuevo-stock': 'stock',
+    clientes: 'clientes', 'nuevo-cliente': 'clientes',
+};
+
+function navGroupClick(groupName) {
+    showView(groupName);
+}
+
 function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-parent').forEach(b => b.classList.remove('active', 'open'));
+    document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
 
     document.getElementById('view-' + name).classList.add('active');
     document.querySelector(`.nav-btn[data-view="${name}"]`)?.classList.add('active');
 
-    if (name === 'nuevo')        resetForm();
-    if (name === 'pedidos')      renderPedidosTable();
-    if (name === 'dashboard')    renderDashboard();
-    if (name === 'gastos')       renderGastosTable();
-    if (name === 'nuevo-gasto')  resetGastoForm();
-    if (name === 'stock')        renderStockTable();
-    if (name === 'nuevo-stock')  resetStockForm();
+    const group = NAV_GROUPS[name];
+    if (group) {
+        document.querySelector(`.nav-parent[data-group="${group}"]`)?.classList.add('active', 'open');
+        document.getElementById('group-' + group)?.classList.add('open');
+    }
+
+    if (name === 'nuevo')          resetForm();
+    if (name === 'pedidos')        renderPedidosTable();
+    if (name === 'dashboard')      renderDashboard();
+    if (name === 'gastos')         renderGastosTable();
+    if (name === 'nuevo-gasto')    resetGastoForm();
+    if (name === 'stock')          renderStockTable();
+    if (name === 'nuevo-stock')    resetStockForm();
+    if (name === 'clientes')       renderClientesTable();
+    if (name === 'nuevo-cliente')  resetClienteForm();
 }
 
 function cancelForm() {
@@ -972,14 +1110,16 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
+        sb.from('clientes').select('*').order('nombre'),
     ]);
-    if (!resPedidos.error) allPedidos = resPedidos.data || [];
-    if (!resGastos.error)  allGastos  = resGastos.data  || [];
-    if (!resStock.error)   allStock   = resStock.data   || [];
+    if (!resPedidos.error)  allPedidos  = resPedidos.data  || [];
+    if (!resGastos.error)   allGastos   = resGastos.data   || [];
+    if (!resStock.error)    allStock    = resStock.data    || [];
+    if (!resClientes.error) allClientes = resClientes.data || [];
     renderDashboard();
 }
 
@@ -1114,13 +1254,15 @@ function setFilter(filter, btn) {
 // ─── FORM ─────────────────────────────────────────────────────────────────────
 
 function resetForm() {
-    document.getElementById('pedido-id').value = '';
+    document.getElementById('pedido-id').value    = '';
+    document.getElementById('f-cliente-id').value = '';
     document.getElementById('form-title').textContent = 'Nuevo pedido';
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
     ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio','f-fecha-retiro']
         .forEach(id => { document.getElementById(id).value = ''; });
-    document.getElementById('f-estado').value      = 'recibido';
+    document.getElementById('f-estado').value = 'recibido';
+    document.getElementById('ac-dropdown').classList.remove('open');
     seleccionarCargadoPor('Eli');
     seleccionarCobrado('false');
     seleccionarCobrador('Eli');
@@ -1135,6 +1277,7 @@ function editPedido(id) {
     showView('nuevo');
     document.getElementById('form-title').textContent   = 'Editar pedido';
     document.getElementById('pedido-id').value          = p.id;
+    document.getElementById('f-cliente-id').value       = p.cliente_id || '';
     document.getElementById('f-nombre').value           = p.cliente_nombre || '';
     document.getElementById('f-whatsapp').value         = p.cliente_whatsapp || '';
     document.getElementById('f-descripcion').value      = p.descripcion || '';
@@ -1173,9 +1316,21 @@ async function savePedido() {
     errEl.style.display = 'none';
     setFormLoading(true);
 
+    const whatsapp  = document.getElementById('f-whatsapp').value.trim() || null;
+    let clienteId   = document.getElementById('f-cliente-id').value || null;
+
+    // Si no hay cliente vinculado, crear uno automáticamente
+    if (!clienteId) {
+        const { data: nuevoCliente } = await sb.from('clientes')
+            .insert({ nombre, whatsapp, tipo: 'particular' })
+            .select().single();
+        if (nuevoCliente) clienteId = nuevoCliente.id;
+    }
+
     const payload = {
         cliente_nombre:       nombre,
-        cliente_whatsapp:     document.getElementById('f-whatsapp').value.trim() || null,
+        cliente_whatsapp:     whatsapp,
+        cliente_id:           clienteId,
         descripcion:          desc,
         estado:               document.getElementById('f-estado').value,
         precio_cliente:       parseFloat(document.getElementById('f-precio').value) || null,
@@ -1755,6 +1910,175 @@ async function deleteRowStock(id) {
     await loadAll();
     renderStockTable();
 }
+
+// ─── CLIENTES ─────────────────────────────────────────────────────────────────
+
+function renderClientesTable() {
+    const el = document.getElementById('clientes-table');
+    if (!allClientes.length) {
+        el.innerHTML = '<div class="empty-state">No hay clientes cargados</div>';
+        return;
+    }
+    el.innerHTML = `<table>
+        <thead><tr>
+            <th>Nombre</th><th>Tipo</th><th>WhatsApp</th><th>Instagram</th>
+            <th>Email</th><th>Dirección</th><th>Pedidos</th><th></th><th></th>
+        </tr></thead>
+        <tbody>
+        ${allClientes.map(c => {
+            const pedidos = allPedidos.filter(p => p.cliente_id === c.id).length;
+            return `<tr>
+                <td class="text-bold">${esc(c.nombre)}</td>
+                <td><span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Empresa' : 'Particular'}</span></td>
+                <td>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:inherit">${esc(c.whatsapp)}</a>` : '<span class="text-gray">—</span>'}</td>
+                <td>${c.instagram ? esc(c.instagram) : '<span class="text-gray">—</span>'}</td>
+                <td>${c.email ? esc(c.email) : '<span class="text-gray">—</span>'}</td>
+                <td>${c.direccion ? esc(c.direccion) : '<span class="text-gray">—</span>'}</td>
+                <td>${pedidos > 0 ? `<span class="text-bold">${pedidos}</span>` : '<span class="text-gray">0</span>'}</td>
+                <td><button class="delete-row-btn" onclick="deleteRowCliente('${c.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+                <td><button class="delete-row-btn" onclick="editCliente('${c.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
+            </tr>`;
+        }).join('')}
+        </tbody></table>`;
+}
+
+function resetClienteForm() {
+    document.getElementById('cliente-id').value = '';
+    document.getElementById('cliente-form-title').textContent = 'Nuevo cliente';
+    document.getElementById('btn-delete-cliente').style.display = 'none';
+    document.getElementById('cliente-form-error').style.display = 'none';
+    ['cl-nombre','cl-whatsapp','cl-instagram','cl-email','cl-direccion','cl-notas']
+        .forEach(id => { document.getElementById(id).value = ''; });
+    seleccionarTipoCliente('particular');
+}
+
+function editCliente(id) {
+    const c = allClientes.find(x => x.id === id);
+    if (!c) return;
+    showView('nuevo-cliente');
+    document.getElementById('cliente-form-title').textContent = 'Editar cliente';
+    document.getElementById('cliente-id').value     = c.id;
+    document.getElementById('cl-nombre').value      = c.nombre || '';
+    document.getElementById('cl-whatsapp').value    = c.whatsapp || '';
+    document.getElementById('cl-instagram').value   = c.instagram || '';
+    document.getElementById('cl-email').value       = c.email || '';
+    document.getElementById('cl-direccion').value   = c.direccion || '';
+    document.getElementById('cl-notas').value       = c.notas || '';
+    seleccionarTipoCliente(c.tipo || 'particular');
+    document.getElementById('btn-delete-cliente').style.display = 'inline-flex';
+}
+
+function cancelClienteForm() {
+    const prev = document.getElementById('cliente-id').value ? 'clientes' : 'clientes';
+    showView(prev);
+}
+
+function seleccionarTipoCliente(tipo) {
+    document.getElementById('cl-tipo').value = tipo;
+    document.getElementById('tipo-btn-particular').classList.toggle('cobro-btn-active', tipo === 'particular');
+    document.getElementById('tipo-btn-empresa').classList.toggle('cobro-btn-active', tipo === 'empresa');
+}
+
+async function saveCliente() {
+    const id     = document.getElementById('cliente-id').value;
+    const nombre = document.getElementById('cl-nombre').value.trim();
+    const errEl  = document.getElementById('cliente-form-error');
+    if (!nombre) {
+        errEl.textContent = 'El nombre es obligatorio.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+    const btn = document.getElementById('btn-guardar-cliente');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+
+    const payload = {
+        nombre,
+        tipo:      document.getElementById('cl-tipo').value,
+        whatsapp:  document.getElementById('cl-whatsapp').value.trim()  || null,
+        instagram: document.getElementById('cl-instagram').value.trim() || null,
+        email:     document.getElementById('cl-email').value.trim()     || null,
+        direccion: document.getElementById('cl-direccion').value.trim() || null,
+        notas:     document.getElementById('cl-notas').value.trim()     || null,
+    };
+
+    const { error } = id
+        ? await sb.from('clientes').update(payload).eq('id', id)
+        : await sb.from('clientes').insert(payload);
+
+    btn.disabled = false; btn.textContent = 'Guardar cliente';
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+    await loadAll();
+    showView('clientes');
+}
+
+async function deleteCliente() {
+    const id = document.getElementById('cliente-id').value;
+    if (!id || !confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+    const btn = document.getElementById('btn-delete-cliente');
+    btn.disabled = true; btn.textContent = 'Eliminando...';
+    const { error } = await sb.from('clientes').delete().eq('id', id);
+    btn.disabled = false; btn.textContent = 'Eliminar';
+    if (error) {
+        const errEl = document.getElementById('cliente-form-error');
+        errEl.textContent = 'No se pudo eliminar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+    await loadAll();
+    showView('clientes');
+}
+
+async function deleteRowCliente(id) {
+    if (!confirm('¿Eliminar este cliente?')) return;
+    await sb.from('clientes').delete().eq('id', id);
+    await loadAll();
+    renderClientesTable();
+}
+
+// ─── AUTOCOMPLETE ──────────────────────────────────────────────────────────────
+
+function acBuscarCliente(valor) {
+    document.getElementById('f-cliente-id').value = '';
+    const dd = document.getElementById('ac-dropdown');
+    const q  = valor.trim().toLowerCase();
+    if (!q) { dd.classList.remove('open'); return; }
+
+    const matches = allClientes
+        .filter(c => c.nombre.toLowerCase().includes(q))
+        .slice(0, 6);
+
+    if (!matches.length) { dd.classList.remove('open'); return; }
+
+    dd.innerHTML = matches.map(c => `
+        <div class="ac-item" onmousedown="acSeleccionar('${c.id}')">
+            <span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Empresa' : 'Particular'}</span>
+            <div>
+                <div class="ac-item-name">${esc(c.nombre)}</div>
+                ${c.whatsapp ? `<div class="ac-item-sub">${esc(c.whatsapp)}</div>` : ''}
+            </div>
+        </div>`).join('');
+    dd.classList.add('open');
+}
+
+function acSeleccionar(id) {
+    const c = allClientes.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('f-nombre').value     = c.nombre;
+    document.getElementById('f-whatsapp').value   = c.whatsapp || '';
+    document.getElementById('f-cliente-id').value = c.id;
+    document.getElementById('ac-dropdown').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.ac-wrap')) {
+        document.getElementById('ac-dropdown')?.classList.remove('open');
+    }
+});
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
