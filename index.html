@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="amanda graficos png.png">
     <title>Amanda Gráficos — Gestión</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -1482,18 +1483,22 @@ async function deleteGasto() {
 
 // ─── COTIZADOR VINILO ─────────────────────────────────────────────────────────
 
-const COTIZADOR_MIN_M2 = 0.05; // 1m × 5cm
+const COTIZADOR_MIN_LARGO_CM = 5; // mínimo 5cm de largo
 let cotizadorPiezas = [];
 
 function cotizarCalc(anchoCm, altoCm) {
-    const costoM2  = parseFloat(document.getElementById('c-costo-m2').value)  || 20000;
-    const multi    = parseFloat(document.getElementById('c-multiplicador').value) || 2.5;
-    const areaReal = (anchoCm / 100) * (altoCm / 100);
-    const areaCob  = Math.max(areaReal, COTIZADOR_MIN_M2);
-    const costo    = Math.round(areaCob * costoM2);
-    const venta    = Math.round(costo * multi);
-    const ganancia = venta - costo;
-    return { areaReal, areaCob, costo, venta, ganancia, esMinimo: areaReal < COTIZADOR_MIN_M2 };
+    const costoM2   = parseFloat(document.getElementById('c-costo-m2').value)    || 20000;
+    const multi     = parseFloat(document.getElementById('c-multiplicador').value) || 2.5;
+    // El rollo siempre mide 100cm de ancho; la dimensión más larga va a lo largo del rollo
+    const largoCm   = Math.max(anchoCm, altoCm);
+    const largoCob  = Math.max(largoCm, COTIZADOR_MIN_LARGO_CM);
+    const esMinimo  = largoCm < COTIZADOR_MIN_LARGO_CM;
+    // Área cobrada = 1m (ancho rollo) × largo cobrado
+    const areaCob   = 1.0 * (largoCob / 100);
+    const costo     = Math.round(areaCob * costoM2);
+    const venta     = Math.round(costo * multi);
+    const ganancia  = venta - costo;
+    return { largoCob, areaCob, costo, venta, ganancia, esMinimo };
 }
 
 function cotizarPreview() {
@@ -1503,7 +1508,7 @@ function cotizarPreview() {
     if (!ancho || !alto || ancho <= 0 || alto <= 0) { prev.style.display = 'none'; return; }
     const r = cotizarCalc(ancho, alto);
     prev.style.display = '';
-    document.getElementById('c-prev-area').textContent     = r.areaCob.toFixed(4) + ' m²' + (r.esMinimo ? ' (mín)' : '');
+    document.getElementById('c-prev-area').textContent     = '100 × ' + r.largoCob + ' cm (' + r.areaCob.toFixed(4) + ' m²)' + (r.esMinimo ? ' (mín)' : '');
     document.getElementById('c-prev-costo').textContent    = formatPeso(r.costo);
     document.getElementById('c-prev-venta').textContent    = formatPeso(r.venta);
     document.getElementById('c-prev-ganancia').textContent = formatPeso(r.ganancia);
