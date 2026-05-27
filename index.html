@@ -483,6 +483,93 @@
         }
 
         .error-msg { color: var(--red); font-size: 13px; margin-top: 8px; }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none; /* hidden by default; shown via JS only when logged in */
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: var(--black);
+            align-items: center;
+            padding: 0 16px;
+            z-index: 200;
+            gap: 12px;
+        }
+
+        .mobile-topbar-logo {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .mobile-topbar-logo span { color: var(--yellow); }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 155;
+        }
+        .sidebar-overlay.open { display: block; }
+
+        @media (max-width: 768px) {
+            .mobile-topbar { display: flex; }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                z-index: 160;
+            }
+            .sidebar.open { transform: translateX(0); }
+
+            .main {
+                margin-left: 0;
+                padding: 72px 16px 32px;
+            }
+
+            .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .card { padding: 16px; }
+            .card-value { font-size: 24px; }
+
+            .dashboard-grid { grid-template-columns: 1fr !important; }
+
+            .pipeline-stages { flex-wrap: wrap; gap: 12px; }
+            .pipeline-stage { min-width: calc(33% - 8px); }
+
+            .table-wrap { overflow-x: auto; }
+            table { min-width: 600px; }
+
+            .form-grid { grid-template-columns: 1fr; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-item.full { grid-column: 1; }
+
+            .modal { padding: 20px; width: calc(100% - 32px); margin: 16px; }
+
+            .view-header { flex-wrap: wrap; gap: 10px; }
+            .view-header h2 { font-size: 22px; }
+
+            .form-card { padding: 20px; }
+
+            .login-card { padding: 32px 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .pipeline-stage { min-width: calc(50% - 6px); }
+        }
     </style>
 </head>
 <body>
@@ -504,6 +591,15 @@
         <p id="login-error" class="error-msg" style="text-align:center;display:none"></p>
     </div>
 </div>
+
+<!-- MOBILE TOP BAR -->
+<div class="mobile-topbar" id="mobile-topbar" style="display:none">
+    <button class="hamburger-btn" onclick="toggleSidebar()">
+        <i data-lucide="menu"></i>
+    </button>
+    <span class="mobile-topbar-logo">Amanda <span>Gráficos</span></span>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- APP -->
 <div id="app">
@@ -575,7 +671,7 @@
                 </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px">
+            <div class="dashboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px">
                 <div class="pipeline">
                     <div class="pipeline-title">Pipeline de producción</div>
                     <div class="pipeline-stages" id="pipeline-stages"></div>
@@ -1029,11 +1125,13 @@ async function checkAuth() {
 function showLogin() {
     document.getElementById('view-login').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
+    document.getElementById('mobile-topbar').style.display = 'none';
 }
 
 function showApp() {
     document.getElementById('view-login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
+    document.getElementById('mobile-topbar').style.display = '';
     document.getElementById('dashboard-date').textContent =
         new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     loadAll();
@@ -1100,6 +1198,19 @@ function showView(name) {
     if (name === 'nuevo-stock')    resetStockForm();
     if (name === 'clientes')       renderClientesTable();
     if (name === 'nuevo-cliente')  resetClienteForm();
+    closeSidebar();
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('open', isOpen);
+}
+
+function closeSidebar() {
+    document.querySelector('.sidebar')?.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
 }
 
 function cancelForm() {
