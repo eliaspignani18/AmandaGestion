@@ -2157,12 +2157,15 @@ const ST_PRICE_TABLE = {
 let stCurrentSize = "Chico (5×5 cm)";
 let stCart = [];
 
+const ST_BOLSA = { "Chico (5×5 cm)": 200, "Mediano (10×10 cm)": 200, "Grande (15×15 cm)": 0 };
+
 function stCalcPrice(size, qty) {
     const table = ST_PRICE_TABLE[size];
     let tier = table[0];
     for (const t of table) { if (qty >= t.qty) tier = t; }
-    const total     = Math.round(tier.price / tier.qty * qty);
-    const listTotal = Math.round(tier.list  / tier.qty * qty);
+    const bolsa     = ST_BOLSA[size] || 0;
+    const total     = Math.round(tier.price / tier.qty * qty) + bolsa;
+    const listTotal = Math.round(tier.list  / tier.qty * qty) + bolsa;
     const pct       = Math.round((1 - (tier.price / tier.qty) / (tier.list / tier.qty)) * 100);
     return { total, listTotal, pct };
 }
