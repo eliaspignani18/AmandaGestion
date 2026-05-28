@@ -602,6 +602,7 @@
         .st-cart-item-price { font-weight: 700; font-size: 15px; min-width: 80px; text-align: right; }
         .st-cart-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-top: 1px solid var(--gray-200); flex-wrap: wrap; gap: 12px; }
         .st-cart-total { font-size: 16px; font-weight: 700; }
+        .st-bolsa-hint { font-size: 12px; color: var(--gray-500); }
     </style>
 </head>
 <body>
@@ -1077,11 +1078,14 @@
                             <input type="number" id="st-qty" value="10" min="1" oninput="stQtyInput()">
                             <button type="button" onclick="stQtyAdj(1)">+</button>
                         </div>
-                        <div class="st-price-display">
-                            <span class="st-price-off" id="st-off" style="display:none"></span>
-                            <span class="st-price-list" id="st-list" style="display:none"></span>
-                            <span class="st-price-val" id="st-price">$2.100</span>
-                            <span class="st-price-unit">en total</span>
+                        <div style="display:flex;flex-direction:column;gap:4px">
+                            <div class="st-price-display">
+                                <span class="st-price-off" id="st-off" style="display:none"></span>
+                                <span class="st-price-list" id="st-list" style="display:none"></span>
+                                <span class="st-price-val" id="st-price">$2.100</span>
+                                <span class="st-price-unit">en total</span>
+                            </div>
+                            <span class="st-bolsa-hint" id="st-bolsa-hint" style="display:none"></span>
                         </div>
                         <button class="btn btn-yellow" onclick="stAgregar()">＋ Agregar</button>
                     </div>
@@ -2167,15 +2171,16 @@ function stCalcPrice(size, qty) {
     const total     = Math.round(tier.price / tier.qty * qty) + bolsa;
     const listTotal = Math.round(tier.list  / tier.qty * qty) + bolsa;
     const pct       = Math.round((1 - (tier.price / tier.qty) / (tier.list / tier.qty)) * 100);
-    return { total, listTotal, pct };
+    return { total, listTotal, pct, bolsa };
 }
 
 function stUpdateDisplay() {
     const qty = Math.max(1, +document.getElementById('st-qty').value || 1);
     const r = stCalcPrice(stCurrentSize, qty);
     document.getElementById('st-price').textContent = formatPeso(r.total);
-    const offEl  = document.getElementById('st-off');
-    const listEl = document.getElementById('st-list');
+    const offEl    = document.getElementById('st-off');
+    const listEl   = document.getElementById('st-list');
+    const bolsaEl  = document.getElementById('st-bolsa-hint');
     if (r.pct > 0) {
         offEl.textContent  = r.pct + '% off';
         listEl.textContent = formatPeso(r.listTotal);
@@ -2184,6 +2189,12 @@ function stUpdateDisplay() {
     } else {
         offEl.style.display  = 'none';
         listEl.style.display = 'none';
+    }
+    if (r.bolsa > 0) {
+        bolsaEl.textContent  = '+ ' + formatPeso(r.bolsa) + ' bolsa incluida';
+        bolsaEl.style.display = '';
+    } else {
+        bolsaEl.style.display = 'none';
     }
 }
 
@@ -2236,10 +2247,11 @@ function stRenderCart() {
 
     itemsEl.innerHTML = stCart.map((item, i) => {
         const r = stCalcPrice(item.size, item.qty);
+        const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsa` : '';
         return `<div class="st-cart-item">
             <div class="st-cart-item-info">
                 <div class="st-cart-item-name">${esc(item.size)}</div>
-                <div class="st-cart-item-detail">${item.qty} unidades</div>
+                <div class="st-cart-item-detail">${item.qty} unidades${bolsaStr}</div>
             </div>
             <div class="st-cart-item-price">${formatPeso(r.total)}</div>
             <button class="delete-row-btn" onclick="stQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
