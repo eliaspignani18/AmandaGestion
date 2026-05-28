@@ -638,6 +638,13 @@
                 </div>
             </div>
 
+            <div class="nav-group">
+                <button class="nav-btn nav-parent" data-group="registro" onclick="navGroupClick('registro')"><i data-lucide="trending-up"></i> Registro<i data-lucide="chevron-right" class="nav-chevron"></i></button>
+                <div class="nav-sub" id="group-registro">
+                    <button class="nav-btn nav-child" data-view="nuevo-registro" onclick="showView('nuevo-registro')"><i data-lucide="plus-circle"></i> Nuevo registro</button>
+                </div>
+            </div>
+
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="ruler"></i> Cotizador vinilo</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
@@ -668,6 +675,21 @@
                 <div class="card">
                     <div class="card-label">Saldo real</div>
                     <div class="card-value" id="stat-saldo">—</div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+                <div class="card">
+                    <div class="card-label">Trabajos realizados</div>
+                    <div class="card-value" id="stat-trabajos">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Unidades entregadas</div>
+                    <div class="card-value" id="stat-unidades">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">m² producidos</div>
+                    <div class="card-value" id="stat-m2">—</div>
                 </div>
             </div>
 
@@ -776,6 +798,26 @@
                     <div class="form-group full">
                         <label>Notas internas</label>
                         <textarea id="f-notas" placeholder="Cualquier detalle extra..."></textarea>
+                    </div>
+                    <div class="form-group full" style="margin-top:4px">
+                        <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;border-top:1px solid var(--gray-200);padding-top:16px">Registro de producción</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de producto</label>
+                        <input type="text" id="f-tipo-producto" placeholder="Ej: stickers, planchitas, lona...">
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad</label>
+                        <input type="number" id="f-cantidad" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Ancho del trabajo (cm)</label>
+                        <input type="number" id="f-ancho-cm" placeholder="0" step="0.1" min="0" oninput="calcularArea()">
+                    </div>
+                    <div class="form-group">
+                        <label>Alto del trabajo (cm)</label>
+                        <input type="number" id="f-alto-cm" placeholder="0" step="0.1" min="0" oninput="calcularArea()">
+                        <span id="f-area-preview" style="font-size:12px;color:var(--gray-500);margin-top:2px"></span>
                     </div>
                     <div class="form-group">
                         <label>Cargado por</label>
@@ -1079,6 +1121,73 @@
             </div>
         </div>
 
+        <!-- REGISTRO DE PRODUCCIÓN -->
+        <div id="view-registro" class="view">
+            <div class="view-header">
+                <h2>Registro de producción</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo-registro')">＋ Nuevo registro</button>
+            </div>
+            <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+                <div class="card">
+                    <div class="card-label">Total m² impresos</div>
+                    <div class="card-value" id="reg-stat-m2">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Total stickers</div>
+                    <div class="card-value" id="reg-stat-stickers">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Pedidos entregados</div>
+                    <div class="card-value" id="reg-stat-pedidos">—</div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div id="registro-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO REGISTRO / EDITAR -->
+        <div id="view-nuevo-registro" class="view">
+            <div class="view-header">
+                <h2 id="registro-form-title">Nuevo registro</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="registro-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="r-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Cargado por</label>
+                        <input type="hidden" id="r-cargado-por" value="Eli">
+                        <div style="display:flex;gap:8px">
+                            <button type="button" class="cobro-btn cobro-btn-active" id="reg-btn-eli" onclick="seleccionarRegCargadoPor('Eli')">Eli</button>
+                            <button type="button" class="cobro-btn" id="reg-btn-sofi" onclick="seleccionarRegCargadoPor('Sofi')">Sofi</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>m² de vinilo impresos</label>
+                        <input type="number" id="r-m2" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad de stickers</label>
+                        <input type="number" id="r-stickers" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group full">
+                        <label>Notas</label>
+                        <textarea id="r-notas" placeholder="Detalles del registro..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-registro" onclick="saveRegistro()">Guardar registro</button>
+                    <button class="btn btn-ghost" id="btn-cancelar-registro" onclick="cancelRegistroForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-registro" style="display:none;margin-left:auto" onclick="deleteRegistro()">Eliminar</button>
+                </div>
+                <p id="registro-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -1106,6 +1215,7 @@ let allPedidos = [];
 let allGastos = [];
 let allStock = [];
 let allClientes = [];
+let allRegistros = [];
 
 const CATEGORIAS_GASTO = {
     plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
@@ -1168,6 +1278,7 @@ const NAV_GROUPS = {
     gastos: 'gastos',   'nuevo-gasto': 'gastos',
     stock: 'stock',     'nuevo-stock': 'stock',
     clientes: 'clientes', 'nuevo-cliente': 'clientes',
+    registro: 'registro', 'nuevo-registro': 'registro',
 };
 
 function navGroupClick(groupName) {
@@ -1189,15 +1300,17 @@ function showView(name) {
         document.getElementById('group-' + group)?.classList.add('open');
     }
 
-    if (name === 'nuevo')          resetForm();
-    if (name === 'pedidos')        renderPedidosTable();
-    if (name === 'dashboard')      renderDashboard();
-    if (name === 'gastos')         renderGastosTable();
-    if (name === 'nuevo-gasto')    resetGastoForm();
-    if (name === 'stock')          renderStockTable();
-    if (name === 'nuevo-stock')    resetStockForm();
-    if (name === 'clientes')       renderClientesTable();
-    if (name === 'nuevo-cliente')  resetClienteForm();
+    if (name === 'nuevo')           resetForm();
+    if (name === 'pedidos')         renderPedidosTable();
+    if (name === 'dashboard')       renderDashboard();
+    if (name === 'gastos')          renderGastosTable();
+    if (name === 'nuevo-gasto')     resetGastoForm();
+    if (name === 'stock')           renderStockTable();
+    if (name === 'nuevo-stock')     resetStockForm();
+    if (name === 'clientes')        renderClientesTable();
+    if (name === 'nuevo-cliente')   resetClienteForm();
+    if (name === 'registro')        renderRegistroView();
+    if (name === 'nuevo-registro')  resetRegistroForm();
     closeSidebar();
 }
 
@@ -1221,16 +1334,18 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock, resClientes] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes, resRegistros] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
         sb.from('clientes').select('*').order('nombre'),
+        sb.from('registro_produccion').select('*').order('fecha', { ascending: false }),
     ]);
-    if (!resPedidos.error)  allPedidos  = resPedidos.data  || [];
-    if (!resGastos.error)   allGastos   = resGastos.data   || [];
-    if (!resStock.error)    allStock    = resStock.data    || [];
-    if (!resClientes.error) allClientes = resClientes.data || [];
+    if (!resPedidos.error)   allPedidos   = resPedidos.data   || [];
+    if (!resGastos.error)    allGastos    = resGastos.data    || [];
+    if (!resStock.error)     allStock     = resStock.data     || [];
+    if (!resClientes.error)  allClientes  = resClientes.data  || [];
+    if (!resRegistros.error) allRegistros = resRegistros.data || [];
     renderDashboard();
 }
 
@@ -1251,6 +1366,18 @@ function renderDashboard() {
     const saldoEl = document.getElementById('stat-saldo');
     saldoEl.textContent = formatPeso(saldo);
     saldoEl.className   = 'card-value ' + (saldo >= 0 ? 'green' : 'red');
+
+    const entregados = allPedidos.filter(p => p.estado === 'entregado');
+    const totalUnidades = entregados.reduce((s, p) => s + (p.cantidad || 0), 0);
+    const totalM2 = entregados.reduce((s, p) => {
+        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm / 10000);
+        return s;
+    }, 0);
+    document.getElementById('stat-trabajos').textContent = entregados.length;
+    document.getElementById('stat-unidades').textContent = totalUnidades.toLocaleString('es-AR');
+    document.getElementById('stat-m2').textContent = totalM2 > 0
+        ? totalM2.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '0';
 
     // Balance por persona:
     // cobros cobrados por Eli/Sofi → tienen plata de Amanda → le deben a Amanda (positivo)
@@ -1370,8 +1497,10 @@ function resetForm() {
     document.getElementById('form-title').textContent = 'Nuevo pedido';
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
-    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio','f-fecha-retiro']
+    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio','f-fecha-retiro',
+     'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm']
         .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('f-area-preview').textContent = '';
     document.getElementById('f-estado').value = 'recibido';
     document.getElementById('ac-dropdown').classList.remove('open');
     seleccionarCargadoPor('Eli');
@@ -1379,6 +1508,19 @@ function resetForm() {
     seleccionarCobrador('Eli');
     seleccionarOrigen('');
     document.getElementById('cobrado-por-group').style.display = 'none';
+}
+
+function calcularArea() {
+    const ancho = parseFloat(document.getElementById('f-ancho-cm').value) || 0;
+    const alto  = parseFloat(document.getElementById('f-alto-cm').value) || 0;
+    const el    = document.getElementById('f-area-preview');
+    if (ancho > 0 && alto > 0) {
+        const cm2 = ancho * alto;
+        const m2  = (cm2 / 10000).toFixed(4).replace(/\.?0+$/, '');
+        el.textContent = `= ${cm2.toLocaleString('es-AR')} cm² (${m2} m²)`;
+    } else {
+        el.textContent = '';
+    }
 }
 
 function editPedido(id) {
@@ -1398,6 +1540,11 @@ function editPedido(id) {
     seleccionarCobrador(p.cobrado_por || 'Eli');
     document.getElementById('f-fecha-retiro').value     = p.fecha_retiro_plotter || '';
     document.getElementById('f-notas').value            = p.notas || '';
+    document.getElementById('f-tipo-producto').value    = p.tipo_producto || '';
+    document.getElementById('f-cantidad').value         = p.cantidad != null ? p.cantidad : '';
+    document.getElementById('f-ancho-cm').value         = p.ancho_cm != null ? p.ancho_cm : '';
+    document.getElementById('f-alto-cm').value          = p.alto_cm != null ? p.alto_cm : '';
+    calcularArea();
     seleccionarCargadoPor(p.cargado_por || 'Eli');
     seleccionarOrigen(p.origen || '');
     document.getElementById('btn-delete').style.display = 'inline-flex';
@@ -1451,6 +1598,10 @@ async function savePedido() {
         notas:                document.getElementById('f-notas').value.trim() || null,
         cargado_por:          document.getElementById('f-cargado-por').value,
         origen:               document.getElementById('f-origen').value || null,
+        tipo_producto:        document.getElementById('f-tipo-producto').value.trim() || null,
+        cantidad:             parseInt(document.getElementById('f-cantidad').value) || null,
+        ancho_cm:             parseFloat(document.getElementById('f-ancho-cm').value) || null,
+        alto_cm:              parseFloat(document.getElementById('f-alto-cm').value) || null,
     };
 
     const { error } = id
@@ -2190,6 +2341,161 @@ document.addEventListener('click', e => {
         document.getElementById('ac-dropdown')?.classList.remove('open');
     }
 });
+
+// ─── REGISTRO DE PRODUCCIÓN ───────────────────────────────────────────────────
+
+function renderRegistroView() {
+    const totalM2       = allRegistros.reduce((s, r) => s + (r.m2_vinilo || 0), 0);
+    const totalStickers = allRegistros.reduce((s, r) => s + (r.cantidad_stickers || 0), 0);
+    const pedidosEntregados = allPedidos.filter(p => p.estado === 'entregado').length;
+
+    document.getElementById('reg-stat-m2').textContent       = totalM2.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' m²';
+    document.getElementById('reg-stat-stickers').textContent = totalStickers.toLocaleString('es-AR');
+    document.getElementById('reg-stat-pedidos').textContent  = pedidosEntregados;
+
+    const el = document.getElementById('registro-table');
+    if (!allRegistros.length) {
+        el.innerHTML = '<div class="empty-state">No hay registros cargados</div>';
+        return;
+    }
+    el.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>m² vinilo</th>
+                    <th>Stickers</th>
+                    <th>Notas</th>
+                    <th>Cargado por</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allRegistros.map(r => `
+                <tr>
+                    <td class="text-bold">${formatDate(r.fecha)}</td>
+                    <td>${r.m2_vinilo != null ? Number(r.m2_vinilo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' m²' : '<span class="text-gray">—</span>'}</td>
+                    <td>${r.cantidad_stickers != null ? r.cantidad_stickers.toLocaleString('es-AR') : '<span class="text-gray">—</span>'}</td>
+                    <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="text-gray">${esc(r.notas || '—')}</td>
+                    <td class="text-gray">${esc(r.cargado_por || '—')}</td>
+                    <td><button class="delete-row-btn" onclick="deleteRowRegistro('${r.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+                    <td><button class="delete-row-btn" onclick="editRegistro('${r.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function resetRegistroForm() {
+    document.getElementById('registro-id').value = '';
+    document.getElementById('registro-form-title').textContent = 'Nuevo registro';
+    document.getElementById('btn-delete-registro').style.display = 'none';
+    document.getElementById('registro-form-error').style.display = 'none';
+    document.getElementById('r-m2').value      = '';
+    document.getElementById('r-stickers').value = '';
+    document.getElementById('r-notas').value   = '';
+    document.getElementById('r-fecha').value   = new Date().toISOString().slice(0, 10);
+    seleccionarRegCargadoPor('Eli');
+}
+
+function seleccionarRegCargadoPor(quien) {
+    document.getElementById('r-cargado-por').value = quien;
+    document.getElementById('reg-btn-eli').classList.toggle('cobro-btn-active', quien === 'Eli');
+    document.getElementById('reg-btn-sofi').classList.toggle('cobro-btn-active', quien === 'Sofi');
+}
+
+function cancelRegistroForm() {
+    showView('registro');
+}
+
+function editRegistro(id) {
+    const r = allRegistros.find(x => x.id === id);
+    if (!r) return;
+    showView('nuevo-registro');
+    document.getElementById('registro-form-title').textContent = 'Editar registro';
+    document.getElementById('registro-id').value   = r.id;
+    document.getElementById('r-fecha').value       = r.fecha || '';
+    document.getElementById('r-m2').value          = r.m2_vinilo != null ? r.m2_vinilo : '';
+    document.getElementById('r-stickers').value    = r.cantidad_stickers != null ? r.cantidad_stickers : '';
+    document.getElementById('r-notas').value       = r.notas || '';
+    seleccionarRegCargadoPor(r.cargado_por || 'Eli');
+    document.getElementById('btn-delete-registro').style.display = 'inline-flex';
+}
+
+async function saveRegistro() {
+    const id    = document.getElementById('registro-id').value;
+    const fecha = document.getElementById('r-fecha').value;
+    const errEl = document.getElementById('registro-form-error');
+
+    if (!fecha) {
+        errEl.textContent = 'La fecha es obligatoria.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('btn-guardar-registro');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const m2Raw       = document.getElementById('r-m2').value;
+    const stickersRaw = document.getElementById('r-stickers').value;
+
+    const payload = {
+        fecha,
+        m2_vinilo:         m2Raw       !== '' ? parseFloat(m2Raw)     : null,
+        cantidad_stickers: stickersRaw !== '' ? parseInt(stickersRaw) : null,
+        notas:             document.getElementById('r-notas').value.trim() || null,
+        cargado_por:       document.getElementById('r-cargado-por').value,
+    };
+
+    const { error } = id
+        ? await sb.from('registro_produccion').update(payload).eq('id', id)
+        : await sb.from('registro_produccion').insert(payload);
+
+    btn.disabled = false;
+    btn.textContent = 'Guardar registro';
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('registro');
+}
+
+async function deleteRegistro() {
+    const id = document.getElementById('registro-id').value;
+    if (!id || !confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
+
+    const btn = document.getElementById('btn-delete-registro');
+    btn.disabled = true;
+    btn.textContent = 'Eliminando...';
+
+    const { error } = await sb.from('registro_produccion').delete().eq('id', id);
+
+    btn.disabled = false;
+    btn.textContent = 'Eliminar';
+
+    if (error) {
+        const errEl = document.getElementById('registro-form-error');
+        errEl.textContent = 'No se pudo eliminar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('registro');
+}
+
+async function deleteRowRegistro(id) {
+    if (!confirm('¿Eliminar este registro?')) return;
+    await sb.from('registro_produccion').delete().eq('id', id);
+    await loadAll();
+    renderRegistroView();
+}
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
