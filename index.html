@@ -1910,8 +1910,12 @@ let cotizadorPiezas = [];
 function cotizarCalc(anchoCm, altoCm) {
     const costoM2   = parseFloat(document.getElementById('c-costo-m2').value)    || 20000;
     const multi     = parseFloat(document.getElementById('c-multiplicador').value) || 2.5;
-    // El rollo siempre mide 100cm de ancho; la dimensión más larga va a lo largo del rollo
-    const largoCm   = Math.max(anchoCm, altoCm);
+    // El rollo mide 100cm de ancho. Si ambas dimensiones entran en el ancho,
+    // se orienta el lado más largo a lo ancho y el más corto es el largo (menos desperdicio).
+    // Si alguna dimensión supera 100cm, esa va como largo obligatoriamente.
+    const largoCm   = (anchoCm > 100 || altoCm > 100)
+        ? Math.max(anchoCm, altoCm)
+        : Math.min(anchoCm, altoCm);
     const largoCob  = Math.max(largoCm, COTIZADOR_MIN_LARGO_CM);
     const esMinimo  = largoCm < COTIZADOR_MIN_LARGO_CM;
     // Área cobrada = 1m (ancho rollo) × largo cobrado
