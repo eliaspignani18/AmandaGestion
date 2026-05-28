@@ -772,10 +772,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Fecha retiro del plotter</label>
-                        <input type="date" id="f-fecha-retiro">
-                    </div>
-                    <div class="form-group">
                         <label>Precio al cliente ($)</label>
                         <input type="number" id="f-precio" placeholder="0" step="1" min="0">
                     </div>
@@ -1437,7 +1433,6 @@ function buildTable(pedidos) {
                     <th>Estado</th>
                     <th>Precio</th>
                     <th>Cobrado</th>
-                    <th>Retiro plotter</th>
                     <th>Ingresado</th>
                     <th></th>
                     <th></th>
@@ -1466,7 +1461,6 @@ function buildTable(pedidos) {
                                    <button class="cobro-btn" onclick="marcarCobrado('${p.id}','Sofi')" style="margin-left:4px">Sofi</button>`
                             }
                         </td>
-                        <td>${p.fecha_retiro_plotter ? formatDate(p.fecha_retiro_plotter) : '<span class="text-gray">—</span>'}</td>
                         <td>${p.created_at ? fechaIngresado(p.created_at) : '<span class="text-gray">—</span>'}</td>
                         <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
                         <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
@@ -1499,7 +1493,7 @@ function resetForm() {
     document.getElementById('form-title').textContent = 'Nuevo pedido';
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
-    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio','f-fecha-retiro',
+    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio',
      'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm']
         .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('f-area-preview').textContent = '';
@@ -1540,7 +1534,6 @@ function editPedido(id) {
     document.getElementById('f-precio').value           = p.precio_cliente || '';
     seleccionarCobrado(p.cobrado ? 'true' : 'false');
     seleccionarCobrador(p.cobrado_por || 'Eli');
-    document.getElementById('f-fecha-retiro').value     = p.fecha_retiro_plotter || '';
     document.getElementById('f-notas').value            = p.notas || '';
     document.getElementById('f-tipo-producto').value    = p.tipo_producto || '';
     document.getElementById('f-cantidad').value         = p.cantidad != null ? p.cantidad : '';
@@ -1596,7 +1589,6 @@ async function savePedido() {
         precio_cliente:       parseFloat(document.getElementById('f-precio').value) || null,
         cobrado:              document.getElementById('f-cobrado').value === 'true',
         cobrado_por:          document.getElementById('f-cobrado').value === 'true' ? document.getElementById('f-cobrado-por').value : null,
-        fecha_retiro_plotter: document.getElementById('f-fecha-retiro').value || null,
         notas:                document.getElementById('f-notas').value.trim() || null,
         cargado_por:          document.getElementById('f-cargado-por').value,
         origen:               document.getElementById('f-origen').value || null,
