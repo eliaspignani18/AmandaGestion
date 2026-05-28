@@ -1438,6 +1438,7 @@ function buildTable(pedidos) {
                     <th>Precio</th>
                     <th>Cobrado</th>
                     <th>Retiro plotter</th>
+                    <th>Ingresado</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -1466,6 +1467,7 @@ function buildTable(pedidos) {
                             }
                         </td>
                         <td>${p.fecha_retiro_plotter ? formatDate(p.fecha_retiro_plotter) : '<span class="text-gray">—</span>'}</td>
+                        <td>${p.created_at ? fechaIngresado(p.created_at) : '<span class="text-gray">—</span>'}</td>
                         <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
                         <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
                     </tr>`).join('')}
@@ -2510,6 +2512,16 @@ function formatPeso(n) {
 function formatDate(d) {
     const [y, m, day] = d.split('-');
     return `${day}/${m}/${y}`;
+}
+
+function fechaIngresado(isoStr) {
+    const fecha = new Date(isoStr);
+    const hoy   = new Date();
+    const dias  = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
+    const dd    = String(fecha.getDate()).padStart(2, '0');
+    const mm    = String(fecha.getMonth() + 1).padStart(2, '0');
+    const etiq  = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias}d`;
+    return `<span style="font-size:12px">${dd}/${mm}</span><br><span style="font-size:11px;color:var(--gray-500)">${etiq}</span>`;
 }
 
 function estadoLabel(key) {
