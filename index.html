@@ -355,6 +355,13 @@
 
         .filter-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
 
+        .filters-extra { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; align-items:center; padding:12px 16px; background:var(--gray-50); border:1px solid var(--gray-200); border-radius:10px; }
+        .filter-input { border:1px solid var(--gray-300); border-radius:20px; padding:6px 14px; font-size:13px; font-family:inherit; outline:none; background:var(--white); color:var(--black); }
+        .filter-input:focus { border-color:var(--black); }
+        .filter-input[type="date"] { padding:5px 12px; }
+        .filter-group { display:flex; gap:6px; align-items:center; }
+        .filter-sep { width:1px; height:24px; background:var(--gray-200); margin:0 4px; }
+
         .cobro-btn {
             padding: 3px 10px;
             border-radius: 100px;
@@ -761,6 +768,22 @@
                 <button class="filter-btn" onclick="setFilter('cortar', this)">Falta cortar</button>
                 <button class="filter-btn" onclick="setFilter('listo', this)">Listo para entregar</button>
                 <button class="filter-btn" onclick="setFilter('entregado', this)">Entregado</button>
+            </div>
+            <div class="filters-extra">
+                <input type="text" id="filter-cliente" class="filter-input" placeholder="Buscar cliente..." oninput="renderPedidosTable()" style="width:180px">
+                <div class="filter-sep"></div>
+                <div class="filter-group">
+                    <button class="filter-btn active" id="fcob-todos" onclick="setFilterCobrado('todos',this)">Todos</button>
+                    <button class="filter-btn" id="fcob-si" onclick="setFilterCobrado('si',this)">Cobrado</button>
+                    <button class="filter-btn" id="fcob-no" onclick="setFilterCobrado('no',this)">No cobrado</button>
+                </div>
+                <div class="filter-sep"></div>
+                <div class="filter-group">
+                    <input type="date" id="filter-desde" class="filter-input" onchange="renderPedidosTable()" title="Desde">
+                    <span style="color:var(--gray-400);font-size:13px">→</span>
+                    <input type="date" id="filter-hasta" class="filter-input" onchange="renderPedidosTable()" title="Hasta">
+                </div>
+                <button class="btn btn-ghost" onclick="limpiarFiltrosExtra()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
             </div>
             <div class="table-wrap">
                 <div id="pedidos-table"></div>
@@ -1569,18 +1592,49 @@ function buildTable(pedidos) {
         </table>`;
 }
 
+let filterCobrado = 'todos';
+
 function renderPedidosTable() {
-    const list = currentFilter === 'todos'
+    let list = currentFilter === 'todos'
         ? allPedidos
         : allPedidos.filter(p => p.estado === currentFilter);
+
+    const clienteQ = (document.getElementById('filter-cliente')?.value || '').trim().toLowerCase();
+    if (clienteQ) list = list.filter(p => (p.cliente_nombre || '').toLowerCase().includes(clienteQ));
+
+    if (filterCobrado === 'si') list = list.filter(p => p.cobrado);
+    if (filterCobrado === 'no') list = list.filter(p => !p.cobrado);
+
+    const desde = document.getElementById('filter-desde')?.value;
+    const hasta  = document.getElementById('filter-hasta')?.value;
+    if (desde) list = list.filter(p => p.created_at && p.created_at.slice(0, 10) >= desde);
+    if (hasta)  list = list.filter(p => p.created_at && p.created_at.slice(0, 10) <= hasta);
+
     document.getElementById('pedidos-table').innerHTML =
-        list.length ? buildTable(list) : '<div class="empty-state">No hay pedidos en este estado</div>';
+        list.length ? buildTable(list) : '<div class="empty-state">No hay pedidos que coincidan</div>';
 }
 
 function setFilter(filter, btn) {
     currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.filters .filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    renderPedidosTable();
+}
+
+function setFilterCobrado(val, btn) {
+    filterCobrado = val;
+    document.querySelectorAll('#fcob-todos,#fcob-si,#fcob-no').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPedidosTable();
+}
+
+function limpiarFiltrosExtra() {
+    document.getElementById('filter-cliente').value = '';
+    document.getElementById('filter-desde').value   = '';
+    document.getElementById('filter-hasta').value   = '';
+    filterCobrado = 'todos';
+    document.querySelectorAll('#fcob-todos,#fcob-si,#fcob-no').forEach(b => b.classList.remove('active'));
+    document.getElementById('fcob-todos').classList.add('active');
     renderPedidosTable();
 }
 
