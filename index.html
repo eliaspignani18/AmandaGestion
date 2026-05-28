@@ -570,6 +570,38 @@
             .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .pipeline-stage { min-width: calc(50% - 6px); }
         }
+
+        /* COTIZADOR — secciones internas */
+        .cotiz-section { margin-bottom: 48px; }
+        .cotiz-section-title { font-size: 16px; font-weight: 700; color: var(--gray-700); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-200); max-width: 720px; }
+
+        /* COTIZADOR STICKERS */
+        .st-sizes { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .st-size-btn { flex: 1; min-width: 120px; padding: 14px 16px; border: 2px solid var(--gray-200); border-radius: 10px; background: var(--white); cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+        .st-size-btn--active { border-color: var(--black); background: var(--gray-50); }
+        .st-size-name { display: block; font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+        .st-size-dim { display: block; font-size: 12px; color: var(--gray-500); }
+        .st-presets { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .st-preset { padding: 6px 14px; border: 1px solid var(--gray-300); border-radius: 20px; background: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all .15s; font-family: inherit; }
+        .st-preset--active { background: var(--black); color: var(--white); border-color: var(--black); }
+        .st-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+        .st-qty-control { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 8px; overflow: hidden; }
+        .st-qty-control button { width: 36px; height: 40px; border: none; background: var(--gray-100); cursor: pointer; font-size: 18px; font-weight: 700; font-family: inherit; }
+        .st-qty-control input { width: 70px; height: 40px; border: none; border-left: 1px solid var(--gray-300); border-right: 1px solid var(--gray-300); text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; outline: none; background: var(--white); }
+        .st-price-display { display: flex; align-items: center; gap: 8px; }
+        .st-price-off { background: #dcfce7; color: #15803d; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+        .st-price-list { font-size: 16px; color: var(--gray-400); text-decoration: line-through; }
+        .st-price-val { font-size: 28px; font-weight: 800; }
+        .st-price-unit { font-size: 13px; color: var(--gray-500); }
+        .st-cart { border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; }
+        .st-cart-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+        .st-cart-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--gray-100); }
+        .st-cart-item-info { flex: 1; }
+        .st-cart-item-name { font-weight: 600; font-size: 14px; }
+        .st-cart-item-detail { font-size: 12px; color: var(--gray-500); }
+        .st-cart-item-price { font-weight: 700; font-size: 15px; min-width: 80px; text-align: right; }
+        .st-cart-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-top: 1px solid var(--gray-200); flex-wrap: wrap; gap: 12px; }
+        .st-cart-total { font-size: 16px; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -645,7 +677,7 @@
                 </div>
             </div>
 
-            <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="ruler"></i> Cotizador vinilo</button>
+            <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -905,103 +937,167 @@
             </div>
         </div>
 
-        <!-- COTIZADOR VINILO -->
+        <!-- COTIZADOR -->
         <div id="view-cotizador" class="view">
             <div class="view-header">
-                <h2>Cotizador de vinilo</h2>
+                <h2>Cotizador</h2>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
-                <div class="card">
-                    <div class="card-label">Costo plotter (por m²)</div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-                        <span style="font-size:18px;font-weight:700">$</span>
-                        <input type="number" id="c-costo-m2" value="20000" step="500" min="0"
-                            oninput="cotizarPreview()"
-                            style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+            <!-- Sección: Vinilo -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="ruler" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Vinilo</h3>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
+                    <div class="card">
+                        <div class="card-label">Costo plotter (por m²)</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="c-costo-m2" value="20000" step="500" min="0"
+                                oninput="cotizarPreview()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Multiplicador de venta</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <input type="number" id="c-multiplicador" value="2.5" step="0.1" min="1"
+                                oninput="cotizarPreview()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
+                            <span style="font-size:14px;color:var(--gray-500)">× costo</span>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-label">Multiplicador de venta</div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-                        <input type="number" id="c-multiplicador" value="2.5" step="0.1" min="1"
-                            oninput="cotizarPreview()"
-                            style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
-                        <span style="font-size:14px;color:var(--gray-500)">× costo</span>
+
+                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ancho (cm)</label>
+                            <input type="number" id="c-ancho" placeholder="100" step="1" min="1" oninput="cotizarPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Alto (cm)</label>
+                            <input type="number" id="c-alto" placeholder="5" step="1" min="1" oninput="cotizarPreview()">
+                        </div>
+                        <div class="form-group full">
+                            <label>Descripción (opcional)</label>
+                            <input type="text" id="c-desc" placeholder="Ej: Frente del local, vidrio lateral...">
+                        </div>
+                    </div>
+
+                    <div id="c-preview" style="display:none;margin-top:20px;padding:16px;background:var(--gray-100);border-radius:10px;border:1px solid var(--gray-200)">
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Área</div>
+                                <div id="c-prev-area" style="font-size:16px;font-weight:700"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Costo</div>
+                                <div id="c-prev-costo" style="font-size:16px;font-weight:700;color:#ea580c"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Precio venta</div>
+                                <div id="c-prev-venta" style="font-size:16px;font-weight:700;color:#16a34a"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia</div>
+                                <div id="c-prev-ganancia" style="font-size:16px;font-weight:700"></div>
+                            </div>
+                        </div>
+                        <div id="c-prev-minimo" style="display:none;margin-top:10px;font-size:12px;color:var(--gray-500)">
+                            ⚠ Mínimo facturable: 1m × 5cm (0.05 m²)
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-yellow" onclick="agregarVinilo()">＋ Agregar al pedido</button>
+                        <button class="btn btn-ghost" onclick="limpiarCotizador()">Limpiar</button>
+                    </div>
+                </div>
+
+                <div id="c-lista-wrap" style="display:none;max-width:720px">
+                    <div class="table-wrap">
+                        <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
+                            <h3>Piezas del pedido</h3>
+                            <button class="btn btn-ghost" style="font-size:12px" onclick="vaciarCotizador()">Vaciar todo</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th>Medidas</th>
+                                    <th>Área</th>
+                                    <th>Costo</th>
+                                    <th>Precio venta</th>
+                                    <th>Ganancia</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="c-tabla-body"></tbody>
+                        </table>
+                        <div id="c-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+                        </div>
+                        <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
+                            <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()"><i data-lucide="copy"></i> Copiar cotización para cliente</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-card" style="max-width:720px;margin-bottom:24px">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Ancho (cm)</label>
-                        <input type="number" id="c-ancho" placeholder="100" step="1" min="1" oninput="cotizarPreview()">
+            <!-- Sección: Stickers -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="tag" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Stickers</h3>
+
+                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                    <div class="st-sizes">
+                        <button class="st-size-btn st-size-btn--active" data-size="Chico (5×5 cm)" onclick="stSelectSize(this)">
+                            <span class="st-size-name">Chico</span>
+                            <span class="st-size-dim">5 × 5 cm</span>
+                        </button>
+                        <button class="st-size-btn" data-size="Mediano (10×10 cm)" onclick="stSelectSize(this)">
+                            <span class="st-size-name">Mediano</span>
+                            <span class="st-size-dim">10 × 10 cm</span>
+                        </button>
+                        <button class="st-size-btn" data-size="Grande (15×15 cm)" onclick="stSelectSize(this)">
+                            <span class="st-size-name">Grande</span>
+                            <span class="st-size-dim">15 × 15 cm</span>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>Alto (cm)</label>
-                        <input type="number" id="c-alto" placeholder="5" step="1" min="1" oninput="cotizarPreview()">
+
+                    <div class="st-presets">
+                        <button class="st-preset st-preset--active" data-qty="10" onclick="stSetPreset(this)">10</button>
+                        <button class="st-preset" data-qty="20" onclick="stSetPreset(this)">20</button>
+                        <button class="st-preset" data-qty="50" onclick="stSetPreset(this)">50</button>
+                        <button class="st-preset" data-qty="100" onclick="stSetPreset(this)">100</button>
+                        <button class="st-preset" data-qty="200" onclick="stSetPreset(this)">200</button>
                     </div>
-                    <div class="form-group full">
-                        <label>Descripción (opcional)</label>
-                        <input type="text" id="c-desc" placeholder="Ej: Frente del local, vidrio lateral...">
+
+                    <div class="st-row">
+                        <div class="st-qty-control">
+                            <button type="button" onclick="stQtyAdj(-1)">−</button>
+                            <input type="number" id="st-qty" value="10" min="1" oninput="stQtyInput()">
+                            <button type="button" onclick="stQtyAdj(1)">+</button>
+                        </div>
+                        <div class="st-price-display">
+                            <span class="st-price-off" id="st-off" style="display:none"></span>
+                            <span class="st-price-list" id="st-list" style="display:none"></span>
+                            <span class="st-price-val" id="st-price">$2.100</span>
+                            <span class="st-price-unit">en total</span>
+                        </div>
+                        <button class="btn btn-yellow" onclick="stAgregar()">＋ Agregar</button>
                     </div>
                 </div>
 
-                <div id="c-preview" style="display:none;margin-top:20px;padding:16px;background:var(--gray-100);border-radius:10px;border:1px solid var(--gray-200)">
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-                        <div>
-                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Área</div>
-                            <div id="c-prev-area" style="font-size:16px;font-weight:700"></div>
+                <div id="st-cart-wrap" style="display:none;max-width:720px">
+                    <div class="st-cart">
+                        <div class="st-cart-head">
+                            <strong>Pedido armado</strong>
+                            <button class="btn btn-ghost" style="font-size:12px" onclick="stVaciar()">Vaciar todo</button>
                         </div>
-                        <div>
-                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Costo</div>
-                            <div id="c-prev-costo" style="font-size:16px;font-weight:700;color:#ea580c"></div>
+                        <div id="st-items"></div>
+                        <div class="st-cart-foot">
+                            <div class="st-cart-total" id="st-total"></div>
+                            <button class="btn btn-primary" id="st-copiar-btn" onclick="stCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
                         </div>
-                        <div>
-                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Precio venta</div>
-                            <div id="c-prev-venta" style="font-size:16px;font-weight:700;color:#16a34a"></div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia</div>
-                            <div id="c-prev-ganancia" style="font-size:16px;font-weight:700"></div>
-                        </div>
-                    </div>
-                    <div id="c-prev-minimo" style="display:none;margin-top:10px;font-size:12px;color:var(--gray-500)">
-                        ⚠ Mínimo facturable: 1m × 5cm (0.05 m²)
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button class="btn btn-yellow" onclick="agregarVinilo()">＋ Agregar al pedido</button>
-                    <button class="btn btn-ghost" onclick="limpiarCotizador()">Limpiar</button>
-                </div>
-            </div>
-
-            <div id="c-lista-wrap" style="display:none;max-width:720px">
-                <div class="table-wrap">
-                    <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
-                        <h3>Piezas del pedido</h3>
-                        <button class="btn btn-ghost" style="font-size:12px" onclick="vaciarCotizador()">Vaciar todo</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Descripción</th>
-                                <th>Medidas</th>
-                                <th>Área</th>
-                                <th>Costo</th>
-                                <th>Precio venta</th>
-                                <th>Ganancia</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="c-tabla-body"></tbody>
-                    </table>
-                    <div id="c-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-                    </div>
-                    <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
-                        <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()"><i data-lucide="copy"></i> Copiar cotización para cliente</button>
                     </div>
                 </div>
             </div>
@@ -2031,6 +2127,165 @@ async function copiarCotizacion() {
         }, 2000);
     }
 }
+
+// ─── COTIZADOR STICKERS ──────────────────────────────────────────────────────
+
+const ST_PRICE_TABLE = {
+    "Chico (5×5 cm)": [
+        { qty: 10,  price: 2100,   list: 2500 },
+        { qty: 20,  price: 3700,   list: 5000 },
+        { qty: 50,  price: 9300,   list: 12500 },
+        { qty: 100, price: 17100,  list: 25000 },
+        { qty: 200, price: 33300,  list: 50000 },
+    ],
+    "Mediano (10×10 cm)": [
+        { qty: 10,  price: 6700,   list: 9900 },
+        { qty: 20,  price: 12600,  list: 19800 },
+        { qty: 50,  price: 31300,  list: 49500 },
+        { qty: 100, price: 59500,  list: 99000 },
+        { qty: 200, price: 112000, list: 198000 },
+    ],
+    "Grande (15×15 cm)": [
+        { qty: 10,  price: 14800,  list: 22000 },
+        { qty: 20,  price: 28000,  list: 44000 },
+        { qty: 50,  price: 60800,  list: 110000 },
+        { qty: 100, price: 115000, list: 220000 },
+        { qty: 200, price: 215300, list: 440000 },
+    ],
+};
+
+let stCurrentSize = "Chico (5×5 cm)";
+let stCart = [];
+
+function stCalcPrice(size, qty) {
+    const table = ST_PRICE_TABLE[size];
+    let tier = table[0];
+    for (const t of table) { if (qty >= t.qty) tier = t; }
+    const total     = Math.round(tier.price / tier.qty * qty);
+    const listTotal = Math.round(tier.list  / tier.qty * qty);
+    const pct       = Math.round((1 - (tier.price / tier.qty) / (tier.list / tier.qty)) * 100);
+    return { total, listTotal, pct };
+}
+
+function stUpdateDisplay() {
+    const qty = Math.max(1, +document.getElementById('st-qty').value || 1);
+    const r = stCalcPrice(stCurrentSize, qty);
+    document.getElementById('st-price').textContent = formatPeso(r.total);
+    const offEl  = document.getElementById('st-off');
+    const listEl = document.getElementById('st-list');
+    if (r.pct > 0) {
+        offEl.textContent  = r.pct + '% off';
+        listEl.textContent = formatPeso(r.listTotal);
+        offEl.style.display  = '';
+        listEl.style.display = '';
+    } else {
+        offEl.style.display  = 'none';
+        listEl.style.display = 'none';
+    }
+}
+
+function stQtyInput() {
+    const qty = +document.getElementById('st-qty').value;
+    document.querySelectorAll('.st-preset').forEach(b => b.classList.toggle('st-preset--active', +b.dataset.qty === qty));
+    stUpdateDisplay();
+}
+
+function stSelectSize(btn) {
+    document.querySelectorAll('.st-size-btn').forEach(b => b.classList.remove('st-size-btn--active'));
+    btn.classList.add('st-size-btn--active');
+    stCurrentSize = btn.dataset.size;
+    stUpdateDisplay();
+}
+
+function stSetPreset(btn) {
+    document.getElementById('st-qty').value = btn.dataset.qty;
+    document.querySelectorAll('.st-preset').forEach(b => b.classList.remove('st-preset--active'));
+    btn.classList.add('st-preset--active');
+    stUpdateDisplay();
+}
+
+function stQtyAdj(delta) {
+    const input = document.getElementById('st-qty');
+    input.value = Math.max(1, (+input.value || 1) + delta);
+    document.querySelectorAll('.st-preset').forEach(b => b.classList.toggle('st-preset--active', +b.dataset.qty === +input.value));
+    stUpdateDisplay();
+}
+
+function stAgregar() {
+    const qty = Math.max(1, +document.getElementById('st-qty').value || 1);
+    const existing = stCart.find(i => i.size === stCurrentSize);
+    if (existing) { existing.qty += qty; } else { stCart.push({ size: stCurrentSize, qty }); }
+    stRenderCart();
+}
+
+function stVaciar() {
+    stCart = [];
+    stRenderCart();
+}
+
+function stRenderCart() {
+    const wrap = document.getElementById('st-cart-wrap');
+    const itemsEl = document.getElementById('st-items');
+    const totalEl = document.getElementById('st-total');
+
+    if (!stCart.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+
+    itemsEl.innerHTML = stCart.map((item, i) => {
+        const r = stCalcPrice(item.size, item.qty);
+        return `<div class="st-cart-item">
+            <div class="st-cart-item-info">
+                <div class="st-cart-item-name">${esc(item.size)}</div>
+                <div class="st-cart-item-detail">${item.qty} unidades</div>
+            </div>
+            <div class="st-cart-item-price">${formatPeso(r.total)}</div>
+            <button class="delete-row-btn" onclick="stQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+        </div>`;
+    }).join('');
+
+    const grandTotal = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
+    totalEl.innerHTML = `<strong>${formatPeso(grandTotal)}</strong> · ${totalUnits} unidades`;
+}
+
+function stQuitarItem(i) {
+    stCart.splice(i, 1);
+    stRenderCart();
+}
+
+async function stCopiar() {
+    if (!stCart.length) return;
+    const grandTotal = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
+    let texto = 'Cotización de stickers — Amanda Gráficos\n\n';
+    stCart.forEach(item => {
+        const r = stCalcPrice(item.size, item.qty);
+        texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
+    });
+    texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(grandTotal)}`;
+
+    const btn = document.getElementById('st-copiar-btn');
+    try {
+        await navigator.clipboard.writeText(texto);
+        btn.innerHTML = '<i data-lucide="check"></i> Copiado';
+        btn.style.background = '#16a34a';
+        lucide.createIcons({ nodes: [btn] });
+        setTimeout(() => {
+            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización';
+            btn.style.background = '';
+            lucide.createIcons({ nodes: [btn] });
+        }, 2000);
+    } catch {
+        btn.innerHTML = '<i data-lucide="copy"></i> Error al copiar';
+        lucide.createIcons({ nodes: [btn] });
+        setTimeout(() => {
+            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización';
+            lucide.createIcons({ nodes: [btn] });
+        }, 2000);
+    }
+}
+
+stUpdateDisplay();
 
 // ─── STOCK ────────────────────────────────────────────────────────────────────
 
