@@ -724,7 +724,7 @@
                     <div class="card-value" id="stat-trabajos">—</div>
                 </div>
                 <div class="card">
-                    <div class="card-label">Unidades entregadas</div>
+                    <div class="card-label">Stickers impresos</div>
                     <div class="card-value" id="stat-unidades">—</div>
                 </div>
                 <div class="card">
@@ -1516,8 +1516,11 @@ function renderDashboard() {
     saldoEl.className   = 'card-value ' + (saldo >= 0 ? 'green' : 'red');
 
     const entregados = allPedidos.filter(p => p.estado === 'entregado');
-    const totalUnidades = entregados.reduce((s, p) => s + (p.cantidad || 0), 0);
-    const totalM2 = entregados.reduce((s, p) => {
+    const impresos   = allPedidos.filter(p => ['retirar','preparacion','cortar','listo','entregado'].includes(p.estado));
+    const totalUnidades = impresos
+        .filter(p => (p.tipo_producto || '').toLowerCase().includes('sticker'))
+        .reduce((s, p) => s + (p.cantidad || 0), 0);
+    const totalM2 = impresos.reduce((s, p) => {
         if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm * (p.cantidad || 1) / 10000);
         return s;
     }, 0);
