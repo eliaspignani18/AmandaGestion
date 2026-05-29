@@ -2744,12 +2744,13 @@ document.addEventListener('click', e => {
 // ─── REGISTRO DE PRODUCCIÓN ───────────────────────────────────────────────────
 
 function renderRegistroView() {
+    const impresos   = allPedidos.filter(p => ['retirar','preparacion','cortar','listo','entregado'].includes(p.estado));
     const entregados = allPedidos.filter(p => p.estado === 'entregado');
-    const totalM2 = entregados.reduce((s, p) => {
+    const totalM2 = impresos.reduce((s, p) => {
         if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm * (p.cantidad || 1) / 10000);
         return s;
     }, 0);
-    const totalStickers = entregados
+    const totalStickers = impresos
         .filter(p => (p.tipo_producto || '').toLowerCase().includes('sticker'))
         .reduce((s, p) => s + (p.cantidad || 0), 0);
     const pedidosEntregados = entregados.length;
