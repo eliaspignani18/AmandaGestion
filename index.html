@@ -2743,9 +2743,15 @@ document.addEventListener('click', e => {
 // ─── REGISTRO DE PRODUCCIÓN ───────────────────────────────────────────────────
 
 function renderRegistroView() {
-    const totalM2       = allRegistros.reduce((s, r) => s + (r.m2_vinilo || 0), 0);
-    const totalStickers = allRegistros.reduce((s, r) => s + (r.cantidad_stickers || 0), 0);
-    const pedidosEntregados = allPedidos.filter(p => p.estado === 'entregado').length;
+    const entregados = allPedidos.filter(p => p.estado === 'entregado');
+    const totalM2 = entregados.reduce((s, p) => {
+        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm / 10000);
+        return s;
+    }, 0);
+    const totalStickers = entregados
+        .filter(p => (p.tipo_producto || '').toLowerCase().includes('sticker'))
+        .reduce((s, p) => s + (p.cantidad || 0), 0);
+    const pedidosEntregados = entregados.length;
 
     document.getElementById('reg-stat-m2').textContent       = totalM2.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' m²';
     document.getElementById('reg-stat-stickers').textContent = totalStickers.toLocaleString('es-AR');
