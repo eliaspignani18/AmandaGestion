@@ -1518,7 +1518,7 @@ function renderDashboard() {
     const entregados = allPedidos.filter(p => p.estado === 'entregado');
     const totalUnidades = entregados.reduce((s, p) => s + (p.cantidad || 0), 0);
     const totalM2 = entregados.reduce((s, p) => {
-        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm / 10000);
+        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm * (p.cantidad || 1) / 10000);
         return s;
     }, 0);
     document.getElementById('stat-trabajos').textContent = entregados.length;
@@ -2745,7 +2745,7 @@ document.addEventListener('click', e => {
 function renderRegistroView() {
     const entregados = allPedidos.filter(p => p.estado === 'entregado');
     const totalM2 = entregados.reduce((s, p) => {
-        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm / 10000);
+        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm * (p.cantidad || 1) / 10000);
         return s;
     }, 0);
     const totalStickers = entregados
