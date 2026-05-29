@@ -860,7 +860,7 @@
                     </div>
                     <div class="form-group">
                         <label>Cantidad</label>
-                        <input type="number" id="f-cantidad" placeholder="0" step="1" min="0">
+                        <input type="number" id="f-cantidad" placeholder="0" step="1" min="0" oninput="calcularArea()">
                     </div>
                     <div class="form-group">
                         <label>Ancho del trabajo (cm)</label>
@@ -1721,11 +1721,12 @@ function resetForm() {
 }
 
 function calcularArea() {
-    const ancho = parseFloat(document.getElementById('f-ancho-cm').value) || 0;
-    const alto  = parseFloat(document.getElementById('f-alto-cm').value) || 0;
-    const el    = document.getElementById('f-area-preview');
+    const ancho    = parseFloat(document.getElementById('f-ancho-cm').value) || 0;
+    const alto     = parseFloat(document.getElementById('f-alto-cm').value) || 0;
+    const cantidad = parseInt(document.getElementById('f-cantidad').value)   || 1;
+    const el       = document.getElementById('f-area-preview');
     if (ancho > 0 && alto > 0) {
-        const cm2 = ancho * alto;
+        const cm2 = ancho * alto * cantidad;
         const m2  = (cm2 / 10000).toFixed(4).replace(/\.?0+$/, '');
         el.textContent = `= ${cm2.toLocaleString('es-AR')} cm² (${m2} m²)`;
     } else {
