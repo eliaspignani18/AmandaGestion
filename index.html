@@ -904,6 +904,22 @@
                 <h2>Gastos</h2>
                 <button class="btn btn-yellow" onclick="showView('nuevo-gasto')">＋ Nuevo gasto</button>
             </div>
+            <div class="filters">
+                <button class="filter-btn active" id="fg-todos"     onclick="setFilterGasto('todos',this)">Todos</button>
+                <button class="filter-btn"         id="fg-plotter"   onclick="setFilterGasto('plotter',this)">Plotter</button>
+                <button class="filter-btn"         id="fg-compras"   onclick="setFilterGasto('compras',this)">Compras</button>
+                <button class="filter-btn"         id="fg-insumos"   onclick="setFilterGasto('insumos',this)">Insumos</button>
+                <button class="filter-btn"         id="fg-packaging" onclick="setFilterGasto('packaging',this)">Packaging</button>
+                <button class="filter-btn"         id="fg-stock"     onclick="setFilterGasto('stock',this)">Stock</button>
+            </div>
+            <div class="filters-extra">
+                <div class="filter-group">
+                    <input type="date" id="filter-gasto-desde" class="filter-input" onchange="renderGastosTable()" title="Desde">
+                    <span style="color:var(--gray-400);font-size:13px">→</span>
+                    <input type="date" id="filter-gasto-hasta" class="filter-input" onchange="renderGastosTable()" title="Hasta">
+                </div>
+                <button class="btn btn-ghost" onclick="limpiarFiltrosGasto()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
+            </div>
             <div class="table-wrap">
                 <div id="gastos-table"></div>
             </div>
@@ -1185,6 +1201,16 @@
                 <h2>Clientes</h2>
                 <button class="btn btn-yellow" onclick="showView('nuevo-cliente')">＋ Nuevo cliente</button>
             </div>
+            <div class="filters-extra">
+                <input type="text" id="filter-cliente-nombre" class="filter-input" placeholder="Buscar por nombre..." oninput="renderClientesTable()" style="width:200px">
+                <div class="filter-sep"></div>
+                <div class="filter-group">
+                    <button class="filter-btn active" id="fct-todos"      onclick="setFilterClienteTipo('todos',this)">Todos</button>
+                    <button class="filter-btn"         id="fct-particular" onclick="setFilterClienteTipo('particular',this)">Particular</button>
+                    <button class="filter-btn"         id="fct-empresa"    onclick="setFilterClienteTipo('empresa',this)">Negocio</button>
+                </div>
+                <button class="btn btn-ghost" onclick="limpiarFiltrosClientes()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
+            </div>
             <div class="table-wrap">
                 <div id="clientes-table"></div>
             </div>
@@ -1207,7 +1233,7 @@
                         <input type="hidden" id="cl-tipo" value="particular">
                         <div style="display:flex;gap:8px">
                             <button type="button" class="cobro-btn cobro-btn-active" id="tipo-btn-particular" onclick="seleccionarTipoCliente('particular')">Particular</button>
-                            <button type="button" class="cobro-btn" id="tipo-btn-empresa" onclick="seleccionarTipoCliente('empresa')">Empresa</button>
+                            <button type="button" class="cobro-btn" id="tipo-btn-empresa" onclick="seleccionarTipoCliente('empresa')">Negocio</button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1335,6 +1361,9 @@ let allGastos = [];
 let allStock = [];
 let allClientes = [];
 let allRegistros = [];
+
+let filterGastoCategoria = 'todos';
+let filterClienteTipo = 'todos';
 
 const CATEGORIAS_GASTO = {
     plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
@@ -1638,6 +1667,37 @@ function limpiarFiltrosExtra() {
     renderPedidosTable();
 }
 
+function setFilterGasto(cat, btn) {
+    filterGastoCategoria = cat;
+    document.querySelectorAll('.filters [id^="fg-"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGastosTable();
+}
+
+function limpiarFiltrosGasto() {
+    filterGastoCategoria = 'todos';
+    document.querySelectorAll('.filters [id^="fg-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('fg-todos').classList.add('active');
+    document.getElementById('filter-gasto-desde').value = '';
+    document.getElementById('filter-gasto-hasta').value = '';
+    renderGastosTable();
+}
+
+function setFilterClienteTipo(tipo, btn) {
+    filterClienteTipo = tipo;
+    document.querySelectorAll('#fct-todos,#fct-particular,#fct-empresa').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderClientesTable();
+}
+
+function limpiarFiltrosClientes() {
+    filterClienteTipo = 'todos';
+    document.querySelectorAll('#fct-todos,#fct-particular,#fct-empresa').forEach(b => b.classList.remove('active'));
+    document.getElementById('fct-todos').classList.add('active');
+    document.getElementById('filter-cliente-nombre').value = '';
+    renderClientesTable();
+}
+
 
 // ─── FORM ─────────────────────────────────────────────────────────────────────
 
@@ -1876,8 +1936,17 @@ function seleccionarPagadoPor(quien) {
 
 function renderGastosTable() {
     const el = document.getElementById('gastos-table');
-    if (!allGastos.length) {
-        el.innerHTML = '<div class="empty-state">No hay gastos cargados</div>';
+    let list = filterGastoCategoria === 'todos'
+        ? allGastos
+        : allGastos.filter(g => g.categoria === filterGastoCategoria);
+
+    const desde = document.getElementById('filter-gasto-desde')?.value;
+    const hasta  = document.getElementById('filter-gasto-hasta')?.value;
+    if (desde) list = list.filter(g => g.fecha && g.fecha >= desde);
+    if (hasta)  list = list.filter(g => g.fecha && g.fecha <= hasta);
+
+    if (!list.length) {
+        el.innerHTML = '<div class="empty-state">No hay gastos que coincidan</div>';
         return;
     }
     el.innerHTML = `
@@ -1893,7 +1962,7 @@ function renderGastosTable() {
                 </tr>
             </thead>
             <tbody>
-                ${allGastos.map(g => {
+                ${list.map(g => {
                     const cat = CATEGORIAS_GASTO[g.categoria] || { label: g.categoria, badge: '' };
                     return `
                     <tr onclick="editGasto('${g.id}')" style="cursor:pointer">
@@ -2499,8 +2568,15 @@ async function deleteRowStock(id) {
 
 function renderClientesTable() {
     const el = document.getElementById('clientes-table');
-    if (!allClientes.length) {
-        el.innerHTML = '<div class="empty-state">No hay clientes cargados</div>';
+    let list = filterClienteTipo === 'todos'
+        ? allClientes
+        : allClientes.filter(c => (c.tipo || 'particular') === filterClienteTipo);
+
+    const nombreQ = (document.getElementById('filter-cliente-nombre')?.value || '').trim().toLowerCase();
+    if (nombreQ) list = list.filter(c => (c.nombre || '').toLowerCase().includes(nombreQ));
+
+    if (!list.length) {
+        el.innerHTML = '<div class="empty-state">No hay clientes que coincidan</div>';
         return;
     }
     el.innerHTML = `<table>
@@ -2509,11 +2585,11 @@ function renderClientesTable() {
             <th>Email</th><th>Dirección</th><th>Pedidos</th><th></th><th></th>
         </tr></thead>
         <tbody>
-        ${allClientes.map(c => {
+        ${list.map(c => {
             const pedidos = allPedidos.filter(p => p.cliente_id === c.id).length;
             return `<tr>
                 <td class="text-bold">${esc(c.nombre)}</td>
-                <td><span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Empresa' : 'Particular'}</span></td>
+                <td><span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Negocio' : 'Particular'}</span></td>
                 <td>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:inherit">${esc(c.whatsapp)}</a>` : '<span class="text-gray">—</span>'}</td>
                 <td>${c.instagram ? esc(c.instagram) : '<span class="text-gray">—</span>'}</td>
                 <td>${c.email ? esc(c.email) : '<span class="text-gray">—</span>'}</td>
@@ -2640,7 +2716,7 @@ function acBuscarCliente(valor) {
 
     dd.innerHTML = matches.map(c => `
         <div class="ac-item" onmousedown="acSeleccionar('${c.id}')">
-            <span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Empresa' : 'Particular'}</span>
+            <span class="badge-${c.tipo || 'particular'}">${c.tipo === 'empresa' ? 'Negocio' : 'Particular'}</span>
             <div>
                 <div class="ac-item-name">${esc(c.nombre)}</div>
                 ${c.whatsapp ? `<div class="ac-item-sub">${esc(c.whatsapp)}</div>` : ''}
