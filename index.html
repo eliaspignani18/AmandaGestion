@@ -983,6 +983,13 @@
                 <h2>Cotizador</h2>
             </div>
 
+            <div style="max-width:720px;margin-bottom:8px">
+                <div class="form-group" style="margin:0">
+                    <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título de la cotización</label>
+                    <input type="text" id="cotiz-titulo" placeholder="Ej: Pescadería Altamar" style="margin-top:6px" oninput="renderCotizFinal()">
+                </div>
+            </div>
+
             <!-- Sección: Vinilo -->
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="ruler" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Vinilo</h3>
@@ -1018,10 +1025,6 @@
                             <label>Alto (cm)</label>
                             <input type="number" id="c-alto" placeholder="5" step="1" min="1" oninput="cotizarPreview()">
                         </div>
-                        <div class="form-group full">
-                            <label>Descripción (opcional)</label>
-                            <input type="text" id="c-desc" placeholder="Ej: Frente del local, vidrio lateral...">
-                        </div>
                     </div>
 
                     <div id="c-preview" style="display:none;margin-top:20px;padding:16px;background:var(--gray-100);border-radius:10px;border:1px solid var(--gray-200)">
@@ -1054,33 +1057,6 @@
                     </div>
                 </div>
 
-                <div id="c-lista-wrap" style="display:none;max-width:720px">
-                    <div class="table-wrap">
-                        <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
-                            <h3>Piezas del pedido</h3>
-                            <button class="btn btn-ghost" style="font-size:12px" onclick="vaciarCotizador()">Vaciar todo</button>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <th>Medidas</th>
-                                    <th>Área</th>
-                                    <th>Costo</th>
-                                    <th>Precio venta</th>
-                                    <th>Ganancia</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="c-tabla-body"></tbody>
-                        </table>
-                        <div id="c-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-                        </div>
-                        <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
-                            <button class="btn btn-primary" id="c-copiar-btn" onclick="copiarCotizacion()"><i data-lucide="copy"></i> Copiar cotización para cliente</button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Sección: Stickers -->
@@ -1130,17 +1106,54 @@
                     </div>
                 </div>
 
-                <div id="st-cart-wrap" style="display:none;max-width:720px">
-                    <div class="st-cart">
-                        <div class="st-cart-head">
-                            <strong>Pedido armado</strong>
-                            <button class="btn btn-ghost" style="font-size:12px" onclick="stVaciar()">Vaciar todo</button>
+            </div>
+
+            <!-- Cotización final unificada -->
+            <div id="cotiz-final-wrap" style="display:none;max-width:720px">
+                <div class="table-wrap">
+                    <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <h3 style="margin:0">Cotización del pedido</h3>
+                            <div id="cf-titulo-display" style="display:none;font-size:13px;color:var(--gray-500);margin-top:2px"></div>
                         </div>
-                        <div id="st-items"></div>
-                        <div class="st-cart-foot">
-                            <div class="st-cart-total" id="st-total"></div>
-                            <button class="btn btn-primary" id="st-copiar-btn" onclick="stCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
+                        <button class="btn btn-ghost" style="font-size:12px" onclick="cotizFinalVaciar()">Vaciar todo</button>
+                    </div>
+
+                    <!-- Bloque Vinilo -->
+                    <div id="cf-vinilo-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Vinilo</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarCotizador()">Vaciar</button>
                         </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Medidas</th>
+                                    <th>Área</th>
+                                    <th>Costo</th>
+                                    <th>Precio venta</th>
+                                    <th>Ganancia</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cf-vinilo-body"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Bloque Stickers -->
+                    <div id="cf-stickers-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Stickers</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="stVaciar()">Vaciar</button>
+                        </div>
+                        <div id="cf-stickers-items"></div>
+                    </div>
+
+                    <!-- Totales combinados -->
+                    <div id="cf-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px"></div>
+
+                    <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
+                        <button class="btn btn-primary" id="cf-copiar-btn" onclick="cotizFinalCopiar()"><i data-lucide="copy"></i> Copiar cotización para cliente</button>
                     </div>
                 </div>
             </div>
@@ -2165,12 +2178,10 @@ function agregarVinilo() {
     const ancho = parseFloat(document.getElementById('c-ancho').value);
     const alto  = parseFloat(document.getElementById('c-alto').value);
     if (!ancho || !alto || ancho <= 0 || alto <= 0) return;
-    const desc = document.getElementById('c-desc').value.trim() || '—';
-    const r    = cotizarCalc(ancho, alto);
-    cotizadorPiezas.push({ ancho, alto, desc, ...r });
+    const r = cotizarCalc(ancho, alto);
+    cotizadorPiezas.push({ ancho, alto, ...r });
     document.getElementById('c-ancho').value = '';
     document.getElementById('c-alto').value  = '';
-    document.getElementById('c-desc').value  = '';
     document.getElementById('c-preview').style.display = 'none';
     renderCotizador();
 }
@@ -2178,7 +2189,6 @@ function agregarVinilo() {
 function limpiarCotizador() {
     document.getElementById('c-ancho').value = '';
     document.getElementById('c-alto').value  = '';
-    document.getElementById('c-desc').value  = '';
     document.getElementById('c-preview').style.display = 'none';
 }
 
@@ -2187,58 +2197,150 @@ function vaciarCotizador() {
     renderCotizador();
 }
 
-function renderCotizador() {
-    const wrap = document.getElementById('c-lista-wrap');
-    if (!cotizadorPiezas.length) { wrap.style.display = 'none'; return; }
-    wrap.style.display = '';
-
-    document.getElementById('c-tabla-body').innerHTML = cotizadorPiezas.map((p, i) => `
-        <tr>
-            <td>${esc(p.desc)}</td>
-            <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
-            <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
-            <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
-            <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
-            <td class="text-bold">${formatPeso(p.ganancia)}</td>
-            <td><button class="delete-row-btn" onclick="quitarVinilo(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
-        </tr>`).join('');
-
-    const totCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
-    const totVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
-    const totGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
-    const pctMargen   = Math.round((totGanancia / totVenta) * 100);
-
-    document.getElementById('c-totales').innerHTML = `
-        <div>
-            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total costo</div>
-            <div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totCosto)}</div>
-        </div>
-        <div>
-            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total venta</div>
-            <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVenta)}</div>
-        </div>
-        <div>
-            <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia · ${pctMargen}% margen</div>
-            <div style="font-size:22px;font-weight:700">${formatPeso(totGanancia)}</div>
-        </div>`;
-}
+function renderCotizador() { renderCotizFinal(); }
 
 function quitarVinilo(i) {
     cotizadorPiezas.splice(i, 1);
     renderCotizador();
 }
 
-async function copiarCotizacion() {
-    if (!cotizadorPiezas.length) return;
-    const totVenta = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
-    let texto = 'Cotización de vinilo — Amanda Gráficos\n\n';
-    cotizadorPiezas.forEach(p => {
-        const desc = p.desc !== '—' ? p.desc + ' — ' : '';
-        texto += `▸ ${desc}${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
-    });
-    texto += `\nTotal: ${formatPeso(totVenta)}`;
+function renderCotizFinal() {
+    const wrap = document.getElementById('cotiz-final-wrap');
+    const hasV = cotizadorPiezas.length > 0;
+    const hasS = stCart.length > 0;
+    if (!hasV && !hasS) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
 
-    const btn = document.getElementById('c-copiar-btn');
+    const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
+    const tituloEl = document.getElementById('cf-titulo-display');
+    if (titulo) { tituloEl.textContent = titulo; tituloEl.style.display = ''; }
+    else { tituloEl.style.display = 'none'; }
+
+    const viniloBlock   = document.getElementById('cf-vinilo-block');
+    const stickersBlock = document.getElementById('cf-stickers-block');
+
+    if (hasV) {
+        viniloBlock.style.display = '';
+        document.getElementById('cf-vinilo-body').innerHTML = cotizadorPiezas.map((p, i) => `
+            <tr>
+                <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
+                <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
+                <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
+                <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
+                <td class="text-bold">${formatPeso(p.ganancia)}</td>
+                <td><button class="delete-row-btn" onclick="quitarVinilo(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+            </tr>`).join('');
+    } else {
+        viniloBlock.style.display = 'none';
+    }
+
+    if (hasS) {
+        stickersBlock.style.display = '';
+        document.getElementById('cf-stickers-items').innerHTML = stCart.map((item, i) => {
+            const r = stCalcPrice(item.size, item.qty);
+            const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsa` : '';
+            return `<div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">${esc(item.size)}</div>
+                    <div class="st-cart-item-detail">${item.qty} unidades${bolsaStr}</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(r.total)}</div>
+                <button class="delete-row-btn" onclick="stQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`;
+        }).join('');
+    } else {
+        stickersBlock.style.display = 'none';
+    }
+
+    const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
+    const totVVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
+    const totVGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
+    const totS         = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totGeneral   = totVVenta + totS;
+
+    let html = '';
+    if (hasV && hasS) {
+        html = `
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Vinilo</div>
+                <div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Stickers</div>
+                <div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total a cobrar</div>
+                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div>
+            </div>`;
+    } else if (hasV) {
+        const pct = Math.round((totVGanancia / totVVenta) * 100);
+        html = `
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total costo</div>
+                <div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totVCosto)}</div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total venta</div>
+                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia · ${pct}% margen</div>
+                <div style="font-size:22px;font-weight:700">${formatPeso(totVGanancia)}</div>
+            </div>`;
+    } else {
+        const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
+        html = `
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total</div>
+                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Unidades</div>
+                <div style="font-size:22px;font-weight:700">${totalUnits}</div>
+            </div>
+            <div></div>`;
+    }
+    document.getElementById('cf-totales').innerHTML = html;
+    lucide.createIcons();
+}
+
+async function cotizFinalCopiar() {
+    const hasV = cotizadorPiezas.length > 0;
+    const hasS = stCart.length > 0;
+    if (!hasV && !hasS) return;
+
+    const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
+    const encabezado = titulo ? `Cotización ${titulo}` : 'Cotización';
+    let texto = `${encabezado} — Amanda Gráficos\n\n`;
+
+    if (hasV) {
+        if (hasS) texto += 'Vinilo:\n';
+        cotizadorPiezas.forEach(p => {
+            texto += `▸ ${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
+        });
+    }
+
+    if (hasS) {
+        if (hasV) texto += '\nStickers:\n';
+        stCart.forEach(item => {
+            const r = stCalcPrice(item.size, item.qty);
+            texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
+        });
+    }
+
+    const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
+    const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
+    if (hasV && hasS) {
+        texto += `\nTotal: ${formatPeso(totVVenta + totS)}`;
+    } else if (hasV) {
+        texto += `\nTotal: ${formatPeso(totVVenta)}`;
+    } else {
+        texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS)}`;
+    }
+
+    const btn = document.getElementById('cf-copiar-btn');
     try {
         await navigator.clipboard.writeText(texto);
         btn.innerHTML = '<i data-lucide="check"></i> Copiado';
@@ -2257,6 +2359,13 @@ async function copiarCotizacion() {
             lucide.createIcons({ nodes: [btn] });
         }, 2000);
     }
+}
+
+function cotizFinalVaciar() {
+    cotizadorPiezas = [];
+    stCart = [];
+    document.getElementById('cotiz-titulo').value = '';
+    renderCotizFinal();
 }
 
 // ─── COTIZADOR STICKERS ──────────────────────────────────────────────────────
@@ -2364,67 +2473,11 @@ function stVaciar() {
     stRenderCart();
 }
 
-function stRenderCart() {
-    const wrap = document.getElementById('st-cart-wrap');
-    const itemsEl = document.getElementById('st-items');
-    const totalEl = document.getElementById('st-total');
-
-    if (!stCart.length) { wrap.style.display = 'none'; return; }
-    wrap.style.display = '';
-
-    itemsEl.innerHTML = stCart.map((item, i) => {
-        const r = stCalcPrice(item.size, item.qty);
-        const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsa` : '';
-        return `<div class="st-cart-item">
-            <div class="st-cart-item-info">
-                <div class="st-cart-item-name">${esc(item.size)}</div>
-                <div class="st-cart-item-detail">${item.qty} unidades${bolsaStr}</div>
-            </div>
-            <div class="st-cart-item-price">${formatPeso(r.total)}</div>
-            <button class="delete-row-btn" onclick="stQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
-        </div>`;
-    }).join('');
-
-    const grandTotal = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
-    const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
-    totalEl.innerHTML = `<strong>${formatPeso(grandTotal)}</strong> · ${totalUnits} unidades`;
-}
+function stRenderCart() { renderCotizFinal(); }
 
 function stQuitarItem(i) {
     stCart.splice(i, 1);
-    stRenderCart();
-}
-
-async function stCopiar() {
-    if (!stCart.length) return;
-    const grandTotal = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
-    const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
-    let texto = 'Cotización de stickers — Amanda Gráficos\n\n';
-    stCart.forEach(item => {
-        const r = stCalcPrice(item.size, item.qty);
-        texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
-    });
-    texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(grandTotal)}`;
-
-    const btn = document.getElementById('st-copiar-btn');
-    try {
-        await navigator.clipboard.writeText(texto);
-        btn.innerHTML = '<i data-lucide="check"></i> Copiado';
-        btn.style.background = '#16a34a';
-        lucide.createIcons({ nodes: [btn] });
-        setTimeout(() => {
-            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización';
-            btn.style.background = '';
-            lucide.createIcons({ nodes: [btn] });
-        }, 2000);
-    } catch {
-        btn.innerHTML = '<i data-lucide="copy"></i> Error al copiar';
-        lucide.createIcons({ nodes: [btn] });
-        setTimeout(() => {
-            btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización';
-            lucide.createIcons({ nodes: [btn] });
-        }, 2000);
-    }
+    renderCotizFinal();
 }
 
 stUpdateDisplay();
