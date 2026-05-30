@@ -759,15 +759,15 @@
                 <button class="btn btn-yellow" onclick="showView('nuevo')">＋ Nuevo pedido</button>
             </div>
             <div class="filters">
-                <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
-                <button class="filter-btn" onclick="setFilter('recibido', this)">Recibido</button>
-                <button class="filter-btn" onclick="setFilter('diseno', this)">En diseño</button>
-                <button class="filter-btn" onclick="setFilter('plotter', this)">Plotter</button>
-                <button class="filter-btn" onclick="setFilter('retirar', this)">Retirar</button>
-                <button class="filter-btn" onclick="setFilter('preparacion', this)">Preparación</button>
-                <button class="filter-btn" onclick="setFilter('cortar', this)">Falta cortar</button>
-                <button class="filter-btn" onclick="setFilter('listo', this)">Listo para entregar</button>
-                <button class="filter-btn" onclick="setFilter('entregado', this)">Entregado</button>
+                <button class="filter-btn active" data-key="todos"       data-label="Todos"              onclick="setFilter('todos', this)">Todos</button>
+                <button class="filter-btn"         data-key="recibido"    data-label="Recibido"            onclick="setFilter('recibido', this)">Recibido</button>
+                <button class="filter-btn"         data-key="diseno"      data-label="En diseño"           onclick="setFilter('diseno', this)">En diseño</button>
+                <button class="filter-btn"         data-key="plotter"     data-label="Plotter"             onclick="setFilter('plotter', this)">Plotter</button>
+                <button class="filter-btn"         data-key="retirar"     data-label="Retirar"             onclick="setFilter('retirar', this)">Retirar</button>
+                <button class="filter-btn"         data-key="preparacion" data-label="Preparación"         onclick="setFilter('preparacion', this)">Preparación</button>
+                <button class="filter-btn"         data-key="cortar"      data-label="Falta cortar"        onclick="setFilter('cortar', this)">Falta cortar</button>
+                <button class="filter-btn"         data-key="listo"       data-label="Listo para entregar" onclick="setFilter('listo', this)">Listo para entregar</button>
+                <button class="filter-btn"         data-key="entregado"   data-label="Entregado"           onclick="setFilter('entregado', this)">Entregado</button>
             </div>
             <div class="filters-extra">
                 <input type="text" id="filter-cliente" class="filter-input" placeholder="Buscar cliente..." oninput="renderPedidosTable()" style="width:180px">
@@ -1657,6 +1657,15 @@ function renderPedidosTable() {
 
     document.getElementById('pedidos-table').innerHTML =
         list.length ? buildTable(list) : '<div class="empty-state">No hay pedidos que coincidan</div>';
+
+    document.querySelectorAll('.filters [data-key]').forEach(btn => {
+        const key   = btn.dataset.key;
+        const label = btn.dataset.label;
+        const count = key === 'todos'
+            ? allPedidos.length
+            : allPedidos.filter(p => p.estado === key).length;
+        btn.textContent = count > 0 ? `${label} (${count})` : label;
+    });
 }
 
 function setFilter(filter, btn) {
