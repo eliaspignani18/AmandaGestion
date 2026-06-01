@@ -533,6 +533,7 @@
             z-index: 155;
         }
         .sidebar-overlay.open { display: block; }
+        .mobile-fecha { display: none; }
 
         @media (max-width: 768px) {
             .mobile-topbar { display: flex; }
@@ -581,6 +582,8 @@
 
             /* Columnas secundarias de la tabla de pedidos */
             .col-cargado, .col-origen, .col-ingresado { display: none; }
+            /* Fecha dentro de la celda del cliente: solo visible en mobile */
+            .mobile-fecha { display: block; }
 
             /* Cotizador: grid de parámetros a 1 columna */
             .c-params-grid { grid-template-columns: 1fr !important; }
@@ -1652,6 +1655,7 @@ function buildTable(pedidos) {
                         <td>
                             <div class="text-bold">${esc(p.cliente_nombre)}</div>
                             ${p.cliente_whatsapp ? `<div class="text-gray" style="font-size:12px">${esc(p.cliente_whatsapp)}</div>` : ''}
+                            ${p.created_at ? `<div class="text-gray mobile-fecha" style="font-size:11px">${fechaIngresado(p.created_at)}</div>` : ''}
                         </td>
                         <td class="col-cargado text-gray">${esc(p.cargado_por || '—')}</td>
                         <td class="col-origen">${origenLabel(p.origen)}</td>
