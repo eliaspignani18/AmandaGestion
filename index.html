@@ -587,7 +587,7 @@
 
             /* Cotizador: grid de parámetros a 1 columna */
             .c-params-grid { grid-template-columns: 1fr !important; }
-            .cotiz-section { margin-bottom: 28px; }
+            .cotiz-section { margin-bottom: 16px; padding: 16px; }
 
             /* Inputs: font-size 16px previene el zoom automático en iOS */
             input[type="text"], input[type="number"], input[type="date"],
@@ -606,8 +606,8 @@
         }
 
         /* COTIZADOR — secciones internas */
-        .cotiz-section { margin-bottom: 48px; }
-        .cotiz-section-title { font-size: 16px; font-weight: 700; color: var(--gray-700); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-200); max-width: 720px; }
+        .cotiz-section { margin-bottom: 20px; max-width: 720px; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 14px; padding: 24px; }
+        .cotiz-section-title { font-size: 16px; font-weight: 700; color: var(--gray-700); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1.5px solid var(--gray-200); }
 
         /* COTIZADOR STICKERS */
         .st-sizes { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -629,11 +629,12 @@
         .st-price-unit { font-size: 13px; color: var(--gray-500); }
         .st-cart { border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; }
         .st-cart-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
-        .st-cart-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--gray-100); }
+        .st-cart-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--gray-200); }
+        .st-cart-item:last-child { border-bottom: none; }
         .st-cart-item-info { flex: 1; }
         .st-cart-item-name { font-weight: 600; font-size: 14px; }
         .st-cart-item-detail { font-size: 12px; color: var(--gray-500); }
-        .st-cart-item-price { font-weight: 700; font-size: 15px; min-width: 80px; text-align: right; }
+        .st-cart-item-price { font-weight: 700; font-size: 15px; min-width: 80px; text-align: right; color: #16a34a; }
         .st-cart-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-top: 1px solid var(--gray-200); flex-wrap: wrap; gap: 12px; }
         .st-cart-total { font-size: 16px; font-weight: 700; }
         .st-bolsa-hint { font-size: 12px; color: var(--gray-500); }
@@ -1200,6 +1201,62 @@
                 </div>
             </div>
 
+            <!-- Sección: Tarjetas -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="credit-card" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Tarjetas</h3>
+
+                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:16px;max-width:720px">
+                    <div class="card">
+                        <div class="card-label">Costo resma (100 hs.)</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="tj-costo-resma" value="16000" step="500" min="0"
+                                oninput="renderTarjetasTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Costo tinta por hoja</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="tj-costo-tinta" value="50" step="10" min="0"
+                                oninput="renderTarjetasTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Multiplicador de venta</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <input type="number" id="tj-multiplicador" value="13" step="0.5" min="1"
+                                oninput="renderTarjetasTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
+                            <span style="font-size:14px;color:var(--gray-500)">× costo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500);max-width:720px">
+                    <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>
+                    <strong>12 tarjetas por hoja</strong> A4 · 9 × 5 cm (4 columnas × 3 filas)
+                </div>
+
+                <div class="table-wrap" style="max-width:720px">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cantidad</th>
+                                <th>Hojas</th>
+                                <th>Costo mat.</th>
+                                <th>Precio venta</th>
+                                <th>Ganancia</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tj-tabla-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Cotización final unificada -->
             <div id="cotiz-final-wrap" style="display:none;max-width:720px">
                 <div class="table-wrap">
@@ -1217,19 +1274,7 @@
                             <span>Vinilo</span>
                             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarCotizador()">Vaciar</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Medidas</th>
-                                    <th>Área</th>
-                                    <th>Costo</th>
-                                    <th>Precio venta</th>
-                                    <th>Ganancia</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="cf-vinilo-body"></tbody>
-                        </table>
+                        <div id="cf-vinilo-items"></div>
                     </div>
 
                     <!-- Bloque Stickers -->
@@ -1247,19 +1292,16 @@
                             <span>Vinilo UV</span>
                             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarUV()">Vaciar</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Medidas</th>
-                                    <th>Área</th>
-                                    <th>Costo</th>
-                                    <th>Precio venta</th>
-                                    <th>Ganancia</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="cf-uv-body"></tbody>
-                        </table>
+                        <div id="cf-uv-items"></div>
+                    </div>
+
+                    <!-- Bloque Tarjetas -->
+                    <div id="cf-tarjetas-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Tarjetas</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarTarjetas()">Vaciar</button>
+                        </div>
+                        <div id="cf-tarjetas-items"></div>
                     </div>
 
                     <!-- Totales combinados -->
@@ -1551,6 +1593,7 @@ async function loadAll() {
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
     renderDashboard();
+    renderTarjetasTabla();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
@@ -2319,12 +2362,62 @@ function quitarUV(i) {
     renderCotizFinal();
 }
 
+// ─── COTIZADOR TARJETAS ───────────────────────────────────────────────────────
+
+const TARJETAS_POR_HOJA = 12;
+let cotizadorTarjetasPiezas = [];
+
+function cotizarTarjetasCalc(qty) {
+    const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 16000;
+    const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 50;
+    const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 13;
+    const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
+    const costoHoja     = (costoResma / 100) + costoTinta;
+    const costo         = hojas * costoHoja;
+    const venta         = Math.round(costo * multiplicador);
+    const ganancia      = venta - costo;
+    return { qty, hojas, costo, venta, ganancia };
+}
+
+function renderTarjetasTabla() {
+    const qtys = [50, 100, 150, 200, 250, 300];
+    document.getElementById('tj-tabla-body').innerHTML = qtys.map(qty => {
+        const r = cotizarTarjetasCalc(qty);
+        return `<tr>
+            <td class="text-bold">${qty} unidades</td>
+            <td class="text-gray">${r.hojas} hojas</td>
+            <td style="color:#ea580c;font-weight:600">${formatPeso(Math.round(r.costo))}</td>
+            <td style="color:#16a34a;font-weight:600">${formatPeso(r.venta)}</td>
+            <td class="text-bold">${formatPeso(Math.round(r.ganancia))}</td>
+            <td><button class="btn btn-yellow" style="padding:4px 12px;font-size:12px" onclick="agregarTarjetas(${qty})">＋ Agregar</button></td>
+        </tr>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function agregarTarjetas(qty) {
+    const r = cotizarTarjetasCalc(qty);
+    cotizadorTarjetasPiezas.push(r);
+    renderCotizFinal();
+}
+
+function vaciarTarjetas() {
+    cotizadorTarjetasPiezas = [];
+    renderCotizFinal();
+}
+
+function quitarTarjeta(i) {
+    cotizadorTarjetasPiezas.splice(i, 1);
+    renderCotizFinal();
+}
+
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
     const hasV  = cotizadorPiezas.length > 0;
     const hasS  = stCart.length > 0;
     const hasUV = cotizadorUVPiezas.length > 0;
-    if (!hasV && !hasS && !hasUV) { wrap.style.display = 'none'; return; }
+    const hasTJ = cotizadorTarjetasPiezas.length > 0;
+    if (!hasV && !hasS && !hasUV && !hasTJ) { wrap.style.display = 'none'; return; }
     wrap.style.display = '';
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
@@ -2337,15 +2430,15 @@ function renderCotizFinal() {
 
     if (hasV) {
         viniloBlock.style.display = '';
-        document.getElementById('cf-vinilo-body').innerHTML = cotizadorPiezas.map((p, i) => `
-            <tr>
-                <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
-                <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
-                <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
-                <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
-                <td class="text-bold">${formatPeso(p.ganancia)}</td>
-                <td><button class="delete-row-btn" onclick="quitarVinilo(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
-            </tr>`).join('');
+        document.getElementById('cf-vinilo-items').innerHTML = cotizadorPiezas.map((p, i) => `
+            <div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">${p.ancho} × ${p.alto} cm</div>
+                    <div class="st-cart-item-detail">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' · mín' : ''} · Costo ${formatPeso(p.costo)} · Gan. ${formatPeso(p.ganancia)}</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(p.venta)}</div>
+                <button class="delete-row-btn" onclick="quitarVinilo(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`).join('');
     } else {
         viniloBlock.style.display = 'none';
     }
@@ -2371,17 +2464,33 @@ function renderCotizFinal() {
     const uvBlock = document.getElementById('cf-uv-block');
     if (hasUV) {
         uvBlock.style.display = '';
-        document.getElementById('cf-uv-body').innerHTML = cotizadorUVPiezas.map((p, i) => `
-            <tr>
-                <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
-                <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
-                <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
-                <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
-                <td class="text-bold">${formatPeso(p.ganancia)}</td>
-                <td><button class="delete-row-btn" onclick="quitarUV(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
-            </tr>`).join('');
+        document.getElementById('cf-uv-items').innerHTML = cotizadorUVPiezas.map((p, i) => `
+            <div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">${p.ancho} × ${p.alto} cm</div>
+                    <div class="st-cart-item-detail">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' · mín' : ''} · Costo ${formatPeso(p.costo)} · Gan. ${formatPeso(p.ganancia)}</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(p.venta)}</div>
+                <button class="delete-row-btn" onclick="quitarUV(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`).join('');
     } else {
         uvBlock.style.display = 'none';
+    }
+
+    const tarjetasBlock = document.getElementById('cf-tarjetas-block');
+    if (hasTJ) {
+        tarjetasBlock.style.display = '';
+        document.getElementById('cf-tarjetas-items').innerHTML = cotizadorTarjetasPiezas.map((p, i) => `
+            <div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">Tarjetas personalizadas</div>
+                    <div class="st-cart-item-detail">${p.qty} unidades · ${p.hojas} hojas</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(p.venta)}</div>
+                <button class="delete-row-btn" onclick="quitarTarjeta(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`).join('');
+    } else {
+        tarjetasBlock.style.display = 'none';
     }
 
     const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
@@ -2391,8 +2500,9 @@ function renderCotizFinal() {
     const totUVCosto    = cotizadorUVPiezas.reduce((s, p) => s + p.costo,    0);
     const totUVVenta    = cotizadorUVPiezas.reduce((s, p) => s + p.venta,    0);
     const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
-    const totGeneral    = totVVenta + totS + totUVVenta;
-    const tiposActivos  = [hasV, hasS, hasUV].filter(Boolean).length;
+    const totTJVenta    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
+    const totGeneral    = totVVenta + totS + totUVVenta + totTJVenta;
+    const tiposActivos  = [hasV, hasS, hasUV, hasTJ].filter(Boolean).length;
 
     const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
     let html = '';
@@ -2401,6 +2511,7 @@ function renderCotizFinal() {
         if (hasV)  cells.push(`<div>${lbl('Vinilo')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>`);
         if (hasUV) cells.push(`<div>${lbl('Vinilo UV')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>`);
         if (hasS)  cells.push(`<div>${lbl('Stickers')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>`);
+        if (hasTJ) cells.push(`<div>${lbl('Tarjetas')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>`);
         cells.push(`<div>${lbl('Total a cobrar')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div></div>`);
         document.getElementById('cf-totales').style.gridTemplateColumns = `repeat(${Math.min(cells.length, 4)},1fr)`;
         html = cells.join('');
@@ -2416,6 +2527,14 @@ function renderCotizFinal() {
             <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totUVCosto)}</div></div>
             <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>
             <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(totUVGanancia)}</div></div>`;
+    } else if (hasTJ) {
+        const totTJCosto    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.costo,    0);
+        const totTJGanancia = cotizadorTarjetasPiezas.reduce((s, p) => s + p.ganancia, 0);
+        const pct = Math.round((totTJGanancia / totTJVenta) * 100);
+        html = `
+            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totTJCosto))}</div></div>
+            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>
+            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totTJGanancia))}</div></div>`;
     } else {
         const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
         html = `
@@ -2431,11 +2550,12 @@ async function cotizFinalCopiar() {
     const hasV  = cotizadorPiezas.length > 0;
     const hasS  = stCart.length > 0;
     const hasUV = cotizadorUVPiezas.length > 0;
-    if (!hasV && !hasS && !hasUV) return;
+    const hasTJ = cotizadorTarjetasPiezas.length > 0;
+    if (!hasV && !hasS && !hasUV && !hasTJ) return;
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
     const encabezado = titulo ? `Cotización ${titulo}` : 'Cotización';
-    const tiposActivos = [hasV, hasS, hasUV].filter(Boolean).length;
+    const tiposActivos = [hasV, hasS, hasUV, hasTJ].filter(Boolean).length;
     let texto = `${encabezado} — Amanda Gráficos\n\n`;
 
     if (hasV) {
@@ -2460,16 +2580,26 @@ async function cotizFinalCopiar() {
         });
     }
 
+    if (hasTJ) {
+        if (tiposActivos > 1) texto += '\nTarjetas:\n';
+        cotizadorTarjetasPiezas.forEach(p => {
+            texto += `▸ ${p.qty} tarjetas personalizadas → ${formatPeso(p.venta)}\n`;
+        });
+    }
+
     const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
     const totUVVenta = cotizadorUVPiezas.reduce((s, p) => s + p.venta, 0);
     const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
     if (tiposActivos > 1) {
-        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS)}`;
+        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totTJVenta)}`;
     } else if (hasV) {
         texto += `\nTotal: ${formatPeso(totVVenta)}`;
     } else if (hasUV) {
         texto += `\nTotal: ${formatPeso(totUVVenta)}`;
+    } else if (hasTJ) {
+        texto += `\nTotal: ${formatPeso(totTJVenta)}`;
     } else {
         texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS)}`;
     }
@@ -2499,6 +2629,7 @@ function cotizFinalVaciar() {
     cotizadorPiezas = [];
     stCart = [];
     cotizadorUVPiezas = [];
+    cotizadorTarjetasPiezas = [];
     document.getElementById('cotiz-titulo').value = '';
     renderCotizFinal();
 }
