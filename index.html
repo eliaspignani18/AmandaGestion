@@ -702,12 +702,6 @@
                 </div>
             </div>
 
-            <div class="nav-group">
-                <button class="nav-btn nav-parent" data-group="registro" onclick="navGroupClick('registro')"><i data-lucide="trending-up"></i> Registro<i data-lucide="chevron-right" class="nav-chevron"></i></button>
-                <div class="nav-sub" id="group-registro">
-                    <button class="nav-btn nav-child" data-view="nuevo-registro" onclick="showView('nuevo-registro')"><i data-lucide="plus-circle"></i> Nuevo registro</button>
-                </div>
-            </div>
 
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
         </nav>
@@ -1396,71 +1390,7 @@
         </div>
 
         <!-- REGISTRO DE PRODUCCIÓN -->
-        <div id="view-registro" class="view">
-            <div class="view-header">
-                <h2>Registro de producción</h2>
-                <button class="btn btn-yellow" onclick="showView('nuevo-registro')">＋ Nuevo registro</button>
-            </div>
-            <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
-                <div class="card">
-                    <div class="card-label">Total m² impresos</div>
-                    <div class="card-value" id="reg-stat-m2">—</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Total stickers</div>
-                    <div class="card-value" id="reg-stat-stickers">—</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Pedidos entregados</div>
-                    <div class="card-value" id="reg-stat-pedidos">—</div>
-                </div>
-            </div>
-            <div class="table-wrap">
-                <div id="registro-table"></div>
-            </div>
-        </div>
 
-        <!-- NUEVO REGISTRO / EDITAR -->
-        <div id="view-nuevo-registro" class="view">
-            <div class="view-header">
-                <h2 id="registro-form-title">Nuevo registro</h2>
-            </div>
-            <div class="form-card">
-                <input type="hidden" id="registro-id">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Fecha *</label>
-                        <input type="date" id="r-fecha">
-                    </div>
-                    <div class="form-group">
-                        <label>Cargado por</label>
-                        <input type="hidden" id="r-cargado-por" value="Eli">
-                        <div style="display:flex;gap:8px">
-                            <button type="button" class="cobro-btn cobro-btn-active" id="reg-btn-eli" onclick="seleccionarRegCargadoPor('Eli')">Eli</button>
-                            <button type="button" class="cobro-btn" id="reg-btn-sofi" onclick="seleccionarRegCargadoPor('Sofi')">Sofi</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>m² de vinilo impresos</label>
-                        <input type="number" id="r-m2" placeholder="0.00" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Cantidad de stickers</label>
-                        <input type="number" id="r-stickers" placeholder="0" step="1" min="0">
-                    </div>
-                    <div class="form-group full">
-                        <label>Notas</label>
-                        <textarea id="r-notas" placeholder="Detalles del registro..."></textarea>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-primary" id="btn-guardar-registro" onclick="saveRegistro()">Guardar registro</button>
-                    <button class="btn btn-ghost" id="btn-cancelar-registro" onclick="cancelRegistroForm()">Cancelar</button>
-                    <button class="btn btn-danger" id="btn-delete-registro" style="display:none;margin-left:auto" onclick="deleteRegistro()">Eliminar</button>
-                </div>
-                <p id="registro-form-error" class="error-msg" style="display:none"></p>
-            </div>
-        </div>
 
     </div>
 </div>
@@ -1489,7 +1419,6 @@ let allPedidos = [];
 let allGastos = [];
 let allStock = [];
 let allClientes = [];
-let allRegistros = [];
 
 let filterGastoCategoria = 'todos';
 let filterClienteTipo = 'todos';
@@ -1555,7 +1484,6 @@ const NAV_GROUPS = {
     gastos: 'gastos',   'nuevo-gasto': 'gastos',
     stock: 'stock',     'nuevo-stock': 'stock',
     clientes: 'clientes', 'nuevo-cliente': 'clientes',
-    registro: 'registro', 'nuevo-registro': 'registro',
 };
 
 function navGroupClick(groupName) {
@@ -1586,8 +1514,6 @@ function showView(name) {
     if (name === 'nuevo-stock')     resetStockForm();
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
-    if (name === 'registro')        renderRegistroView();
-    if (name === 'nuevo-registro')  resetRegistroForm();
     closeSidebar();
 }
 
@@ -1611,18 +1537,16 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock, resClientes, resRegistros] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
         sb.from('clientes').select('*').order('nombre'),
-        sb.from('registro_produccion').select('*').order('fecha', { ascending: false }),
     ]);
     if (!resPedidos.error)   allPedidos   = resPedidos.data   || [];
     if (!resGastos.error)    allGastos    = resGastos.data    || [];
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
-    if (!resRegistros.error) allRegistros = resRegistros.data || [];
     renderDashboard();
 }
 
@@ -3006,165 +2930,7 @@ document.addEventListener('click', e => {
 
 // ─── REGISTRO DE PRODUCCIÓN ───────────────────────────────────────────────────
 
-function renderRegistroView() {
-    const impresos   = allPedidos.filter(p => ['retirar','preparacion','cortar','listo','entregado'].includes(p.estado));
-    const entregados = allPedidos.filter(p => p.estado === 'entregado');
-    const totalM2 = impresos.reduce((s, p) => {
-        if (p.ancho_cm && p.alto_cm) return s + (p.ancho_cm * p.alto_cm * (p.cantidad || 1) / 10000);
-        return s;
-    }, 0);
-    const totalStickers = impresos
-        .filter(p => (p.tipo_producto || '').toLowerCase().includes('sticker'))
-        .reduce((s, p) => s + (p.cantidad || 0), 0);
-    const pedidosEntregados = entregados.length;
 
-    document.getElementById('reg-stat-m2').textContent       = totalM2.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' m²';
-    document.getElementById('reg-stat-stickers').textContent = totalStickers.toLocaleString('es-AR');
-    document.getElementById('reg-stat-pedidos').textContent  = pedidosEntregados;
-
-    const el = document.getElementById('registro-table');
-    if (!allRegistros.length) {
-        el.innerHTML = '<div class="empty-state">No hay registros cargados</div>';
-        return;
-    }
-    el.innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>m² vinilo</th>
-                    <th>Stickers</th>
-                    <th>Notas</th>
-                    <th>Cargado por</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                ${allRegistros.map(r => `
-                <tr>
-                    <td class="text-bold">${formatDate(r.fecha)}</td>
-                    <td>${r.m2_vinilo != null ? Number(r.m2_vinilo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' m²' : '<span class="text-gray">—</span>'}</td>
-                    <td>${r.cantidad_stickers != null ? r.cantidad_stickers.toLocaleString('es-AR') : '<span class="text-gray">—</span>'}</td>
-                    <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="text-gray">${esc(r.notas || '—')}</td>
-                    <td class="text-gray">${esc(r.cargado_por || '—')}</td>
-                    <td><button class="delete-row-btn" onclick="deleteRowRegistro('${r.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
-                    <td><button class="delete-row-btn" onclick="editRegistro('${r.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
-                </tr>`).join('')}
-            </tbody>
-        </table>`;
-}
-
-function resetRegistroForm() {
-    document.getElementById('registro-id').value = '';
-    document.getElementById('registro-form-title').textContent = 'Nuevo registro';
-    document.getElementById('btn-delete-registro').style.display = 'none';
-    document.getElementById('registro-form-error').style.display = 'none';
-    document.getElementById('r-m2').value      = '';
-    document.getElementById('r-stickers').value = '';
-    document.getElementById('r-notas').value   = '';
-    document.getElementById('r-fecha').value   = new Date().toISOString().slice(0, 10);
-    seleccionarRegCargadoPor('Eli');
-}
-
-function seleccionarRegCargadoPor(quien) {
-    document.getElementById('r-cargado-por').value = quien;
-    document.getElementById('reg-btn-eli').classList.toggle('cobro-btn-active', quien === 'Eli');
-    document.getElementById('reg-btn-sofi').classList.toggle('cobro-btn-active', quien === 'Sofi');
-}
-
-function cancelRegistroForm() {
-    showView('registro');
-}
-
-function editRegistro(id) {
-    const r = allRegistros.find(x => x.id === id);
-    if (!r) return;
-    showView('nuevo-registro');
-    document.getElementById('registro-form-title').textContent = 'Editar registro';
-    document.getElementById('registro-id').value   = r.id;
-    document.getElementById('r-fecha').value       = r.fecha || '';
-    document.getElementById('r-m2').value          = r.m2_vinilo != null ? r.m2_vinilo : '';
-    document.getElementById('r-stickers').value    = r.cantidad_stickers != null ? r.cantidad_stickers : '';
-    document.getElementById('r-notas').value       = r.notas || '';
-    seleccionarRegCargadoPor(r.cargado_por || 'Eli');
-    document.getElementById('btn-delete-registro').style.display = 'inline-flex';
-}
-
-async function saveRegistro() {
-    const id    = document.getElementById('registro-id').value;
-    const fecha = document.getElementById('r-fecha').value;
-    const errEl = document.getElementById('registro-form-error');
-
-    if (!fecha) {
-        errEl.textContent = 'La fecha es obligatoria.';
-        errEl.style.display = 'block';
-        return;
-    }
-    errEl.style.display = 'none';
-
-    const btn = document.getElementById('btn-guardar-registro');
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-
-    const m2Raw       = document.getElementById('r-m2').value;
-    const stickersRaw = document.getElementById('r-stickers').value;
-
-    const payload = {
-        fecha,
-        m2_vinilo:         m2Raw       !== '' ? parseFloat(m2Raw)     : null,
-        cantidad_stickers: stickersRaw !== '' ? parseInt(stickersRaw) : null,
-        notas:             document.getElementById('r-notas').value.trim() || null,
-        cargado_por:       document.getElementById('r-cargado-por').value,
-    };
-
-    const { error } = id
-        ? await sb.from('registro_produccion').update(payload).eq('id', id)
-        : await sb.from('registro_produccion').insert(payload);
-
-    btn.disabled = false;
-    btn.textContent = 'Guardar registro';
-
-    if (error) {
-        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
-        errEl.style.display = 'block';
-        return;
-    }
-
-    await loadAll();
-    showView('registro');
-}
-
-async function deleteRegistro() {
-    const id = document.getElementById('registro-id').value;
-    if (!id || !confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
-
-    const btn = document.getElementById('btn-delete-registro');
-    btn.disabled = true;
-    btn.textContent = 'Eliminando...';
-
-    const { error } = await sb.from('registro_produccion').delete().eq('id', id);
-
-    btn.disabled = false;
-    btn.textContent = 'Eliminar';
-
-    if (error) {
-        const errEl = document.getElementById('registro-form-error');
-        errEl.textContent = 'No se pudo eliminar. Intentá de nuevo.';
-        errEl.style.display = 'block';
-        return;
-    }
-
-    await loadAll();
-    showView('registro');
-}
-
-async function deleteRowRegistro(id) {
-    if (!confirm('¿Eliminar este registro?')) return;
-    await sb.from('registro_produccion').delete().eq('id', id);
-    await loadAll();
-    renderRegistroView();
-}
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -3183,8 +2949,9 @@ function fechaIngresado(isoStr) {
     const dias  = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
     const dd    = String(fecha.getDate()).padStart(2, '0');
     const mm    = String(fecha.getMonth() + 1).padStart(2, '0');
+    const aaaa  = fecha.getFullYear();
     const etiq  = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias}d`;
-    return `<span style="font-size:12px">${dd}/${mm}</span><br><span style="font-size:11px;color:var(--gray-500)">${etiq}</span>`;
+    return `<span style="font-size:12px">${dd}/${mm}/${aaaa}</span><br><span style="font-size:11px;color:var(--gray-500)">${etiq}</span>`;
 }
 
 function estadoLabel(key) {
