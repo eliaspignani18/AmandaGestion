@@ -1132,6 +1132,77 @@
 
             </div>
 
+            <!-- Sección: Vinilo UV -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="zap" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Vinilo UV</h3>
+
+                <div class="c-params-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
+                    <div class="card">
+                        <div class="card-label">Costo UV (por m²)</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="uv-costo-m2" value="9000" step="500" min="0"
+                                oninput="cotizarUVPreview()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Multiplicador de venta</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <input type="number" id="uv-multiplicador" value="2.5" step="0.1" min="1"
+                                oninput="cotizarUVPreview()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
+                            <span style="font-size:14px;color:var(--gray-500)">× costo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                    <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500)">
+                        <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>Ancho de impresión: <strong>29 cm</strong>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ancho (cm)</label>
+                            <input type="number" id="uv-ancho" placeholder="20" step="1" min="1" oninput="cotizarUVPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Alto (cm)</label>
+                            <input type="number" id="uv-alto" placeholder="10" step="1" min="1" oninput="cotizarUVPreview()">
+                        </div>
+                    </div>
+
+                    <div id="uv-preview" style="display:none;margin-top:20px;padding:16px;background:var(--gray-100);border-radius:10px;border:1px solid var(--gray-200)">
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Área</div>
+                                <div id="uv-prev-area" style="font-size:16px;font-weight:700"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Costo</div>
+                                <div id="uv-prev-costo" style="font-size:16px;font-weight:700;color:#ea580c"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Precio venta</div>
+                                <div id="uv-prev-venta" style="font-size:16px;font-weight:700;color:#16a34a"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia</div>
+                                <div id="uv-prev-ganancia" style="font-size:16px;font-weight:700"></div>
+                            </div>
+                        </div>
+                        <div id="uv-prev-minimo" style="display:none;margin-top:10px;font-size:12px;color:var(--gray-500)">
+                            ⚠ Mínimo facturable: 29cm × 5cm (0.0145 m²)
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-yellow" onclick="agregarUV()">＋ Agregar al pedido</button>
+                        <button class="btn btn-ghost" onclick="limpiarUVForm()">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Cotización final unificada -->
             <div id="cotiz-final-wrap" style="display:none;max-width:720px">
                 <div class="table-wrap">
@@ -1171,6 +1242,27 @@
                             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="stVaciar()">Vaciar</button>
                         </div>
                         <div id="cf-stickers-items"></div>
+                    </div>
+
+                    <!-- Bloque Vinilo UV -->
+                    <div id="cf-uv-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Vinilo UV</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarUV()">Vaciar</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Medidas</th>
+                                    <th>Área</th>
+                                    <th>Costo</th>
+                                    <th>Precio venta</th>
+                                    <th>Ganancia</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cf-uv-body"></tbody>
+                        </table>
                     </div>
 
                     <!-- Totales combinados -->
@@ -2237,11 +2329,74 @@ function quitarVinilo(i) {
     renderCotizador();
 }
 
+// ─── COTIZADOR VINILO UV ──────────────────────────────────────────────────────
+
+const UV_ANCHO_ROLLO_CM = 29;
+let cotizadorUVPiezas = [];
+
+function cotizarUVCalc(anchoCm, altoCm) {
+    const costoM2 = parseFloat(document.getElementById('uv-costo-m2').value)    || 9000;
+    const multi   = parseFloat(document.getElementById('uv-multiplicador').value) || 2.5;
+    const largoCm = (anchoCm > UV_ANCHO_ROLLO_CM || altoCm > UV_ANCHO_ROLLO_CM)
+        ? Math.max(anchoCm, altoCm)
+        : Math.min(anchoCm, altoCm);
+    const largoCob = Math.max(largoCm, COTIZADOR_MIN_LARGO_CM);
+    const esMinimo = largoCm < COTIZADOR_MIN_LARGO_CM;
+    const areaCob  = (UV_ANCHO_ROLLO_CM / 100) * (largoCob / 100);
+    const costo    = Math.round(areaCob * costoM2);
+    const venta    = Math.round(costo * multi);
+    const ganancia = venta - costo;
+    return { largoCob, areaCob, costo, venta, ganancia, esMinimo };
+}
+
+function cotizarUVPreview() {
+    const ancho = parseFloat(document.getElementById('uv-ancho').value);
+    const alto  = parseFloat(document.getElementById('uv-alto').value);
+    const prev  = document.getElementById('uv-preview');
+    if (!ancho || !alto || ancho <= 0 || alto <= 0) { prev.style.display = 'none'; return; }
+    const r = cotizarUVCalc(ancho, alto);
+    prev.style.display = '';
+    document.getElementById('uv-prev-area').textContent     = UV_ANCHO_ROLLO_CM + ' × ' + r.largoCob + ' cm (' + r.areaCob.toFixed(4) + ' m²)' + (r.esMinimo ? ' (mín)' : '');
+    document.getElementById('uv-prev-costo').textContent    = formatPeso(r.costo);
+    document.getElementById('uv-prev-venta').textContent    = formatPeso(r.venta);
+    document.getElementById('uv-prev-ganancia').textContent = formatPeso(r.ganancia);
+    document.getElementById('uv-prev-minimo').style.display = r.esMinimo ? '' : 'none';
+}
+
+function agregarUV() {
+    const ancho = parseFloat(document.getElementById('uv-ancho').value);
+    const alto  = parseFloat(document.getElementById('uv-alto').value);
+    if (!ancho || !alto || ancho <= 0 || alto <= 0) return;
+    const r = cotizarUVCalc(ancho, alto);
+    cotizadorUVPiezas.push({ ancho, alto, ...r });
+    document.getElementById('uv-ancho').value = '';
+    document.getElementById('uv-alto').value  = '';
+    document.getElementById('uv-preview').style.display = 'none';
+    renderCotizFinal();
+}
+
+function limpiarUVForm() {
+    document.getElementById('uv-ancho').value = '';
+    document.getElementById('uv-alto').value  = '';
+    document.getElementById('uv-preview').style.display = 'none';
+}
+
+function vaciarUV() {
+    cotizadorUVPiezas = [];
+    renderCotizFinal();
+}
+
+function quitarUV(i) {
+    cotizadorUVPiezas.splice(i, 1);
+    renderCotizFinal();
+}
+
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
-    const hasV = cotizadorPiezas.length > 0;
-    const hasS = stCart.length > 0;
-    if (!hasV && !hasS) { wrap.style.display = 'none'; return; }
+    const hasV  = cotizadorPiezas.length > 0;
+    const hasS  = stCart.length > 0;
+    const hasUV = cotizadorUVPiezas.length > 0;
+    if (!hasV && !hasS && !hasUV) { wrap.style.display = 'none'; return; }
     wrap.style.display = '';
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
@@ -2285,53 +2440,59 @@ function renderCotizFinal() {
         stickersBlock.style.display = 'none';
     }
 
+    const uvBlock = document.getElementById('cf-uv-block');
+    if (hasUV) {
+        uvBlock.style.display = '';
+        document.getElementById('cf-uv-body').innerHTML = cotizadorUVPiezas.map((p, i) => `
+            <tr>
+                <td class="text-gray">${p.ancho} × ${p.alto} cm</td>
+                <td class="text-gray">${p.areaCob.toFixed(4)} m²${p.esMinimo ? ' <span style="font-size:11px;color:var(--gray-500)">(mín)</span>' : ''}</td>
+                <td style="color:#ea580c;font-weight:600">${formatPeso(p.costo)}</td>
+                <td style="color:#16a34a;font-weight:600">${formatPeso(p.venta)}</td>
+                <td class="text-bold">${formatPeso(p.ganancia)}</td>
+                <td><button class="delete-row-btn" onclick="quitarUV(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+            </tr>`).join('');
+    } else {
+        uvBlock.style.display = 'none';
+    }
+
     const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
     const totVVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
     const totVGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
     const totS         = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
-    const totGeneral   = totVVenta + totS;
+    const totUVCosto    = cotizadorUVPiezas.reduce((s, p) => s + p.costo,    0);
+    const totUVVenta    = cotizadorUVPiezas.reduce((s, p) => s + p.venta,    0);
+    const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
+    const totGeneral    = totVVenta + totS + totUVVenta;
+    const tiposActivos  = [hasV, hasS, hasUV].filter(Boolean).length;
 
+    const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
     let html = '';
-    if (hasV && hasS) {
-        html = `
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Vinilo</div>
-                <div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div>
-            </div>
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Stickers</div>
-                <div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div>
-            </div>
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total a cobrar</div>
-                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div>
-            </div>`;
+    if (tiposActivos > 1) {
+        const cells = [];
+        if (hasV)  cells.push(`<div>${lbl('Vinilo')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>`);
+        if (hasUV) cells.push(`<div>${lbl('Vinilo UV')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>`);
+        if (hasS)  cells.push(`<div>${lbl('Stickers')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>`);
+        cells.push(`<div>${lbl('Total a cobrar')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div></div>`);
+        document.getElementById('cf-totales').style.gridTemplateColumns = `repeat(${Math.min(cells.length, 4)},1fr)`;
+        html = cells.join('');
     } else if (hasV) {
         const pct = Math.round((totVGanancia / totVVenta) * 100);
         html = `
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total costo</div>
-                <div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totVCosto)}</div>
-            </div>
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total venta</div>
-                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div>
-            </div>
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ganancia · ${pct}% margen</div>
-                <div style="font-size:22px;font-weight:700">${formatPeso(totVGanancia)}</div>
-            </div>`;
+            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totVCosto)}</div></div>
+            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>
+            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(totVGanancia)}</div></div>`;
+    } else if (hasUV) {
+        const pct = Math.round((totUVGanancia / totUVVenta) * 100);
+        html = `
+            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totUVCosto)}</div></div>
+            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>
+            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(totUVGanancia)}</div></div>`;
     } else {
         const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
         html = `
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total</div>
-                <div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div>
-            </div>
-            <div>
-                <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Unidades</div>
-                <div style="font-size:22px;font-weight:700">${totalUnits}</div>
-            </div>
+            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>
+            <div>${lbl('Unidades')}<div style="font-size:22px;font-weight:700">${totalUnits}</div></div>
             <div></div>`;
     }
     document.getElementById('cf-totales').innerHTML = html;
@@ -2339,23 +2500,32 @@ function renderCotizFinal() {
 }
 
 async function cotizFinalCopiar() {
-    const hasV = cotizadorPiezas.length > 0;
-    const hasS = stCart.length > 0;
-    if (!hasV && !hasS) return;
+    const hasV  = cotizadorPiezas.length > 0;
+    const hasS  = stCart.length > 0;
+    const hasUV = cotizadorUVPiezas.length > 0;
+    if (!hasV && !hasS && !hasUV) return;
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
     const encabezado = titulo ? `Cotización ${titulo}` : 'Cotización';
+    const tiposActivos = [hasV, hasS, hasUV].filter(Boolean).length;
     let texto = `${encabezado} — Amanda Gráficos\n\n`;
 
     if (hasV) {
-        if (hasS) texto += 'Vinilo:\n';
+        if (tiposActivos > 1) texto += 'Vinilo:\n';
         cotizadorPiezas.forEach(p => {
             texto += `▸ ${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
         });
     }
 
+    if (hasUV) {
+        if (tiposActivos > 1) texto += '\nVinilo UV:\n';
+        cotizadorUVPiezas.forEach(p => {
+            texto += `▸ ${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
+        });
+    }
+
     if (hasS) {
-        if (hasV) texto += '\nStickers:\n';
+        if (tiposActivos > 1) texto += '\nStickers:\n';
         stCart.forEach(item => {
             const r = stCalcPrice(item.size, item.qty);
             texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
@@ -2363,12 +2533,15 @@ async function cotizFinalCopiar() {
     }
 
     const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
+    const totUVVenta = cotizadorUVPiezas.reduce((s, p) => s + p.venta, 0);
     const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
-    if (hasV && hasS) {
-        texto += `\nTotal: ${formatPeso(totVVenta + totS)}`;
+    if (tiposActivos > 1) {
+        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS)}`;
     } else if (hasV) {
         texto += `\nTotal: ${formatPeso(totVVenta)}`;
+    } else if (hasUV) {
+        texto += `\nTotal: ${formatPeso(totUVVenta)}`;
     } else {
         texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS)}`;
     }
@@ -2397,6 +2570,7 @@ async function cotizFinalCopiar() {
 function cotizFinalVaciar() {
     cotizadorPiezas = [];
     stCart = [];
+    cotizadorUVPiezas = [];
     document.getElementById('cotiz-titulo').value = '';
     renderCotizFinal();
 }
