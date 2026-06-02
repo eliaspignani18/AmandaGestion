@@ -265,6 +265,7 @@
         .badge-cortar      { background: #ffe4e6; color: #be123c; }
         .badge-listo       { background: #ccfbf1; color: #0f766e; }
         .badge-entregado   { background: #dcfce7; color: #15803d; }
+        tr.row-entregado { background: #f3f4f6; }
 
         .badge-gplotter  { background: #f3e8ff; color: #7c3aed; }
         .badge-compras   { background: #dbeafe; color: #1d4ed8; }
@@ -1696,7 +1697,7 @@ function buildTable(pedidos) {
             </thead>
             <tbody>
                 ${pedidos.map(p => `
-                    <tr>
+                    <tr class="${p.estado === 'entregado' ? 'row-entregado' : ''}">
                         <td>
                             <div class="text-bold">${esc(p.cliente_nombre)}</div>
                             ${p.cliente_whatsapp ? `<div class="text-gray" style="font-size:12px">${esc(p.cliente_whatsapp)}</div>` : ''}
