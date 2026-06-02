@@ -1742,6 +1742,12 @@ function renderPedidosTable() {
     if (desde) list = list.filter(p => p.created_at && p.created_at.slice(0, 10) >= desde);
     if (hasta)  list = list.filter(p => p.created_at && p.created_at.slice(0, 10) <= hasta);
 
+    list = list.slice().sort((a, b) => {
+        const ai = ESTADOS.findIndex(e => e.key === a.estado);
+        const bi = ESTADOS.findIndex(e => e.key === b.estado);
+        return ai - bi;
+    });
+
     document.getElementById('pedidos-table').innerHTML =
         list.length ? buildTable(list) : '<div class="empty-state">No hay pedidos que coincidan</div>';
 
