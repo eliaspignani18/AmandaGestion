@@ -709,6 +709,7 @@
 
 
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
+            <button class="nav-btn" data-view="packs" onclick="showView('packs')"><i data-lucide="package"></i> Packs</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -1315,6 +1316,44 @@
             </div>
         </div>
 
+        <!-- PACKS -->
+        <div id="view-packs" class="view">
+            <div class="view-header"><h2>Cotizador de Packs</h2></div>
+            <div style="max-width:720px">
+                <div style="margin-bottom:20px">
+                    <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título</label>
+                    <input type="text" id="packs-titulo" placeholder="Ej: Florería Primavera" style="margin-top:6px;width:100%" oninput="">
+                </div>
+                <div class="filters" style="margin-bottom:20px;flex-wrap:wrap">
+                    <button class="filter-btn pack-filter-btn active" onclick="selectPack('emprendedor',this)">Emprendedor</button>
+                    <button class="filter-btn pack-filter-btn" onclick="selectPack('cumple',this)">Cumpleaños</button>
+                    <button class="filter-btn pack-filter-btn" onclick="selectPack('babyshower',this)">Baby Shower</button>
+                    <button class="filter-btn pack-filter-btn" onclick="selectPack('cole',this)">Vuelta al Cole</button>
+                    <button class="filter-btn pack-filter-btn" onclick="selectPack('navidad',this)">Navidad</button>
+                </div>
+                <div class="cotiz-section">
+                    <h3 class="cotiz-section-title" id="packs-pack-nombre">Pack Emprendedor</h3>
+                    <table style="width:100%;border-collapse:collapse">
+                        <thead>
+                            <tr style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--gray-200)">
+                                <th style="width:36px;padding-bottom:8px"></th>
+                                <th style="text-align:left;padding-bottom:8px">Ítem</th>
+                                <th style="width:80px;text-align:center;padding-bottom:8px">Cantidad</th>
+                                <th style="width:130px;text-align:right;padding-bottom:8px">Precio</th>
+                                <th style="width:110px;text-align:right;padding-bottom:8px">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="packs-items-tbody"></tbody>
+                    </table>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:12px;margin-bottom:16px">
+                    <span style="font-size:15px;font-weight:700">Total</span>
+                    <span id="packs-total" style="font-size:22px;font-weight:700">$0</span>
+                </div>
+                <button class="btn btn-primary" id="packs-copiar-btn" style="display:none" onclick="packsCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
+            </div>
+        </div>
+
         <!-- STOCK -->
         <div id="view-stock" class="view">
             <div class="view-header">
@@ -1558,6 +1597,7 @@ function showView(name) {
     if (name === 'nuevo-gasto')     resetGastoForm();
     if (name === 'stock')           renderStockTable();
     if (name === 'nuevo-stock')     resetStockForm();
+    if (name === 'packs')           initPacks();
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
     closeSidebar();
@@ -2239,6 +2279,189 @@ async function deleteGasto() {
 
     await loadAll();
     showView('gastos');
+}
+
+// ─── COTIZADOR PACKS ──────────────────────────────────────────────────────────
+
+const PACKS_DATA = {
+    emprendedor: {
+        nombre: 'Emprendedor',
+        items: [
+            { id: 'tarj',    label: 'Tarjetas 8×5 cm',             qty: 50,  precio: 0 },
+            { id: 'tags',    label: 'Tags 6×4 cm',                 qty: 50,  precio: 0 },
+            { id: 'stk',     label: 'Stickers con logo',           qty: 50,  precio: 0 },
+            { id: 'gift',    label: 'Giftcards 10×7 cm',           qty: null, precio: 0 },
+        ]
+    },
+    cumple: {
+        nombre: 'Cumpleaños',
+        items: [
+            { id: 'banner_p',   label: 'Banner principal',                 qty: null, precio: 0 },
+            { id: 'banner_f',   label: 'Banner con foto',                  qty: null, precio: 0 },
+            { id: 'banner_e',   label: 'Banner elegante con foto',         qty: null, precio: 0 },
+            { id: 'bander',     label: 'Banderines temáticos',             qty: 10,   precio: 0 },
+            { id: 'invit',      label: 'Invitaciones',                     qty: 20,   precio: 0 },
+            { id: 'invit_dig',  label: 'Invitaciones digitales',           qty: null, precio: 0 },
+            { id: 'etiq_torta', label: 'Etiquetas y topper de torta',      qty: null, precio: 0 },
+            { id: 'etiq_vasos', label: 'Etiquetas para vasos y botellas',  qty: null, precio: 0 },
+            { id: 'photobooth', label: 'Photo booth con marco',            qty: null, precio: 0 },
+            { id: 'menu',       label: 'Menú y tarjetas de mesa',          qty: null, precio: 0 },
+            { id: 'etiq_beb',   label: 'Etiquetas para bebidas',           qty: null, precio: 0 },
+            { id: 'libro',      label: 'Libro de firmas personalizado',    qty: null, precio: 0 },
+        ]
+    },
+    babyshower: {
+        nombre: 'Baby Shower',
+        items: [
+            { id: 'bs_banner',  label: 'Banner "Bienvenido/a [nombre]"',   qty: null, precio: 0 },
+            { id: 'bs_invit',   label: 'Invitaciones',                     qty: 20,   precio: 0 },
+            { id: 'bs_bander',  label: 'Banderines en tonos pastel',       qty: null, precio: 0 },
+            { id: 'bs_etiq',    label: 'Etiquetas para souvenirs',         qty: null, precio: 0 },
+            { id: 'bs_topper',  label: 'Toppers para torta o cupcakes',    qty: null, precio: 0 },
+            { id: 'nac_tarj',   label: 'Tarjetas de agradecimiento',       qty: null, precio: 0 },
+            { id: 'nac_poster', label: 'Posters "mes a mes"',              qty: null, precio: 0 },
+            { id: 'nac_cart',   label: 'Cartelitos primer año',            qty: null, precio: 0 },
+            { id: 'nac_stk',    label: 'Stickers para el cuarto',          qty: null, precio: 0 },
+            { id: 'nac_banner', label: 'Banner de bienvenida',             qty: null, precio: 0 },
+        ]
+    },
+    cole: {
+        nombre: 'Vuelta al Cole',
+        items: [
+            { id: 'cole_eagua', label: 'Etiquetas resistentes al agua',    qty: 60,   precio: 0 },
+            { id: 'cole_termo', label: 'Etiquetas termoadhesivas',         qty: 30,   precio: 0 },
+            { id: 'cole_util',  label: 'Etiquetas para útiles',            qty: 20,   precio: 0 },
+            { id: 'cole_carp',  label: 'Stickers para carpetas',           qty: null, precio: 0 },
+            { id: 'cole_mod',   label: 'Etiquetas diseño moderno',         qty: null, precio: 0 },
+            { id: 'cole_ntbk',  label: 'Stickers para notebook y celu',    qty: null, precio: 0 },
+            { id: 'cole_sep',   label: 'Separadores de carpeta',           qty: null, precio: 0 },
+            { id: 'cole_ag',    label: 'Agenda con nombre estampado',      qty: null, precio: 0 },
+            { id: 'cole_univ',  label: 'Agenda académica personalizada',   qty: null, precio: 0 },
+            { id: 'cole_mat',   label: 'Separadores por materia',          qty: null, precio: 0 },
+            { id: 'cole_lib',   label: 'Etiquetas para libros',            qty: null, precio: 0 },
+            { id: 'cole_cal',   label: 'Calendario de exámenes',           qty: null, precio: 0 },
+        ]
+    },
+    navidad: {
+        nombre: 'Navidad',
+        items: [
+            { id: 'nav_etiq',    label: 'Etiquetas para regalos',          qty: null, precio: 0 },
+            { id: 'nav_tarj',    label: 'Tarjetas navideñas',              qty: 20,   precio: 0 },
+            { id: 'nav_cart',    label: 'Cartel de bienvenida',            qty: null, precio: 0 },
+            { id: 'nav_band',    label: 'Banderines y stickers para vidrios', qty: null, precio: 0 },
+            { id: 'nav_vidr',    label: 'Cartelería para vidriera',        qty: null, precio: 0 },
+            { id: 'nav_bolsas',  label: 'Bolsas de regalo con marca',      qty: null, precio: 0 },
+            { id: 'nav_agr',     label: 'Tarjetas de agradecimiento',      qty: null, precio: 0 },
+            { id: 'nav_bnrr',    label: 'Banner para redes',               qty: null, precio: 0 },
+            { id: 'nav_finyear', label: 'Tarjetas de fin de año',          qty: null, precio: 0 },
+            { id: 'nav_etiq_c',  label: 'Etiquetas para regalos corp.',    qty: null, precio: 0 },
+            { id: 'nav_bolc',    label: 'Bolsas con logo',                 qty: null, precio: 0 },
+            { id: 'nav_cal',     label: 'Calendario corporativo',          qty: null, precio: 0 },
+        ]
+    },
+};
+
+let currentPackKey = 'emprendedor';
+let packsSeleccion = {};
+
+function initPacks() {
+    currentPackKey = 'emprendedor';
+    document.querySelectorAll('.pack-filter-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    resetPackSeleccion();
+    renderPacksItems();
+    renderPacksTotal();
+}
+
+function resetPackSeleccion() {
+    packsSeleccion = {};
+    PACKS_DATA[currentPackKey].items.forEach(item => {
+        packsSeleccion[item.id] = { checked: false, precio: item.precio, qty: item.qty };
+    });
+}
+
+function selectPack(key, btn) {
+    currentPackKey = key;
+    document.querySelectorAll('.pack-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('packs-pack-nombre').textContent = PACKS_DATA[key].nombre;
+    resetPackSeleccion();
+    renderPacksItems();
+    renderPacksTotal();
+}
+
+function renderPacksItems() {
+    const pack = PACKS_DATA[currentPackKey];
+    const inputStyle = 'border:1px solid var(--gray-300);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;outline:none;background:var(--white)';
+    document.getElementById('packs-items-tbody').innerHTML = pack.items.map(item => {
+        const sel = packsSeleccion[item.id];
+        const subtotal = sel.checked && sel.precio ? formatPeso(sel.precio) : '<span style="color:var(--gray-400)">—</span>';
+        const qtyCell = item.qty !== null
+            ? `<input type="number" value="${sel.qty ?? ''}" placeholder="0" min="1" step="1" oninput="setPackItemQty('${item.id}',this.value)" style="width:64px;text-align:center;${inputStyle}">`
+            : `<span style="color:var(--gray-400)">—</span>`;
+        return `<tr style="border-bottom:1px solid var(--gray-100)">
+            <td style="padding:10px 0"><input type="checkbox" ${sel.checked ? 'checked' : ''} onchange="togglePackItem('${item.id}',this.checked)" style="width:16px;height:16px;cursor:pointer"></td>
+            <td style="padding:10px 8px;font-size:14px">${item.label}</td>
+            <td style="padding:10px 4px;text-align:center">${qtyCell}</td>
+            <td style="padding:10px 0;text-align:right"><input type="number" value="${sel.precio || ''}" placeholder="0" min="0" step="100" oninput="setPackItemPrecio('${item.id}',this.value)" style="width:110px;text-align:right;${inputStyle}"></td>
+            <td data-subtotal="${item.id}" style="padding:10px 0 10px 12px;text-align:right;font-weight:${sel.checked ? '700' : '400'};font-size:14px">${subtotal}</td>
+        </tr>`;
+    }).join('');
+}
+
+function setPackItemQty(id, val) {
+    packsSeleccion[id].qty = parseInt(val) || null;
+}
+
+function togglePackItem(id, checked) {
+    packsSeleccion[id].checked = checked;
+    updatePackItemSubtotal(id);
+    renderPacksTotal();
+}
+
+function setPackItemPrecio(id, val) {
+    packsSeleccion[id].precio = parseFloat(val) || 0;
+    updatePackItemSubtotal(id);
+    renderPacksTotal();
+}
+
+function updatePackItemSubtotal(id) {
+    const sel = packsSeleccion[id];
+    const el = document.querySelector(`[data-subtotal="${id}"]`);
+    if (!el) return;
+    if (sel.checked && sel.precio) {
+        el.innerHTML = formatPeso(sel.precio);
+        el.style.fontWeight = '700';
+    } else {
+        el.innerHTML = '<span style="color:var(--gray-400)">—</span>';
+        el.style.fontWeight = '400';
+    }
+}
+
+function renderPacksTotal() {
+    const total = Object.values(packsSeleccion).filter(s => s.checked).reduce((sum, s) => sum + s.precio, 0);
+    document.getElementById('packs-total').textContent = formatPeso(total);
+    const hasItems = Object.values(packsSeleccion).some(s => s.checked);
+    document.getElementById('packs-copiar-btn').style.display = hasItems ? '' : 'none';
+    lucide.createIcons();
+}
+
+function packsCopiar() {
+    const pack   = PACKS_DATA[currentPackKey];
+    const titulo = document.getElementById('packs-titulo').value.trim();
+    const lines  = [`*Cotización${titulo ? ' — ' + titulo : ''}*`, `*${pack.nombre}*`, ''];
+    Object.entries(packsSeleccion).forEach(([id, sel]) => {
+        if (!sel.checked) return;
+        const item = pack.items.find(i => i.id === id);
+        const qtyStr = sel.qty ? `${sel.qty}× ` : '';
+        lines.push(`• ${qtyStr}${item.label}: ${sel.precio ? formatPeso(sel.precio) : '—'}`);
+    });
+    const total = Object.values(packsSeleccion).filter(s => s.checked).reduce((sum, s) => sum + s.precio, 0);
+    if (total) { lines.push(''); lines.push(`*Total: ${formatPeso(total)}*`); }
+    navigator.clipboard.writeText(lines.join('\n'));
+    const btn = document.getElementById('packs-copiar-btn');
+    btn.innerHTML = '<i data-lucide="check"></i> ¡Copiado!';
+    lucide.createIcons();
+    setTimeout(() => { btn.innerHTML = '<i data-lucide="copy"></i> Copiar cotización'; lucide.createIcons(); }, 2000);
 }
 
 // ─── COTIZADOR VINILO ─────────────────────────────────────────────────────────
