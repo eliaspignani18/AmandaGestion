@@ -1668,7 +1668,9 @@ function renderDashboard() {
             </div>`;
     }).join('');
 
-    const enCurso = allPedidos.filter(p => p.estado !== 'entregado' || !p.cobrado);
+    const enCurso = allPedidos
+        .filter(p => p.estado !== 'entregado' || !p.cobrado)
+        .sort((a, b) => ESTADOS.findIndex(e => e.key === a.estado) - ESTADOS.findIndex(e => e.key === b.estado));
     document.getElementById('dashboard-table').innerHTML =
         enCurso.length ? buildTable(enCurso) : '<div class="empty-state">No hay pedidos activos</div>';
 }
