@@ -422,6 +422,20 @@
         }
         .estado-select:focus { outline: none; border-color: var(--black); }
 
+        .plotter-input {
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--white);
+            font-family: inherit;
+            width: 150px;
+            color: var(--black);
+        }
+        .plotter-input:focus { outline: none; border-color: var(--black); }
+        .plotter-input::placeholder { color: var(--gray-300); font-weight: 400; }
+
         .delete-row-btn {
             background: none;
             border: none;
@@ -893,6 +907,10 @@
                     </div>
                     <div class="form-group full" style="margin-top:4px">
                         <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;border-top:1px solid var(--gray-200);padding-top:16px">Registro de producción</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Plotter utilizado</label>
+                        <input type="text" id="f-plotter-usado" list="plotter-options" placeholder="Ej: Pampa Impresiones">
                     </div>
                     <div class="form-group">
                         <label>Tipo de producto</label>
@@ -1497,6 +1515,11 @@
 </div>
 
 
+<datalist id="plotter-options">
+    <option value="Pampa Impresiones">
+    <option value="Vinilo Gutenberg">
+</datalist>
+
 <script>
 const SUPABASE_URL = 'https://cbpfixrgkcekscfqhvnf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNicGZpeHJna2Nla3NjZnFodm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0ODg3NDUsImV4cCI6MjA5NTA2NDc0NX0.GPevt5MU7CvLYqoSFeYrL9Z__xH8vrEh1yw3gXrpxy0';
@@ -1746,6 +1769,7 @@ function buildTable(pedidos) {
                     <th>Estado</th>
                     <th>Precio</th>
                     <th>Cobrado</th>
+                    <th>Plotter</th>
                     <th class="col-ingresado">Ingresado</th>
                     <th></th>
                     <th></th>
@@ -1775,6 +1799,7 @@ function buildTable(pedidos) {
                                    <button class="cobro-btn" onclick="marcarCobrado('${p.id}','Sofi')" style="margin-left:4px">Sofi</button>`
                             }
                         </td>
+                        <td><input type="text" class="plotter-input" list="plotter-options" value="${esc(p.plotter_usado || '')}" placeholder="—" onchange="cambiarPlotter('${p.id}', this.value)" onclick="event.stopPropagation()"></td>
                         <td class="col-ingresado">${p.created_at ? fechaIngresado(p.created_at) : '<span class="text-gray">—</span>'}</td>
                         <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
                         <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
@@ -1885,7 +1910,7 @@ function resetForm() {
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
     ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio',
-     'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm']
+     'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm','f-plotter-usado']
         .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('f-area-preview').textContent = '';
     document.getElementById('f-estado').value = 'recibido';
@@ -1934,6 +1959,7 @@ function editPedido(id) {
     calcularArea();
     seleccionarCargadoPor(p.cargado_por || 'Eli');
     seleccionarOrigen(p.origen || '');
+    document.getElementById('f-plotter-usado').value = p.plotter_usado || '';
     document.getElementById('btn-delete').style.display = 'inline-flex';
 }
 
@@ -1988,6 +2014,7 @@ async function savePedido() {
         cantidad:             parseInt(document.getElementById('f-cantidad').value) || null,
         ancho_cm:             parseFloat(document.getElementById('f-ancho-cm').value) || null,
         alto_cm:              parseFloat(document.getElementById('f-alto-cm').value) || null,
+        plotter_usado:        document.getElementById('f-plotter-usado').value.trim() || null,
     };
 
     const { error } = id
@@ -2035,6 +2062,13 @@ async function cambiarEstado(id, nuevoEstado) {
     await loadAll();
     if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
     else renderDashboard();
+}
+
+async function cambiarPlotter(id, valor) {
+    const v = valor.trim() || null;
+    await sb.from('pedidos').update({ plotter_usado: v }).eq('id', id);
+    const p = allPedidos.find(x => x.id === id);
+    if (p) p.plotter_usado = v;
 }
 
 async function deleteRowPedido(id) {
