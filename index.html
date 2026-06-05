@@ -742,6 +742,7 @@
 
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
             <button class="nav-btn" data-view="packs" onclick="showView('packs')"><i data-lucide="package"></i> Packs</button>
+            <button class="nav-btn" data-view="tarifa" onclick="showView('tarifa')"><i data-lucide="clock"></i> Tarifa</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -947,6 +948,21 @@
                             <button type="button" class="cobro-btn" id="origen-btn-instagram" onclick="seleccionarOrigen('instagram')">Instagram</button>
                             <button type="button" class="cobro-btn" id="origen-btn-recomendacion" onclick="seleccionarOrigen('recomendacion')">Recomendación</button>
                         </div>
+                    </div>
+                    <div class="form-group full" style="margin-top:4px">
+                        <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;border-top:1px solid var(--gray-200);padding-top:16px">Tiempo y materiales (opcional)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tiempo de diseño (min)</label>
+                        <input type="number" id="f-minutos-diseno" placeholder="—" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tiempo de corte (min)</label>
+                        <input type="number" id="f-minutos-corte" placeholder="—" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Costo de materiales ($)</label>
+                        <input type="number" id="f-costo-materiales" placeholder="—" step="1" min="0">
                     </div>
                 </div>
                 <div class="form-actions">
@@ -1390,6 +1406,42 @@
             </div>
         </div>
 
+        <!-- TARIFA -->
+        <div id="view-tarifa" class="view">
+            <div class="view-header">
+                <h2>Tarifa de mano de obra</h2>
+            </div>
+
+            <div class="form-card" style="max-width:780px;margin-bottom:24px">
+                <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:20px">Configuración</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+                    <div>
+                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Valor de tu hora ($/hora)</label>
+                        <input type="number" id="tarifa-valor-hora" placeholder="Ej: 5000" step="1" min="0" style="width:100%" oninput="renderTarifa()">
+                        <p style="font-size:12px;color:var(--gray-500);margin-top:8px;line-height:1.5">Para calcular el costo de tu tiempo en cada pedido.</p>
+                        <label style="font-size:13px;font-weight:600;display:block;margin-top:16px;margin-bottom:6px">Margen de ganancia (%)</label>
+                        <input type="number" id="tarifa-margen" placeholder="Ej: 30" step="1" min="0" max="999" style="width:100%" oninput="renderTarifa()">
+                        <p style="font-size:12px;color:var(--gray-500);margin-top:8px;line-height:1.5">Precio sugerido = (materiales + MO) × (1 + margen).</p>
+                    </div>
+                    <div>
+                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Costo de materiales por tipo ($/m²)</label>
+                        <div id="tarifa-mat-config"></div>
+                        <button type="button" class="btn btn-ghost" style="margin-top:10px;font-size:12px;padding:5px 12px" onclick="tarifaAgregarMaterial()">+ Agregar tipo</button>
+                        <p style="font-size:12px;color:var(--gray-500);margin-top:8px;line-height:1.5">Se auto-calcula con las dimensiones del pedido. Clic en el costo para editarlo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-wrap-header">
+                    <h3>Análisis por pedido</h3>
+                </div>
+                <div id="tarifa-tabla"></div>
+            </div>
+
+            <div id="tarifa-resumen" style="display:none;margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px"></div>
+        </div>
+
         <!-- STOCK -->
         <div id="view-stock" class="view">
             <div class="view-header">
@@ -1639,6 +1691,7 @@ function showView(name) {
     if (name === 'stock')           renderStockTable();
     if (name === 'nuevo-stock')     resetStockForm();
     if (name === 'packs')           initPacks();
+    if (name === 'tarifa')          renderTarifa();
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
     closeSidebar();
@@ -1912,7 +1965,8 @@ function resetForm() {
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
     ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio',
-     'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm','f-plotter-usado']
+     'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm','f-plotter-usado',
+     'f-minutos-diseno','f-minutos-corte','f-costo-materiales']
         .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('f-area-preview').textContent = '';
     document.getElementById('f-estado').value = 'recibido';
@@ -1961,7 +2015,10 @@ function editPedido(id) {
     calcularArea();
     seleccionarCargadoPor(p.cargado_por || 'Eli');
     seleccionarOrigen(p.origen || '');
-    document.getElementById('f-plotter-usado').value = p.plotter_usado || '';
+    document.getElementById('f-plotter-usado').value        = p.plotter_usado || '';
+    document.getElementById('f-minutos-diseno').value       = p.minutos_diseno != null ? p.minutos_diseno : '';
+    document.getElementById('f-minutos-corte').value        = p.minutos_corte != null ? p.minutos_corte : '';
+    document.getElementById('f-costo-materiales').value     = p.costo_materiales != null ? p.costo_materiales : '';
     document.getElementById('btn-delete').style.display = 'inline-flex';
 }
 
@@ -2017,6 +2074,9 @@ async function savePedido() {
         ancho_cm:             parseFloat(document.getElementById('f-ancho-cm').value) || null,
         alto_cm:              parseFloat(document.getElementById('f-alto-cm').value) || null,
         plotter_usado:        document.getElementById('f-plotter-usado').value.trim() || null,
+        minutos_diseno:       parseInt(document.getElementById('f-minutos-diseno').value) || null,
+        minutos_corte:        parseInt(document.getElementById('f-minutos-corte').value) || null,
+        costo_materiales:     parseFloat(document.getElementById('f-costo-materiales').value) || null,
     };
 
     const { error } = id
@@ -3346,6 +3406,287 @@ document.addEventListener('click', e => {
         document.getElementById('ac-dropdown')?.classList.remove('open');
     }
 });
+
+// ─── TARIFA ───────────────────────────────────────────────────────────────────
+
+// helpers localStorage tarifa
+function getTarifaMateriales() {
+    try { return JSON.parse(localStorage.getItem('tarifa_materiales')) || {}; } catch { return {}; }
+}
+function getTarifaMatPedidos() {
+    try { return JSON.parse(localStorage.getItem('tarifa_mat_pedido')) || {}; } catch { return {}; }
+}
+
+function renderTarifaMatConfig() {
+    const mats  = getTarifaMateriales();
+    const tipos = Object.keys(mats);
+    const el    = document.getElementById('tarifa-mat-config');
+    if (!el) return;
+    if (!tipos.length) {
+        el.innerHTML = '<p style="font-size:12px;color:var(--gray-500);margin:0">Sin tipos configurados aún.</p>';
+        return;
+    }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse">` +
+        tipos.map(tipo => `<tr>
+            <td style="padding:3px 0;font-size:13px;font-weight:600;cursor:pointer" onclick="tarifaEditMatNombre(this,'${tipo}')">${esc(tipo)}</td>
+            <td style="text-align:right;padding:3px 6px;cursor:pointer" onclick="tarifaEditMatCosto(this,'${tipo}')">${formatPeso(mats[tipo])}/m²</td>
+            <td style="width:20px;text-align:right">
+                <span style="cursor:pointer;color:var(--gray-500);font-size:16px;line-height:1" onclick="tarifaBorrarMaterial('${tipo}')">×</span>
+            </td>
+        </tr>`).join('') + `</table>`;
+}
+
+function tarifaAgregarMaterial() {
+    const nombre = prompt('Nombre del tipo de material (ej: vinilo, sticker, DTF):');
+    if (!nombre || !nombre.trim()) return;
+    const costoStr = prompt(`Costo de "${nombre.trim()}" por m² ($):`);
+    const costo = parseFloat(costoStr);
+    if (!costo || isNaN(costo)) return;
+    const mats = getTarifaMateriales();
+    mats[nombre.trim()] = costo;
+    localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
+    renderTarifaMatConfig();
+    renderTarifa();
+}
+
+function tarifaBorrarMaterial(tipo) {
+    if (!confirm(`¿Eliminar el tipo "${tipo}"?`)) return;
+    const mats = getTarifaMateriales();
+    delete mats[tipo];
+    localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
+    // limpiar selecciones que usaban este tipo
+    const matPedidos = getTarifaMatPedidos();
+    Object.keys(matPedidos).forEach(id => { if (matPedidos[id] === tipo) delete matPedidos[id]; });
+    localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+    renderTarifaMatConfig();
+    renderTarifa();
+}
+
+function tarifaEditMatNombre(td, tipoViejo) {
+    if (td.querySelector('input')) return;
+    const mats = getTarifaMateriales();
+    const input = document.createElement('input');
+    input.type  = 'text';
+    input.value = tipoViejo;
+    input.style.cssText = 'width:100px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px';
+    td.innerHTML = '';
+    td.appendChild(input);
+    input.focus(); input.select();
+    function guardar() {
+        const nuevo = input.value.trim();
+        if (nuevo && nuevo !== tipoViejo) {
+            mats[nuevo] = mats[tipoViejo];
+            delete mats[tipoViejo];
+            localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
+            // actualizar selecciones de pedidos que usaban el nombre viejo
+            const matPedidos = getTarifaMatPedidos();
+            Object.keys(matPedidos).forEach(id => { if (matPedidos[id] === tipoViejo) matPedidos[id] = nuevo; });
+            localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+        }
+        renderTarifaMatConfig();
+        renderTarifa();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { renderTarifaMatConfig(); renderTarifa(); } });
+}
+
+function tarifaEditMatCosto(td, tipo) {
+    if (td.querySelector('input')) return;
+    const mats  = getTarifaMateriales();
+    const input = document.createElement('input');
+    input.type  = 'number'; input.min = '0'; input.step = '100';
+    input.value = mats[tipo] || '';
+    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    td.innerHTML = '';
+    td.appendChild(input);
+    input.focus(); input.select();
+    function guardar() {
+        const val = parseFloat(input.value);
+        if (!isNaN(val) && val > 0) { mats[tipo] = val; localStorage.setItem('tarifa_materiales', JSON.stringify(mats)); }
+        renderTarifaMatConfig();
+        renderTarifa();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { renderTarifaMatConfig(); renderTarifa(); } });
+}
+
+function tarifaMaterialChange(pedidoId, tipo) {
+    const matPedidos = getTarifaMatPedidos();
+    if (tipo) matPedidos[pedidoId] = tipo; else delete matPedidos[pedidoId];
+    localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+    renderTarifa();
+}
+
+function renderTarifa() {
+    const inputHora   = document.getElementById('tarifa-valor-hora');
+    const inputMargen = document.getElementById('tarifa-margen');
+    const savedHora   = localStorage.getItem('tarifa_valor_hora');
+    const savedMargen = localStorage.getItem('tarifa_margen');
+    if (savedHora   && inputHora.value   === '') inputHora.value   = savedHora;
+    if (savedMargen && inputMargen.value === '') inputMargen.value = savedMargen;
+    const valorHora = parseFloat(inputHora.value)   || 0;
+    const margen    = parseFloat(inputMargen.value) || 0;
+    if (inputHora.value   !== '') localStorage.setItem('tarifa_valor_hora', inputHora.value);
+    if (inputMargen.value !== '') localStorage.setItem('tarifa_margen', inputMargen.value);
+
+    renderTarifaMatConfig();
+
+    const mats      = getTarifaMateriales();
+    const matPedidos = getTarifaMatPedidos();
+    const pedidos   = allPedidos.filter(p => p.estado !== 'entregado' || p.precio_cliente);
+    const gananciasResumen = [];
+
+    const editableMin = (pid, field, val) => {
+        const display = val > 0 ? `${val} min` : '<span class="text-gray" style="font-size:12px">+ agregar</span>';
+        return `<td style="text-align:center;cursor:pointer" onclick="tarifaEditCell(this,'${pid}','${field}',${val||0})">${display}</td>`;
+    };
+
+    const tbody = pedidos.map(p => {
+        const minTotal = (p.minutos_diseno || 0) + (p.minutos_corte || 0);
+        const costoMO  = valorHora > 0 && minTotal > 0 ? (minTotal / 60) * valorHora : null;
+        const precio   = p.precio_cliente || 0;
+
+        // --- celda de materiales ---
+        const hasDim  = p.ancho_cm && p.alto_cm && p.cantidad;
+        const tipoSel = matPedidos[p.id] || '';
+        let costoMat  = 0;
+        let matCell   = '';
+
+        if (hasDim) {
+            const area_m2 = (p.ancho_cm * p.alto_cm * p.cantidad) / 10000;
+            const autoVal = tipoSel && mats[tipoSel] ? area_m2 * mats[tipoSel] : null;
+            costoMat = autoVal !== null ? autoVal : (p.costo_materiales || 0);
+
+            const tipoOpts = Object.keys(mats);
+            const opts = [`<option value="">— material</option>`,
+                ...tipoOpts.map(t => `<option value="${esc(t)}"${t===tipoSel?' selected':''}>${esc(t)}</option>`)
+            ].join('');
+
+            const costoDisplay = autoVal !== null
+                ? `<div style="font-size:12px;font-weight:600;text-align:right;margin-top:3px">${formatPeso(autoVal)} <span style="font-size:10px;color:var(--gray-500);font-weight:400">auto</span></div>`
+                : `<div style="font-size:12px;text-align:right;margin-top:3px;cursor:pointer" onclick="tarifaEditMatManual(this,'${p.id}',${p.costo_materiales||0})">${p.costo_materiales ? formatPeso(p.costo_materiales) : '<span style="color:var(--gray-500);font-size:11px">+ manual</span>'}</div>`;
+
+            matCell = `<td style="min-width:150px;padding:6px 12px">
+                <select style="font-size:11px;border:1px solid var(--gray-300);border-radius:4px;padding:2px 4px;width:100%"
+                        onchange="tarifaMaterialChange('${p.id}',this.value)">
+                    ${opts}
+                </select>
+                ${costoDisplay}
+            </td>`;
+        } else {
+            costoMat = p.costo_materiales || 0;
+            const display = costoMat > 0 ? formatPeso(costoMat) : '<span class="text-gray" style="font-size:12px">+ agregar</span>';
+            matCell = `<td style="text-align:right;cursor:pointer" onclick="tarifaEditCell(this,'${p.id}','costo_materiales',${costoMat})">${display}</td>`;
+        }
+
+        // --- ganancia y precio sugerido ---
+        const ganancia       = costoMO !== null ? precio - costoMat - costoMO : null;
+        const costoTotal     = costoMO !== null ? costoMat + costoMO : null;
+        const precioSugerido = costoTotal !== null && margen >= 0 ? costoTotal * (1 + margen / 100) : null;
+        if (ganancia !== null && minTotal > 0) gananciasResumen.push(ganancia);
+
+        const gananciaCell = ganancia !== null
+            ? `<span style="font-weight:700;color:${ganancia>=0?'var(--green)':'var(--red)'}">${formatPeso(ganancia)}</span>`
+            : '<span class="text-gray">—</span>';
+
+        const precioSugeridoCell = precioSugerido !== null
+            ? `<span style="font-weight:700">${formatPeso(precioSugerido)}</span>`
+            : '<span class="text-gray">—</span>';
+
+        return `<tr>
+            <td>${esc(p.cliente_nombre)}</td>
+            <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--gray-500)">${esc(p.descripcion||'')}</td>
+            <td style="text-align:right">${precio ? formatPeso(precio) : '<span class="text-gray">—</span>'}</td>
+            ${matCell}
+            ${editableMin(p.id, 'minutos_diseno', p.minutos_diseno||0)}
+            ${editableMin(p.id, 'minutos_corte', p.minutos_corte||0)}
+            <td style="text-align:center;font-weight:600">${minTotal>0?`${minTotal} min`:'<span class="text-gray">—</span>'}</td>
+            <td style="text-align:right">${costoMO!==null?formatPeso(costoMO):'<span class="text-gray">—</span>'}</td>
+            <td style="text-align:right">${gananciaCell}</td>
+            <td style="text-align:right">${precioSugeridoCell}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('tarifa-tabla').innerHTML = `
+        <table>
+            <thead><tr>
+                <th style="text-align:left">Cliente</th>
+                <th style="text-align:left">Descripción</th>
+                <th style="text-align:right">Precio</th>
+                <th style="text-align:left">Materiales</th>
+                <th style="text-align:center">Diseño</th>
+                <th style="text-align:center">Corte</th>
+                <th style="text-align:center">Total tiempo</th>
+                <th style="text-align:right">Costo MO</th>
+                <th style="text-align:right">Ganancia neta</th>
+                <th style="text-align:right">Precio sugerido</th>
+            </tr></thead>
+            <tbody>${tbody}</tbody>
+        </table>`;
+
+    // --- resumen ---
+    const resumenEl = document.getElementById('tarifa-resumen');
+    if (gananciasResumen.length > 0) {
+        const promedio  = gananciasResumen.reduce((a, b) => a + b, 0) / gananciasResumen.length;
+        const positivos = gananciasResumen.filter(g => g >= 0).length;
+        resumenEl.style.display = 'grid';
+        resumenEl.innerHTML = [
+            ['Pedidos analizados', `${gananciasResumen.length}`, ''],
+            ['Ganancia promedio', formatPeso(promedio), promedio >= 0 ? 'var(--green)' : 'var(--red)'],
+            ['Rentables', `${positivos} de ${gananciasResumen.length}`, positivos === gananciasResumen.length ? 'var(--green)' : 'var(--orange)'],
+        ].map(([label, val, color]) => `
+            <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:16px 20px">
+                <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px">${label}</div>
+                <div style="font-size:22px;font-weight:700;${color?`color:${color}`:''}">${val}</div>
+            </div>`).join('');
+    } else {
+        resumenEl.style.display = 'none';
+    }
+}
+
+function tarifaEditCell(td, pedidoId, field, currentVal) {
+    if (td.querySelector('input')) return;
+    const isMin = field.startsWith('minutos');
+    const input = document.createElement('input');
+    input.type  = 'number'; input.min = '0';
+    input.step  = isMin ? '1' : '100';
+    input.value = currentVal || '';
+    input.placeholder = isMin ? 'min' : '$';
+    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:center';
+    td.innerHTML = '';
+    td.appendChild(input);
+    input.focus(); input.select();
+    async function guardar() {
+        const val = isMin ? (parseInt(input.value) || null) : (parseFloat(input.value) || null);
+        const pedido = allPedidos.find(p => p.id === pedidoId);
+        if (pedido) pedido[field] = val;
+        await sb.from('pedidos').update({ [field]: val }).eq('id', pedidoId);
+        renderTarifa();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key==='Enter') input.blur(); if (e.key==='Escape') renderTarifa(); });
+}
+
+function tarifaEditMatManual(el, pedidoId, currentVal) {
+    if (el.querySelector('input')) return;
+    const input = document.createElement('input');
+    input.type = 'number'; input.min = '0'; input.step = '100';
+    input.value = currentVal || '';
+    input.placeholder = '$';
+    input.style.cssText = 'width:80px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    el.innerHTML = '';
+    el.appendChild(input);
+    input.focus(); input.select();
+    async function guardar() {
+        const val = parseFloat(input.value) || null;
+        const pedido = allPedidos.find(p => p.id === pedidoId);
+        if (pedido) pedido.costo_materiales = val;
+        await sb.from('pedidos').update({ costo_materiales: val }).eq('id', pedidoId);
+        renderTarifa();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key==='Enter') input.blur(); if (e.key==='Escape') renderTarifa(); });
+}
 
 // ─── REGISTRO DE PRODUCCIÓN ───────────────────────────────────────────────────
 
