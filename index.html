@@ -297,6 +297,8 @@
             box-shadow: var(--shadow-stamp);
             padding: 32px;
             max-width: 720px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -636,7 +638,11 @@
 
             /* Inputs: font-size 16px previene el zoom automático en iOS */
             input[type="text"], input[type="number"], input[type="date"],
-            input[type="email"], input[type="tel"], select, textarea { font-size: 16px !important; }
+            input[type="email"], input[type="tel"], select, textarea {
+                font-size: 16px !important;
+                box-sizing: border-box;
+                max-width: 100%;
+            }
 
             /* Cobro: más área de toque */
             .cobro-btn { padding: 7px 14px; }
@@ -1455,7 +1461,7 @@
                 <div id="tarifa-tabla"></div>
             </div>
 
-            <div id="tarifa-resumen" style="display:none;margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px"></div>
+            <div id="tarifa-resumen" style="display:none;margin-top:20px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px"></div>
         </div>
 
         <!-- STOCK -->
