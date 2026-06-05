@@ -621,6 +621,7 @@
             /* Cotizador: grid de parámetros a 1 columna */
             .c-params-grid { grid-template-columns: 1fr !important; }
             .cotiz-section { margin-bottom: 16px; padding: 16px; }
+            .cotiz-pack-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
 
             /* Tarifa: config a 1 columna, tabla más ancha */
             .tarifa-config-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
@@ -648,6 +649,11 @@
         /* COTIZADOR — secciones internas */
         .cotiz-section { margin-bottom: 20px; max-width: 720px; background: var(--white); border: 2px solid var(--black); box-shadow: var(--shadow-stamp); border-radius: 14px; padding: 24px; }
         .cotiz-section-title { font-size: 16px; font-weight: 700; color: var(--gray-700); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1.5px solid var(--gray-200); }
+
+        /* COTIZADOR + PACK — layout 2 columnas */
+        .cotiz-pack-grid { display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: start; }
+        .cotiz-pack-col-title { font-size: 22px; font-weight: 700; margin: 0 0 20px 0; }
+        .cotiz-pack-right .cotiz-section { max-width: 100%; }
 
         /* COTIZADOR STICKERS */
         .st-sizes { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -748,7 +754,6 @@
 
 
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
-            <button class="nav-btn" data-view="packs" onclick="showView('packs')"><i data-lucide="package"></i> Packs</button>
             <button class="nav-btn" data-view="tarifa" onclick="showView('tarifa')"><i data-lucide="clock"></i> Tarifa</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
@@ -1062,9 +1067,9 @@
 
         <!-- COTIZADOR -->
         <div id="view-cotizador" class="view">
-            <div class="view-header">
-                <h2>Cotizador</h2>
-            </div>
+            <div class="cotiz-pack-grid">
+            <div>
+            <h2 class="cotiz-pack-col-title">Cotizador</h2>
 
             <div style="max-width:720px;margin-bottom:8px">
                 <div class="form-group" style="margin:0">
@@ -1373,12 +1378,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div><!-- /col cotizador -->
 
-        <!-- PACKS -->
-        <div id="view-packs" class="view">
-            <div class="view-header"><h2>Cotizador de Packs</h2></div>
-            <div style="max-width:720px">
+            <div class="cotiz-pack-right">
+                <h2 class="cotiz-pack-col-title">Pack</h2>
                 <div style="margin-bottom:20px">
                     <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título</label>
                     <input type="text" id="packs-titulo" placeholder="Ej: Florería Primavera" style="margin-top:6px;width:100%" oninput="">
@@ -1410,7 +1413,8 @@
                     <span id="packs-total" style="font-size:22px;font-weight:700">$0</span>
                 </div>
                 <button class="btn btn-primary" id="packs-copiar-btn" style="display:none" onclick="packsCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
-            </div>
+            </div><!-- /col pack -->
+            </div><!-- /cotiz-pack-grid -->
         </div>
 
         <!-- TARIFA -->
@@ -1698,7 +1702,7 @@ function showView(name) {
     if (name === 'nuevo-gasto')     resetGastoForm();
     if (name === 'stock')           renderStockTable();
     if (name === 'nuevo-stock')     resetStockForm();
-    if (name === 'packs')           initPacks();
+    if (name === 'cotizador')        initPacks();
     if (name === 'tarifa')          renderTarifa();
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
