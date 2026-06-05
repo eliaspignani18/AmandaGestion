@@ -622,6 +622,13 @@
             .c-params-grid { grid-template-columns: 1fr !important; }
             .cotiz-section { margin-bottom: 16px; padding: 16px; }
 
+            /* Tarifa: config a 1 columna, tabla más ancha */
+            .tarifa-config-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+            #tarifa-tabla table { min-width: 900px; }
+
+            /* Table-wrap-header: permitir wrap en pantallas chicas */
+            .table-wrap-header { flex-wrap: wrap; gap: 8px; padding: 14px 16px; }
+
             /* Inputs: font-size 16px previene el zoom automático en iOS */
             input[type="text"], input[type="number"], input[type="date"],
             input[type="email"], input[type="tel"], select, textarea { font-size: 16px !important; }
@@ -1414,7 +1421,7 @@
 
             <div class="form-card" style="max-width:780px;margin-bottom:24px">
                 <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:20px">Configuración</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+                <div class="tarifa-config-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
                     <div>
                         <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Valor de tu hora ($/hora)</label>
                         <input type="number" id="tarifa-valor-hora" placeholder="Ej: 5000" step="1" min="0" style="width:100%" oninput="renderTarifa()">
@@ -1595,6 +1602,7 @@ const ESTADOS = [
 let currentFilter = 'todos';
 let allPedidos = [];
 let allGastos = [];
+let tarifaConfig = { valor_hora: null, margen: null, materiales: {} };
 let allStock = [];
 let allClientes = [];
 
@@ -1727,6 +1735,7 @@ async function loadAll() {
     if (!resGastos.error)    allGastos    = resGastos.data    || [];
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
+    loadTarifaConfig();
     renderDashboard();
     renderTarjetasTabla();
 }
@@ -3409,12 +3418,34 @@ document.addEventListener('click', e => {
 
 // ─── TARIFA ───────────────────────────────────────────────────────────────────
 
-// helpers localStorage tarifa
-function getTarifaMateriales() {
-    try { return JSON.parse(localStorage.getItem('tarifa_materiales')) || {}; } catch { return {}; }
+async function loadTarifaConfig() {
+    const { data } = await sb.from('tarifa_config').select('*').eq('id', 1).single();
+    if (data) tarifaConfig = { valor_hora: data.valor_hora, margen: data.margen, materiales: data.materiales || {} };
+    const valorHora = tarifaConfig.valor_hora || 0;
+    if (valorHora > 0) {
+        const sin_mo = allPedidos.filter(p => (p.minutos_diseno || p.minutos_corte) && p.costo_mo == null);
+        for (const p of sin_mo) {
+            const totalMin = (p.minutos_diseno || 0) + (p.minutos_corte || 0);
+            const costo_mo = totalMin > 0 ? Math.round((totalMin / 60) * valorHora) : null;
+            p.costo_mo = costo_mo;
+            await sb.from('pedidos').update({ costo_mo }).eq('id', p.id);
+        }
+    }
 }
+
+let _tarifaConfigTimer = null;
+function saveTarifaConfig() {
+    clearTimeout(_tarifaConfigTimer);
+    _tarifaConfigTimer = setTimeout(() => {
+        sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales });
+    }, 600);
+}
+
+function getTarifaMateriales() { return tarifaConfig.materiales || {}; }
 function getTarifaMatPedidos() {
-    try { return JSON.parse(localStorage.getItem('tarifa_mat_pedido')) || {}; } catch { return {}; }
+    const result = {};
+    allPedidos.forEach(p => { if (p.material_tipo) result[p.id] = p.material_tipo; });
+    return result;
 }
 
 function renderTarifaMatConfig() {
@@ -3436,35 +3467,38 @@ function renderTarifaMatConfig() {
         </tr>`).join('') + `</table>`;
 }
 
-function tarifaAgregarMaterial() {
+async function saveMateriales() {
+    await sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales });
+}
+
+async function tarifaAgregarMaterial() {
     const nombre = prompt('Nombre del tipo de material (ej: vinilo, sticker, DTF):');
     if (!nombre || !nombre.trim()) return;
     const costoStr = prompt(`Costo de "${nombre.trim()}" por m² ($):`);
     const costo = parseFloat(costoStr);
     if (!costo || isNaN(costo)) return;
-    const mats = getTarifaMateriales();
-    mats[nombre.trim()] = costo;
-    localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
+    tarifaConfig.materiales[nombre.trim()] = costo;
+    await saveMateriales();
     renderTarifaMatConfig();
     renderTarifa();
 }
 
-function tarifaBorrarMaterial(tipo) {
+async function tarifaBorrarMaterial(tipo) {
     if (!confirm(`¿Eliminar el tipo "${tipo}"?`)) return;
-    const mats = getTarifaMateriales();
-    delete mats[tipo];
-    localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
-    // limpiar selecciones que usaban este tipo
-    const matPedidos = getTarifaMatPedidos();
-    Object.keys(matPedidos).forEach(id => { if (matPedidos[id] === tipo) delete matPedidos[id]; });
-    localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+    delete tarifaConfig.materiales[tipo];
+    await saveMateriales();
+    allPedidos.forEach(p => {
+        if (p.material_tipo === tipo) {
+            p.material_tipo = null;
+            sb.from('pedidos').update({ material_tipo: null }).eq('id', p.id);
+        }
+    });
     renderTarifaMatConfig();
     renderTarifa();
 }
 
 function tarifaEditMatNombre(td, tipoViejo) {
     if (td.querySelector('input')) return;
-    const mats = getTarifaMateriales();
     const input = document.createElement('input');
     input.type  = 'text';
     input.value = tipoViejo;
@@ -3472,16 +3506,18 @@ function tarifaEditMatNombre(td, tipoViejo) {
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
-    function guardar() {
+    async function guardar() {
         const nuevo = input.value.trim();
         if (nuevo && nuevo !== tipoViejo) {
-            mats[nuevo] = mats[tipoViejo];
-            delete mats[tipoViejo];
-            localStorage.setItem('tarifa_materiales', JSON.stringify(mats));
-            // actualizar selecciones de pedidos que usaban el nombre viejo
-            const matPedidos = getTarifaMatPedidos();
-            Object.keys(matPedidos).forEach(id => { if (matPedidos[id] === tipoViejo) matPedidos[id] = nuevo; });
-            localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+            tarifaConfig.materiales[nuevo] = tarifaConfig.materiales[tipoViejo];
+            delete tarifaConfig.materiales[tipoViejo];
+            await saveMateriales();
+            allPedidos.forEach(p => {
+                if (p.material_tipo === tipoViejo) {
+                    p.material_tipo = nuevo;
+                    sb.from('pedidos').update({ material_tipo: nuevo }).eq('id', p.id);
+                }
+            });
         }
         renderTarifaMatConfig();
         renderTarifa();
@@ -3492,17 +3528,19 @@ function tarifaEditMatNombre(td, tipoViejo) {
 
 function tarifaEditMatCosto(td, tipo) {
     if (td.querySelector('input')) return;
-    const mats  = getTarifaMateriales();
     const input = document.createElement('input');
     input.type  = 'number'; input.min = '0'; input.step = '100';
-    input.value = mats[tipo] || '';
+    input.value = tarifaConfig.materiales[tipo] || '';
     input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
-    function guardar() {
+    async function guardar() {
         const val = parseFloat(input.value);
-        if (!isNaN(val) && val > 0) { mats[tipo] = val; localStorage.setItem('tarifa_materiales', JSON.stringify(mats)); }
+        if (!isNaN(val) && val > 0) {
+            tarifaConfig.materiales[tipo] = val;
+            await saveMateriales();
+        }
         renderTarifaMatConfig();
         renderTarifa();
     }
@@ -3511,23 +3549,21 @@ function tarifaEditMatCosto(td, tipo) {
 }
 
 function tarifaMaterialChange(pedidoId, tipo) {
-    const matPedidos = getTarifaMatPedidos();
-    if (tipo) matPedidos[pedidoId] = tipo; else delete matPedidos[pedidoId];
-    localStorage.setItem('tarifa_mat_pedido', JSON.stringify(matPedidos));
+    const pedido = allPedidos.find(p => p.id === pedidoId);
+    if (pedido) pedido.material_tipo = tipo || null;
+    sb.from('pedidos').update({ material_tipo: tipo || null }).eq('id', pedidoId);
     renderTarifa();
 }
 
 function renderTarifa() {
     const inputHora   = document.getElementById('tarifa-valor-hora');
     const inputMargen = document.getElementById('tarifa-margen');
-    const savedHora   = localStorage.getItem('tarifa_valor_hora');
-    const savedMargen = localStorage.getItem('tarifa_margen');
-    if (savedHora   && inputHora.value   === '') inputHora.value   = savedHora;
-    if (savedMargen && inputMargen.value === '') inputMargen.value = savedMargen;
+    if (inputHora.value   === '' && tarifaConfig.valor_hora != null) inputHora.value   = tarifaConfig.valor_hora;
+    if (inputMargen.value === '' && tarifaConfig.margen     != null) inputMargen.value = tarifaConfig.margen;
     const valorHora = parseFloat(inputHora.value)   || 0;
     const margen    = parseFloat(inputMargen.value) || 0;
-    if (inputHora.value   !== '') localStorage.setItem('tarifa_valor_hora', inputHora.value);
-    if (inputMargen.value !== '') localStorage.setItem('tarifa_margen', inputMargen.value);
+    if (inputHora.value   !== '') { tarifaConfig.valor_hora = parseFloat(inputHora.value) || null; saveTarifaConfig(); }
+    if (inputMargen.value !== '') { tarifaConfig.margen     = parseFloat(inputMargen.value) || null; saveTarifaConfig(); }
 
     renderTarifaMatConfig();
 
@@ -3542,9 +3578,9 @@ function renderTarifa() {
     };
 
     const tbody = pedidos.map(p => {
-        const minTotal = (p.minutos_diseno || 0) + (p.minutos_corte || 0);
-        const costoMO  = valorHora > 0 && minTotal > 0 ? (minTotal / 60) * valorHora : null;
-        const precio   = p.precio_cliente || 0;
+        const minTotal  = (p.minutos_diseno || 0) + (p.minutos_corte || 0);
+        const costoMO   = p.costo_mo != null ? p.costo_mo : null;
+        const precio    = p.precio_cliente || 0;
 
         // --- celda de materiales ---
         const hasDim  = p.ancho_cm && p.alto_cm && p.cantidad;
@@ -3601,7 +3637,7 @@ function renderTarifa() {
             ${editableMin(p.id, 'minutos_diseno', p.minutos_diseno||0)}
             ${editableMin(p.id, 'minutos_corte', p.minutos_corte||0)}
             <td style="text-align:center;font-weight:600">${minTotal>0?`${minTotal} min`:'<span class="text-gray">—</span>'}</td>
-            <td style="text-align:right">${costoMO!==null?formatPeso(costoMO):'<span class="text-gray">—</span>'}</td>
+            <td style="text-align:right;cursor:pointer" onclick="tarifaEditMO(this,'${p.id}')">${costoMO !== null ? `<span style="font-weight:600">${formatPeso(costoMO)}</span>` : '<span style="color:var(--gray-500);font-size:12px">+ agregar</span>'}</td>
             <td style="text-align:right">${gananciaCell}</td>
             <td style="text-align:right">${precioSugeridoCell}</td>
         </tr>`;
@@ -3644,9 +3680,65 @@ function renderTarifa() {
     }
 }
 
+async function tarifaGuardarMO(pedidoId) {
+    const pedido = allPedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
+    const valorHora = parseFloat(document.getElementById('tarifa-valor-hora').value) || 0;
+    if (!valorHora) return;
+    const totalMin = (pedido.minutos_diseno || 0) + (pedido.minutos_corte || 0);
+    const costo_mo = totalMin > 0 ? Math.round((totalMin / 60) * valorHora) : null;
+    pedido.costo_mo = costo_mo;
+    await sb.from('pedidos').update({ costo_mo }).eq('id', pedidoId);
+}
+
+function tarifaEditMO(td, pedidoId) {
+    const pedido    = allPedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
+    const valorHora = parseFloat(document.getElementById('tarifa-valor-hora').value) || 0;
+    const minTotal  = (pedido.minutos_diseno || 0) + (pedido.minutos_corte || 0);
+    const sugerido  = pedido.costo_mo != null ? pedido.costo_mo
+                    : (valorHora > 0 && minTotal > 0 ? Math.round((minTotal / 60) * valorHora) : '');
+    if (window.innerWidth <= 768) {
+        const raw = prompt('Costo MO ($):', sugerido);
+        if (raw === null) return;
+        const val = parseFloat(raw) || null;
+        pedido.costo_mo = val;
+        sb.from('pedidos').update({ costo_mo: val }).eq('id', pedidoId).then(() => renderTarifa());
+        return;
+    }
+    if (td.querySelector('input')) return;
+    const input = document.createElement('input');
+    input.type = 'number'; input.min = '0'; input.step = '100';
+    input.value = sugerido;
+    input.placeholder = '$';
+    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    td.innerHTML = '';
+    td.appendChild(input);
+    input.focus(); input.select();
+    async function guardar() {
+        const val = parseFloat(input.value) || null;
+        pedido.costo_mo = val;
+        await sb.from('pedidos').update({ costo_mo: val }).eq('id', pedidoId);
+        renderTarifa();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderTarifa(); });
+}
+
 function tarifaEditCell(td, pedidoId, field, currentVal) {
     if (td.querySelector('input')) return;
     const isMin = field.startsWith('minutos');
+    if (window.innerWidth <= 768) {
+        const raw = prompt(isMin ? 'Minutos:' : 'Costo de materiales ($):', currentVal || '');
+        if (raw === null) return;
+        const val = isMin ? (parseInt(raw) || null) : (parseFloat(raw) || null);
+        const pedido = allPedidos.find(p => p.id === pedidoId);
+        if (pedido) pedido[field] = val;
+        sb.from('pedidos').update({ [field]: val }).eq('id', pedidoId)
+            .then(() => isMin ? tarifaGuardarMO(pedidoId) : Promise.resolve())
+            .then(() => renderTarifa());
+        return;
+    }
     const input = document.createElement('input');
     input.type  = 'number'; input.min = '0';
     input.step  = isMin ? '1' : '100';
@@ -3661,6 +3753,7 @@ function tarifaEditCell(td, pedidoId, field, currentVal) {
         const pedido = allPedidos.find(p => p.id === pedidoId);
         if (pedido) pedido[field] = val;
         await sb.from('pedidos').update({ [field]: val }).eq('id', pedidoId);
+        if (isMin) await tarifaGuardarMO(pedidoId);
         renderTarifa();
     }
     input.addEventListener('blur', guardar);
@@ -3669,6 +3762,15 @@ function tarifaEditCell(td, pedidoId, field, currentVal) {
 
 function tarifaEditMatManual(el, pedidoId, currentVal) {
     if (el.querySelector('input')) return;
+    if (window.innerWidth <= 768) {
+        const raw = prompt('Costo de materiales ($):', currentVal || '');
+        if (raw === null) return;
+        const val = parseFloat(raw) || null;
+        const pedido = allPedidos.find(p => p.id === pedidoId);
+        if (pedido) pedido.costo_materiales = val;
+        sb.from('pedidos').update({ costo_materiales: val }).eq('id', pedidoId).then(() => renderTarifa());
+        return;
+    }
     const input = document.createElement('input');
     input.type = 'number'; input.min = '0'; input.step = '100';
     input.value = currentVal || '';
