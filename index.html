@@ -1382,18 +1382,18 @@
 
             <div class="cotiz-pack-right">
                 <h2 class="cotiz-pack-col-title">Pack</h2>
-                <div style="margin-bottom:20px">
-                    <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título</label>
-                    <input type="text" id="packs-titulo" placeholder="Ej: Florería Primavera" style="margin-top:6px;width:100%" oninput="">
-                </div>
-                <div class="filters" style="margin-bottom:20px;flex-wrap:wrap">
-                    <button class="filter-btn pack-filter-btn active" onclick="selectPack('emprendedor',this)">Emprendedor</button>
-                    <button class="filter-btn pack-filter-btn" onclick="selectPack('cumple',this)">Cumpleaños</button>
-                    <button class="filter-btn pack-filter-btn" onclick="selectPack('babyshower',this)">Baby Shower</button>
-                    <button class="filter-btn pack-filter-btn" onclick="selectPack('cole',this)">Vuelta al Cole</button>
-                    <button class="filter-btn pack-filter-btn" onclick="selectPack('navidad',this)">Navidad</button>
-                </div>
-                <div class="cotiz-section">
+                <div class="cotiz-section" style="max-width:100%">
+                    <div style="margin-bottom:20px">
+                        <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título</label>
+                        <input type="text" id="packs-titulo" placeholder="Ej: Florería Primavera" style="margin-top:6px;width:100%" oninput="">
+                    </div>
+                    <div class="filters" style="margin-bottom:20px;flex-wrap:wrap">
+                        <button class="filter-btn pack-filter-btn active" onclick="selectPack('emprendedor',this)">Emprendedor</button>
+                        <button class="filter-btn pack-filter-btn" onclick="selectPack('cumple',this)">Cumpleaños</button>
+                        <button class="filter-btn pack-filter-btn" onclick="selectPack('babyshower',this)">Baby Shower</button>
+                        <button class="filter-btn pack-filter-btn" onclick="selectPack('cole',this)">Vuelta al Cole</button>
+                        <button class="filter-btn pack-filter-btn" onclick="selectPack('navidad',this)">Navidad</button>
+                    </div>
                     <h3 class="cotiz-section-title" id="packs-pack-nombre">Pack Emprendedor</h3>
                     <table style="width:100%;border-collapse:collapse">
                         <thead>
@@ -1407,12 +1407,12 @@
                         </thead>
                         <tbody id="packs-items-tbody"></tbody>
                     </table>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-top:16px;border-top:2px solid var(--gray-200)">
+                        <span style="font-size:15px;font-weight:700">Total</span>
+                        <span id="packs-total" style="font-size:22px;font-weight:700">$0</span>
+                    </div>
+                    <button class="btn btn-primary" id="packs-copiar-btn" style="display:none;width:100%;margin-top:8px" onclick="packsCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:12px;margin-bottom:16px">
-                    <span style="font-size:15px;font-weight:700">Total</span>
-                    <span id="packs-total" style="font-size:22px;font-weight:700">$0</span>
-                </div>
-                <button class="btn btn-primary" id="packs-copiar-btn" style="display:none" onclick="packsCopiar()"><i data-lucide="copy"></i> Copiar cotización</button>
             </div><!-- /col pack -->
             </div><!-- /cotiz-pack-grid -->
         </div>
