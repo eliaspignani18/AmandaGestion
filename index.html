@@ -162,7 +162,7 @@
             margin-bottom: 32px;
         }
 
-        .view-header h2 { font-size: 28px; font-weight: 700; font-family: 'Caveat', cursive; }
+        .view-header h2 { font-size: 24px; font-weight: 700; font-family: 'Caveat', cursive; }
 
         /* STAT CARDS */
         .cards-grid {
@@ -664,7 +664,7 @@
 
         /* COTIZADOR + PACK — layout 2 columnas */
         .cotiz-pack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
-        .cotiz-pack-col-title { font-size: 28px; font-weight: 700; margin: 0 0 20px 0; font-family: 'Caveat', cursive; }
+        .cotiz-pack-col-title { font-size: 24px; font-weight: 700; margin: 0 0 20px 0; font-family: 'Caveat', cursive; }
         .cotiz-pack-right { position: sticky; top: 32px; }
         .cotiz-pack-right .cotiz-section { max-width: 100%; }
 
@@ -778,7 +778,12 @@
         <div id="view-dashboard" class="view active">
             <div class="view-header">
                 <h2>Dashboard</h2>
-                <span id="dashboard-date" class="text-gray" style="font-size:14px"></span>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span id="dashboard-date" class="text-gray" style="font-size:14px"></span>
+                    <button id="btn-hide-montos" class="btn btn-ghost" onclick="toggleHideMontos()" title="Ocultar importes" style="padding:6px 10px">
+                        <i data-lucide="eye" style="width:18px;height:18px;vertical-align:middle"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="cards-grid">
@@ -1620,6 +1625,7 @@ let currentFilter = 'todos';
 let allPedidos = [];
 let allGastos = [];
 let tarifaConfig = { valor_hora: null, margen: null, materiales: {} };
+let hideMontos = localStorage.getItem('amg_hide_money') === '1';
 let allStock = [];
 let allClientes = [];
 
@@ -1759,6 +1765,12 @@ async function loadAll() {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 
+function toggleHideMontos() {
+    hideMontos = !hideMontos;
+    localStorage.setItem('amg_hide_money', hideMontos ? '1' : '0');
+    renderDashboard();
+}
+
 function renderDashboard() {
     const activos      = allPedidos.filter(p => p.estado !== 'entregado');
     const aCobrar      = allPedidos.filter(p => !p.cobrado)
@@ -1768,12 +1780,13 @@ function renderDashboard() {
     const totalGastos  = allGastos.reduce((s, g) => s + (g.monto || 0), 0);
     const saldo        = totalCobrado - totalGastos;
 
+    const M = hideMontos ? '$***' : null;
     document.getElementById('stat-activos').textContent  = activos.length;
-    document.getElementById('stat-acobrar').textContent  = formatPeso(aCobrar);
-    document.getElementById('stat-cobrado').textContent  = formatPeso(totalCobrado);
+    document.getElementById('stat-acobrar').textContent  = M || formatPeso(aCobrar);
+    document.getElementById('stat-cobrado').textContent  = M || formatPeso(totalCobrado);
     const saldoEl = document.getElementById('stat-saldo');
-    saldoEl.textContent = formatPeso(saldo);
-    saldoEl.className   = 'card-value ' + (saldo >= 0 ? 'green' : 'red');
+    saldoEl.textContent = M || formatPeso(saldo);
+    saldoEl.className   = 'card-value ' + (hideMontos ? '' : (saldo >= 0 ? 'green' : 'red'));
 
     const entregados = allPedidos.filter(p => p.estado === 'entregado');
     const impresos   = allPedidos.filter(p => ['retirar','preparacion','cortar','listo','entregado'].includes(p.estado));
@@ -1811,9 +1824,12 @@ function renderDashboard() {
         }
         const positivo = monto > 0;
         const texto = positivo ? `${nombre} le debe a Amanda` : `Amanda le debe a ${nombre}`;
+        const montoHtml = hideMontos
+            ? `<span style="color:var(--gray-400)">$***</span>`
+            : `<span style="color:${positivo ? '#ef4444' : '#16a34a'}">${formatPeso(Math.abs(monto))}</span>`;
         return `<div style="padding:10px 0;border-bottom:1px solid var(--gray-200)">
             <div style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${texto}</div>
-            <div style="font-size:18px;font-weight:700;color:${positivo ? '#ef4444' : '#16a34a'}">${formatPeso(Math.abs(monto))}</div>
+            <div style="font-size:18px;font-weight:700">${montoHtml}</div>
         </div>`;
     }).join('');
 
@@ -1833,12 +1849,18 @@ function renderDashboard() {
         .filter(p => p.estado !== 'entregado' || !p.cobrado)
         .sort((a, b) => ESTADOS.findIndex(e => e.key === a.estado) - ESTADOS.findIndex(e => e.key === b.estado));
     document.getElementById('dashboard-table').innerHTML =
-        enCurso.length ? buildTable(enCurso) : '<div class="empty-state">No hay pedidos activos</div>';
+        enCurso.length ? buildTable(enCurso, hideMontos) : '<div class="empty-state">No hay pedidos activos</div>';
+
+    const btn = document.getElementById('btn-hide-montos');
+    if (btn) {
+        btn.innerHTML = `<i data-lucide="${hideMontos ? 'eye-off' : 'eye'}" style="width:18px;height:18px;vertical-align:middle"></i>`;
+        lucide.createIcons({ nodes: [btn] });
+    }
 }
 
 // ─── TABLE ────────────────────────────────────────────────────────────────────
 
-function buildTable(pedidos) {
+function buildTable(pedidos, hidePrices = false) {
     return `
         <table>
             <thead>
@@ -1872,7 +1894,7 @@ function buildTable(pedidos) {
                                 ${ESTADOS.map(e => `<option value="${e.key}" ${p.estado === e.key ? 'selected' : ''}>${e.label}</option>`).join('')}
                             </select>
                         </td>
-                        <td>${p.precio_cliente ? formatPeso(p.precio_cliente) : '<span class="text-gray">—</span>'}</td>
+                        <td>${hidePrices ? '$***' : (p.precio_cliente ? formatPeso(p.precio_cliente) : '<span class="text-gray">—</span>')}</td>
                         <td>
                             ${p.cobrado
                                 ? `<span class="cobro-cobrado">✓ ${esc(p.cobrado_por || 'Sí')}<button class="cobro-deshacer" onclick="desmarcarCobrado('${p.id}')" title="Desmarcar">×</button></span>`
