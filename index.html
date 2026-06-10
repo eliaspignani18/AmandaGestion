@@ -699,6 +699,16 @@
         .st-cart-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--gray-50); border-top: 1px solid var(--gray-200); flex-wrap: wrap; gap: 12px; }
         .st-cart-total { font-size: 16px; font-weight: 700; }
         .st-bolsa-hint { font-size: 12px; color: var(--gray-500); }
+
+        /* Envíos al plotter */
+        .badge-env-enviado    { background: #fff7ed; color: #c2410c; }
+        .badge-env-con_precio { background: #fef9c3; color: #a16207; }
+        .badge-env-pagado     { background: #dcfce7; color: #15803d; }
+        .badge-plt-gutenberg  { background: #f3e8ff; color: #7c3aed; }
+        .badge-plt-pampa      { background: #dbeafe; color: #1d4ed8; }
+        .env-pedidos-list { display:flex; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; padding:10px 12px; border:1px solid var(--gray-300); border-radius:8px; background:var(--white); }
+        .env-pedido-item { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; padding:3px 0; }
+        .env-pedido-item input[type=checkbox] { width:15px; height:15px; cursor:pointer; flex-shrink:0; accent-color:var(--black); }
     </style>
 </head>
 <body>
@@ -718,6 +728,41 @@
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="login()">Entrar</button>
         <p id="login-error" class="error-msg" style="text-align:center;display:none"></p>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRMAR ACCIÓN -->
+<div class="modal-overlay" id="modal-confirm">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+            <h3 id="modal-confirm-title">Confirmar</h3>
+            <button class="close-btn" onclick="resolveConfirmModal(false)">×</button>
+        </div>
+        <p id="modal-confirm-msg" style="font-size:14px;color:var(--gray-500);margin-bottom:24px"></p>
+        <div class="form-actions" style="margin-top:0">
+            <button class="btn btn-danger" onclick="resolveConfirmModal(true)">Eliminar</button>
+            <button class="btn btn-ghost" onclick="resolveConfirmModal(false)">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: INGRESO DE VALOR (genérico) -->
+<div class="modal-overlay" id="modal-prompt-valor">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+            <h3 id="modal-pv-titulo">Ingresá el valor</h3>
+            <button class="close-btn" onclick="resolvePromptValor(null)">×</button>
+        </div>
+        <p id="modal-pv-subtitulo" style="font-size:14px;color:var(--gray-500);margin-bottom:20px"></p>
+        <div class="form-group">
+            <label id="modal-pv-label">Valor</label>
+            <input id="modal-pv-input" placeholder="0"
+                onkeydown="if(event.key==='Enter') resolvePromptValor()">
+        </div>
+        <div class="form-actions" style="margin-top:24px">
+            <button class="btn btn-primary" onclick="resolvePromptValor()">Confirmar</button>
+            <button class="btn btn-ghost" onclick="resolvePromptValor(null)">Cancelar</button>
+        </div>
     </div>
 </div>
 
@@ -750,6 +795,7 @@
                 <button class="nav-btn nav-parent" data-group="gastos" onclick="navGroupClick('gastos')"><i data-lucide="receipt"></i> Gastos<i data-lucide="chevron-right" class="nav-chevron"></i></button>
                 <div class="nav-sub" id="group-gastos">
                     <button class="nav-btn nav-child" data-view="nuevo-gasto" onclick="showView('nuevo-gasto')"><i data-lucide="plus-circle"></i> Nuevo gasto</button>
+                    <button class="nav-btn nav-child" data-view="envios-plotter" onclick="showView('envios-plotter')"><i data-lucide="printer"></i> Envíos al plotter</button>
                 </div>
             </div>
 
@@ -1085,6 +1131,77 @@
             </div>
         </div>
 
+        <!-- ENVÍOS AL PLOTTER -->
+        <div id="view-envios-plotter" class="view">
+            <div class="view-header">
+                <h2>Envíos al plotter</h2>
+                <button class="btn btn-yellow" onclick="showView('nuevo-envio')">＋ Nuevo envío</button>
+            </div>
+            <div class="filters">
+                <button class="filter-btn active" id="fenv-todos"      onclick="setFilterEnvio('todos',this)">Todos</button>
+                <button class="filter-btn"        id="fenv-enviado"    onclick="setFilterEnvio('enviado',this)">Sin precio</button>
+                <button class="filter-btn"        id="fenv-con_precio" onclick="setFilterEnvio('con_precio',this)">Con precio</button>
+                <button class="filter-btn"        id="fenv-pagado"     onclick="setFilterEnvio('pagado',this)">Pagados</button>
+            </div>
+            <div class="filters">
+                <button class="filter-btn active" id="fenv-plt-todos"      onclick="setFilterEnvioPlotter('todos',this)">Todos los plotters</button>
+                <button class="filter-btn"        id="fenv-plt-gutenberg"  onclick="setFilterEnvioPlotter('gutenberg',this)">Gutenberg</button>
+                <button class="filter-btn"        id="fenv-plt-pampa"      onclick="setFilterEnvioPlotter('pampa',this)">Pampa</button>
+            </div>
+            <div class="table-wrap">
+                <div id="envios-table"></div>
+            </div>
+        </div>
+
+        <!-- NUEVO / EDITAR ENVÍO AL PLOTTER -->
+        <div id="view-nuevo-envio" class="view">
+            <div class="view-header">
+                <h2 id="envio-form-title">Nuevo envío al plotter</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="envio-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="env-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Plotter *</label>
+                        <select id="env-plotter">
+                            <option value="gutenberg">Gutenberg</option>
+                            <option value="pampa">Pampa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado *</label>
+                        <select id="env-estado" onchange="toggleEnvioMonto()">
+                            <option value="enviado">Sin precio aún</option>
+                            <option value="con_precio">Con precio, sin pagar</option>
+                            <option value="pagado">Pagado</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="env-monto-group" style="display:none">
+                        <label>Monto ($) *</label>
+                        <input type="number" id="env-monto" placeholder="0" step="1" min="0">
+                    </div>
+                    <div class="form-group full">
+                        <label>Pedidos incluidos en esta lámina</label>
+                        <div class="env-pedidos-list" id="env-pedidos-list"></div>
+                    </div>
+                    <div class="form-group full">
+                        <label>Observación</label>
+                        <textarea id="env-observacion" placeholder="Ej: 3 pedidos de stickers, cartel..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-envio" onclick="saveEnvio()">Guardar</button>
+                    <button class="btn btn-ghost" onclick="cancelEnvioForm()">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-envio" style="display:none;margin-left:auto" onclick="deleteEnvio()">Eliminar</button>
+                </div>
+                <p id="envio-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
         <!-- COTIZADOR -->
         <div id="view-cotizador" class="view">
             <div class="cotiz-pack-grid">
@@ -1214,6 +1331,49 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Sección: Stickers DTF -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="sparkles" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Stickers DTF</h3>
+
+                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                    <div class="st-sizes">
+                        <button class="st-size-btn st-size-btn--active" data-size="Mini DTF (3×3 cm)" onclick="dtfSelectSize(this)">
+                            <span class="st-size-name">Mini</span>
+                            <span class="st-size-dim">3 × 3 cm</span>
+                        </button>
+                        <button class="st-size-btn" data-size="Chico DTF (5×5 cm)" onclick="dtfSelectSize(this)">
+                            <span class="st-size-name">Chico</span>
+                            <span class="st-size-dim">5 × 5 cm</span>
+                        </button>
+                        <button class="st-size-btn" data-size="Mediano DTF (10×10 cm)" onclick="dtfSelectSize(this)">
+                            <span class="st-size-name">Mediano</span>
+                            <span class="st-size-dim">10 × 10 cm</span>
+                        </button>
+                    </div>
+
+                    <div class="st-presets">
+                        <button class="st-preset dtf-preset dtf-preset--active" data-qty="10" onclick="dtfSetPreset(this)">10</button>
+                        <button class="st-preset dtf-preset" data-qty="20" onclick="dtfSetPreset(this)">20</button>
+                        <button class="st-preset dtf-preset" data-qty="50" onclick="dtfSetPreset(this)">50</button>
+                        <button class="st-preset dtf-preset" data-qty="100" onclick="dtfSetPreset(this)">100</button>
+                        <button class="st-preset dtf-preset" data-qty="200" onclick="dtfSetPreset(this)">200</button>
+                    </div>
+
+                    <div class="st-row">
+                        <div class="st-qty-control">
+                            <button type="button" onclick="dtfQtyAdj(-1)">−</button>
+                            <input type="number" id="dtf-qty" value="10" min="1" oninput="dtfQtyInput()">
+                            <button type="button" onclick="dtfQtyAdj(1)">+</button>
+                        </div>
+                        <div class="st-price-display">
+                            <span class="st-price-val" id="dtf-price">$1.100</span>
+                            <span class="st-price-unit">en total</span>
+                        </div>
+                        <button class="btn btn-yellow" onclick="dtfAgregar()">＋ Agregar</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Sección: Vinilo DTF -->
@@ -1361,6 +1521,15 @@
                             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarCotizador()">Vaciar</button>
                         </div>
                         <div id="cf-vinilo-items"></div>
+                    </div>
+
+                    <!-- Bloque Stickers DTF -->
+                    <div id="cf-stickers-dtf-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Stickers DTF</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="dtfVaciar()">Vaciar</button>
+                        </div>
+                        <div id="cf-stickers-dtf-items"></div>
                     </div>
 
                     <!-- Bloque Stickers -->
@@ -1633,6 +1802,9 @@ let allClientes = [];
 
 let filterGastoCategoria = 'todos';
 let filterClienteTipo = 'todos';
+let allEnvios = [];
+let filterEnvioEstado = 'todos';
+let filterEnvioPlotter = 'todos';
 
 const CATEGORIAS_GASTO = {
     plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
@@ -1640,6 +1812,15 @@ const CATEGORIAS_GASTO = {
     insumos:   { label: 'Insumos',   badge: 'badge-insumos'  },
     packaging: { label: 'Packaging', badge: 'badge-packaging' },
     stock:     { label: 'Stock',     badge: 'badge-stock'    },
+};
+const PLOTTERS = {
+    gutenberg: { label: 'Gutenberg', badge: 'badge-plt-gutenberg' },
+    pampa:     { label: 'Pampa',     badge: 'badge-plt-pampa' },
+};
+const ESTADOS_ENVIO = {
+    enviado:    { label: 'Sin precio', badge: 'badge-env-enviado' },
+    con_precio: { label: 'Con precio', badge: 'badge-env-con_precio' },
+    pagado:     { label: 'Pagado',     badge: 'badge-env-pagado' },
 };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -1692,7 +1873,7 @@ document.getElementById('login-password').addEventListener('keydown', e => {
 
 const NAV_GROUPS = {
     pedidos: 'pedidos', nuevo: 'pedidos',
-    gastos: 'gastos',   'nuevo-gasto': 'gastos',
+    gastos: 'gastos',   'nuevo-gasto': 'gastos',  'envios-plotter': 'gastos', 'nuevo-envio': 'gastos',
     stock: 'stock',     'nuevo-stock': 'stock',
     clientes: 'clientes', 'nuevo-cliente': 'clientes',
 };
@@ -1721,6 +1902,8 @@ function showView(name) {
     if (name === 'dashboard')       renderDashboard();
     if (name === 'gastos')          renderGastosTable();
     if (name === 'nuevo-gasto')     resetGastoForm();
+    if (name === 'envios-plotter')  renderEnviosTable();
+    if (name === 'nuevo-envio')     resetEnvioForm();
     if (name === 'stock')           renderStockTable();
     if (name === 'nuevo-stock')     resetStockForm();
     if (name === 'cotizador')        initPacks();
@@ -1750,16 +1933,18 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock, resClientes] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes, resEnvios] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
         sb.from('clientes').select('*').order('nombre'),
+        sb.from('envios_plotter').select('*').order('created_at', { ascending: false }),
     ]);
     if (!resPedidos.error)   allPedidos   = resPedidos.data   || [];
     if (!resGastos.error)    allGastos    = resGastos.data    || [];
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
+    if (!resEnvios.error)    allEnvios    = resEnvios.data    || [];
     loadTarifaConfig();
     renderDashboard();
     renderTarjetasTabla();
@@ -1835,7 +2020,19 @@ function renderDashboard() {
         </div>`;
     }).join('');
 
-    document.getElementById('deuda-amanda').innerHTML = deudaHtml;
+    let plotterDeudaHtml = '';
+    Object.entries(PLOTTERS).forEach(([key, plt]) => {
+        const pendientes = allEnvios.filter(e => e.plotter === key && e.estado === 'con_precio');
+        const monto = pendientes.reduce((s, e) => s + (e.monto || 0), 0);
+        const sinPrecio = allEnvios.filter(e => e.plotter === key && e.estado === 'enviado').length;
+        if (monto === 0 && sinPrecio === 0) return;
+        plotterDeudaHtml += `<div style="padding:10px 0;border-bottom:1px solid var(--gray-200)">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Amanda le debe a ${plt.label}</div>
+            ${monto > 0 ? `<div style="font-size:18px;font-weight:700;color:#16a34a">${hideMontos ? '$***' : formatPeso(monto)}</div>` : ''}
+            ${sinPrecio > 0 ? `<div style="font-size:12px;color:var(--gray-500);margin-top:2px">${sinPrecio} envío${sinPrecio > 1 ? 's' : ''} sin precio aún</div>` : ''}
+        </div>`;
+    });
+    document.getElementById('deuda-amanda').innerHTML = deudaHtml + plotterDeudaHtml;
 
     document.getElementById('pipeline-stages').innerHTML = ESTADOS.map(e => {
         const count = allPedidos.filter(p => p.estado === e.key).length;
@@ -2147,7 +2344,7 @@ async function savePedido() {
 
 async function deletePedido() {
     const id = document.getElementById('pedido-id').value;
-    if (!id || !confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+    if (!id || !await confirmModal('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
 
     const btnDelete = document.getElementById('btn-delete');
     btnDelete.disabled    = true;
@@ -2184,7 +2381,7 @@ async function cambiarPlotter(id, valor) {
 }
 
 async function deleteRowPedido(id) {
-    if (!confirm('¿Eliminar este pedido?')) return;
+    if (!await confirmModal('¿Eliminar este pedido?')) return;
     await sb.from('pedidos').delete().eq('id', id);
     await loadAll();
     if (document.getElementById('view-pedidos').classList.contains('active')) renderPedidosTable();
@@ -2192,7 +2389,7 @@ async function deleteRowPedido(id) {
 }
 
 async function deleteRowGasto(id) {
-    if (!confirm('¿Eliminar este gasto?')) return;
+    if (!await confirmModal('¿Eliminar este gasto?')) return;
     const gasto = allGastos.find(g => g.id === id);
     if (gasto?.stock_id) {
         await sb.from('stock').delete().eq('id', gasto.stock_id);
@@ -2416,7 +2613,7 @@ async function saveGasto() {
 
 async function deleteGasto() {
     const id = document.getElementById('gasto-id').value;
-    if (!id || !confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.')) return;
+    if (!id || !await confirmModal('¿Eliminar este gasto? Esta acción no se puede deshacer.')) return;
 
     const gasto = allGastos.find(g => g.id === id);
     const btnDelete = document.getElementById('btn-delete-gasto');
@@ -2807,11 +3004,12 @@ function quitarTarjeta(i) {
 
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
-    const hasV  = cotizadorPiezas.length > 0;
-    const hasS  = stCart.length > 0;
-    const hasUV = cotizadorUVPiezas.length > 0;
-    const hasTJ = cotizadorTarjetasPiezas.length > 0;
-    if (!hasV && !hasS && !hasUV && !hasTJ) { wrap.style.display = 'none'; return; }
+    const hasV   = cotizadorPiezas.length > 0;
+    const hasS   = stCart.length > 0;
+    const hasSTF = dtfCart.length > 0;
+    const hasUV  = cotizadorUVPiezas.length > 0;
+    const hasTJ  = cotizadorTarjetasPiezas.length > 0;
+    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ) { wrap.style.display = 'none'; return; }
     wrap.style.display = '';
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
@@ -2820,6 +3018,7 @@ function renderCotizFinal() {
     else { tituloEl.style.display = 'none'; }
 
     const viniloBlock   = document.getElementById('cf-vinilo-block');
+    const stfBlock      = document.getElementById('cf-stickers-dtf-block');
     const stickersBlock = document.getElementById('cf-stickers-block');
 
     if (hasV) {
@@ -2835,6 +3034,23 @@ function renderCotizFinal() {
             </div>`).join('');
     } else {
         viniloBlock.style.display = 'none';
+    }
+
+    if (hasSTF) {
+        stfBlock.style.display = '';
+        document.getElementById('cf-stickers-dtf-items').innerHTML = dtfCart.map((item, i) => {
+            const r = dtfCalcPrice(item.size, item.qty);
+            return `<div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">${esc(item.size)}</div>
+                    <div class="st-cart-item-detail">${item.qty} unidades</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(r.total)}</div>
+                <button class="delete-row-btn" onclick="dtfQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`;
+        }).join('');
+    } else {
+        stfBlock.style.display = 'none';
     }
 
     if (hasS) {
@@ -2890,22 +3106,24 @@ function renderCotizFinal() {
     const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
     const totVVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
     const totVGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
-    const totS         = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totS          = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totSTF        = dtfCart.reduce((s, item) => s + dtfCalcPrice(item.size, item.qty).total, 0);
     const totUVCosto    = cotizadorUVPiezas.reduce((s, p) => s + p.costo,    0);
     const totUVVenta    = cotizadorUVPiezas.reduce((s, p) => s + p.venta,    0);
     const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
     const totTJVenta    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
-    const totGeneral    = totVVenta + totS + totUVVenta + totTJVenta;
-    const tiposActivos  = [hasV, hasS, hasUV, hasTJ].filter(Boolean).length;
+    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta;
+    const tiposActivos  = [hasV, hasS, hasSTF, hasUV, hasTJ].filter(Boolean).length;
 
     const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
     let html = '';
     if (tiposActivos > 1) {
         const cells = [];
-        if (hasV)  cells.push(`<div>${lbl('Vinilo')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>`);
-        if (hasUV) cells.push(`<div>${lbl('Vinilo DTF')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>`);
-        if (hasS)  cells.push(`<div>${lbl('Stickers')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>`);
-        if (hasTJ) cells.push(`<div>${lbl('Tarjetas')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>`);
+        if (hasV)   cells.push(`<div>${lbl('Vinilo')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>`);
+        if (hasUV)  cells.push(`<div>${lbl('Vinilo DTF')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>`);
+        if (hasSTF) cells.push(`<div>${lbl('Stickers DTF')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totSTF)}</div></div>`);
+        if (hasS)   cells.push(`<div>${lbl('Stickers')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>`);
+        if (hasTJ)  cells.push(`<div>${lbl('Tarjetas')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>`);
         cells.push(`<div>${lbl('Total a cobrar')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div></div>`);
         document.getElementById('cf-totales').style.gridTemplateColumns = `repeat(${Math.min(cells.length, 4)},1fr)`;
         html = cells.join('');
@@ -2929,6 +3147,12 @@ function renderCotizFinal() {
             <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totTJCosto))}</div></div>
             <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>
             <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totTJGanancia))}</div></div>`;
+    } else if (hasSTF) {
+        const totalUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
+        html = `
+            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totSTF)}</div></div>
+            <div>${lbl('Unidades')}<div style="font-size:22px;font-weight:700">${totalUnits}</div></div>
+            <div></div>`;
     } else {
         const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
         html = `
@@ -2941,15 +3165,16 @@ function renderCotizFinal() {
 }
 
 async function cotizFinalCopiar() {
-    const hasV  = cotizadorPiezas.length > 0;
-    const hasS  = stCart.length > 0;
-    const hasUV = cotizadorUVPiezas.length > 0;
-    const hasTJ = cotizadorTarjetasPiezas.length > 0;
-    if (!hasV && !hasS && !hasUV && !hasTJ) return;
+    const hasV   = cotizadorPiezas.length > 0;
+    const hasS   = stCart.length > 0;
+    const hasSTF = dtfCart.length > 0;
+    const hasUV  = cotizadorUVPiezas.length > 0;
+    const hasTJ  = cotizadorTarjetasPiezas.length > 0;
+    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ) return;
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
     const encabezado = titulo ? `Cotización ${titulo}` : 'Cotización';
-    const tiposActivos = [hasV, hasS, hasUV, hasTJ].filter(Boolean).length;
+    const tiposActivos = [hasV, hasS, hasSTF, hasUV, hasTJ].filter(Boolean).length;
     let texto = `${encabezado} — Amanda Gráficos\n\n`;
 
     if (hasV) {
@@ -2963,6 +3188,14 @@ async function cotizFinalCopiar() {
         if (tiposActivos > 1) texto += '\nVinilo DTF:\n';
         cotizadorUVPiezas.forEach(p => {
             texto += `▸ ${p.ancho} × ${p.alto} cm → ${formatPeso(p.venta)}\n`;
+        });
+    }
+
+    if (hasSTF) {
+        if (tiposActivos > 1) texto += '\nStickers DTF:\n';
+        dtfCart.forEach(item => {
+            const r = dtfCalcPrice(item.size, item.qty);
+            texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
         });
     }
 
@@ -2984,16 +3217,20 @@ async function cotizFinalCopiar() {
     const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
     const totUVVenta = cotizadorUVPiezas.reduce((s, p) => s + p.venta, 0);
     const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totSTF     = dtfCart.reduce((s, item) => s + dtfCalcPrice(item.size, item.qty).total, 0);
     const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
     if (tiposActivos > 1) {
-        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totTJVenta)}`;
+        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta)}`;
     } else if (hasV) {
         texto += `\nTotal: ${formatPeso(totVVenta)}`;
     } else if (hasUV) {
         texto += `\nTotal: ${formatPeso(totUVVenta)}`;
     } else if (hasTJ) {
         texto += `\nTotal: ${formatPeso(totTJVenta)}`;
+    } else if (hasSTF) {
+        const dtfUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
+        texto += `\nTotal: ${dtfUnits} unidades · ${formatPeso(totSTF)}`;
     } else {
         texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS)}`;
     }
@@ -3022,11 +3259,101 @@ async function cotizFinalCopiar() {
 function cotizFinalVaciar() {
     cotizadorPiezas = [];
     stCart = [];
+    dtfCart = [];
     cotizadorUVPiezas = [];
     cotizadorTarjetasPiezas = [];
     document.getElementById('cotiz-titulo').value = '';
     renderCotizFinal();
 }
+
+// ─── COTIZADOR STICKERS DTF ──────────────────────────────────────────────────
+
+const ST_DTF_PRICE_TABLE = {
+    "Mini DTF (3×3 cm)": [
+        { qty: 10,  price: 1100 },
+        { qty: 20,  price: 2200 },
+        { qty: 50,  price: 5400 },
+        { qty: 100, price: 10800 },
+        { qty: 200, price: 21600 },
+    ],
+    "Chico DTF (5×5 cm)": [
+        { qty: 10,  price: 3200 },
+        { qty: 20,  price: 6400 },
+        { qty: 50,  price: 16000 },
+        { qty: 100, price: 32000 },
+        { qty: 200, price: 64000 },
+    ],
+    "Mediano DTF (10×10 cm)": [
+        { qty: 10,  price: 14800 },
+        { qty: 20,  price: 29600 },
+        { qty: 50,  price: 72000 },
+        { qty: 100, price: 140000 },
+        { qty: 200, price: 280000 },
+    ],
+};
+
+let dtfCurrentSize = "Mini DTF (3×3 cm)";
+let dtfCart = [];
+
+function dtfCalcPrice(size, qty) {
+    const table = ST_DTF_PRICE_TABLE[size];
+    let tier = table[0];
+    for (const t of table) { if (qty >= t.qty) tier = t; }
+    const total = Math.round(tier.price / tier.qty * qty);
+    return { total };
+}
+
+function dtfUpdateDisplay() {
+    const qty = Math.max(1, +document.getElementById('dtf-qty').value || 1);
+    const r = dtfCalcPrice(dtfCurrentSize, qty);
+    document.getElementById('dtf-price').textContent = formatPeso(r.total);
+}
+
+function dtfQtyInput() {
+    const qty = +document.getElementById('dtf-qty').value;
+    document.querySelectorAll('.dtf-preset').forEach(b => b.classList.toggle('dtf-preset--active', +b.dataset.qty === qty));
+    dtfUpdateDisplay();
+}
+
+function dtfSelectSize(btn) {
+    btn.closest('.st-sizes').querySelectorAll('.st-size-btn').forEach(b => b.classList.remove('st-size-btn--active'));
+    btn.classList.add('st-size-btn--active');
+    dtfCurrentSize = btn.dataset.size;
+    dtfUpdateDisplay();
+}
+
+function dtfSetPreset(btn) {
+    document.getElementById('dtf-qty').value = btn.dataset.qty;
+    document.querySelectorAll('.dtf-preset').forEach(b => b.classList.remove('dtf-preset--active'));
+    btn.classList.add('dtf-preset--active');
+    dtfUpdateDisplay();
+}
+
+function dtfQtyAdj(delta) {
+    const input = document.getElementById('dtf-qty');
+    input.value = Math.max(1, (+input.value || 1) + delta);
+    document.querySelectorAll('.dtf-preset').forEach(b => b.classList.toggle('dtf-preset--active', +b.dataset.qty === +input.value));
+    dtfUpdateDisplay();
+}
+
+function dtfAgregar() {
+    const qty = Math.max(1, +document.getElementById('dtf-qty').value || 1);
+    const existing = dtfCart.find(i => i.size === dtfCurrentSize);
+    if (existing) { existing.qty += qty; } else { dtfCart.push({ size: dtfCurrentSize, qty }); }
+    renderCotizFinal();
+}
+
+function dtfVaciar() {
+    dtfCart = [];
+    renderCotizFinal();
+}
+
+function dtfQuitarItem(i) {
+    dtfCart.splice(i, 1);
+    renderCotizFinal();
+}
+
+dtfUpdateDisplay();
 
 // ─── COTIZADOR STICKERS ──────────────────────────────────────────────────────
 
@@ -3101,7 +3428,7 @@ function stQtyInput() {
 }
 
 function stSelectSize(btn) {
-    document.querySelectorAll('.st-size-btn').forEach(b => b.classList.remove('st-size-btn--active'));
+    btn.closest('.st-sizes').querySelectorAll('.st-size-btn').forEach(b => b.classList.remove('st-size-btn--active'));
     btn.classList.add('st-size-btn--active');
     stCurrentSize = btn.dataset.size;
     stUpdateDisplay();
@@ -3252,7 +3579,7 @@ async function saveStock() {
 
 async function deleteStock() {
     const id = document.getElementById('stock-id').value;
-    if (!id || !confirm('¿Eliminar este ítem? Esta acción no se puede deshacer.')) return;
+    if (!id || !await confirmModal('¿Eliminar este ítem? Esta acción no se puede deshacer.')) return;
 
     const btnDelete = document.getElementById('btn-delete-stock');
     btnDelete.disabled = true;
@@ -3275,7 +3602,7 @@ async function deleteStock() {
 }
 
 async function deleteRowStock(id) {
-    if (!confirm('¿Eliminar este ítem?')) return;
+    if (!await confirmModal('¿Eliminar este ítem?')) return;
     await sb.from('stock').delete().eq('id', id);
     await loadAll();
     renderStockTable();
@@ -3395,7 +3722,7 @@ async function saveCliente() {
 
 async function deleteCliente() {
     const id = document.getElementById('cliente-id').value;
-    if (!id || !confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+    if (!id || !await confirmModal('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
     const btn = document.getElementById('btn-delete-cliente');
     btn.disabled = true; btn.textContent = 'Eliminando...';
     const { error } = await sb.from('clientes').delete().eq('id', id);
@@ -3411,7 +3738,7 @@ async function deleteCliente() {
 }
 
 async function deleteRowCliente(id) {
-    if (!confirm('¿Eliminar este cliente?')) return;
+    if (!await confirmModal('¿Eliminar este cliente?')) return;
     await sb.from('clientes').delete().eq('id', id);
     await loadAll();
     renderClientesTable();
@@ -3513,19 +3840,18 @@ async function saveMateriales() {
 }
 
 async function tarifaAgregarMaterial() {
-    const nombre = prompt('Nombre del tipo de material (ej: vinilo, sticker, DTF):');
-    if (!nombre || !nombre.trim()) return;
-    const costoStr = prompt(`Costo de "${nombre.trim()}" por m² ($):`);
-    const costo = parseFloat(costoStr);
-    if (!costo || isNaN(costo)) return;
-    tarifaConfig.materiales[nombre.trim()] = costo;
+    const nombre = await promptValor({ titulo: 'Nuevo material', label: 'Nombre del tipo de material', placeholder: 'ej: vinilo, sticker, DTF' });
+    if (!nombre) return;
+    const costo = await promptValor({ titulo: `Costo de "${nombre}"`, label: `Costo por m² ($)`, tipo: 'number', placeholder: '0' });
+    if (!costo) return;
+    tarifaConfig.materiales[nombre] = costo;
     await saveMateriales();
     renderTarifaMatConfig();
     renderTarifa();
 }
 
 async function tarifaBorrarMaterial(tipo) {
-    if (!confirm(`¿Eliminar el tipo "${tipo}"?`)) return;
+    if (!await confirmModal(`¿Eliminar el tipo "${tipo}"?`)) return;
     delete tarifaConfig.materiales[tipo];
     await saveMateriales();
     allPedidos.forEach(p => {
@@ -3740,11 +4066,13 @@ function tarifaEditMO(td, pedidoId) {
     const sugerido  = pedido.costo_mo != null ? pedido.costo_mo
                     : (valorHora > 0 && minTotal > 0 ? Math.round((minTotal / 60) * valorHora) : '');
     if (window.innerWidth <= 768) {
-        const raw = prompt('Costo MO ($):', sugerido);
-        if (raw === null) return;
-        const val = parseFloat(raw) || null;
-        pedido.costo_mo = val;
-        sb.from('pedidos').update({ costo_mo: val }).eq('id', pedidoId).then(() => renderTarifa());
+        (async () => {
+            const val = await promptValor({ titulo: 'Costo MO', label: 'Monto ($)', tipo: 'number', placeholder: String(sugerido || '') });
+            if (val === null) return;
+            pedido.costo_mo = val;
+            await sb.from('pedidos').update({ costo_mo: val }).eq('id', pedidoId);
+            renderTarifa();
+        })();
         return;
     }
     if (td.querySelector('input')) return;
@@ -3770,14 +4098,17 @@ function tarifaEditCell(td, pedidoId, field, currentVal) {
     if (td.querySelector('input')) return;
     const isMin = field.startsWith('minutos');
     if (window.innerWidth <= 768) {
-        const raw = prompt(isMin ? 'Minutos:' : 'Costo de materiales ($):', currentVal || '');
-        if (raw === null) return;
-        const val = isMin ? (parseInt(raw) || null) : (parseFloat(raw) || null);
-        const pedido = allPedidos.find(p => p.id === pedidoId);
-        if (pedido) pedido[field] = val;
-        sb.from('pedidos').update({ [field]: val }).eq('id', pedidoId)
-            .then(() => isMin ? tarifaGuardarMO(pedidoId) : Promise.resolve())
-            .then(() => renderTarifa());
+        (async () => {
+            const label = isMin ? 'Minutos' : 'Costo de materiales ($)';
+            const raw = await promptValor({ titulo: label, label, tipo: 'number', placeholder: String(currentVal || '') });
+            if (raw === null) return;
+            const val = isMin ? (Math.round(raw) || null) : (raw || null);
+            const pedido = allPedidos.find(p => p.id === pedidoId);
+            if (pedido) pedido[field] = val;
+            await sb.from('pedidos').update({ [field]: val }).eq('id', pedidoId);
+            if (isMin) await tarifaGuardarMO(pedidoId);
+            renderTarifa();
+        })();
         return;
     }
     const input = document.createElement('input');
@@ -3804,12 +4135,14 @@ function tarifaEditCell(td, pedidoId, field, currentVal) {
 function tarifaEditMatManual(el, pedidoId, currentVal) {
     if (el.querySelector('input')) return;
     if (window.innerWidth <= 768) {
-        const raw = prompt('Costo de materiales ($):', currentVal || '');
-        if (raw === null) return;
-        const val = parseFloat(raw) || null;
-        const pedido = allPedidos.find(p => p.id === pedidoId);
-        if (pedido) pedido.costo_materiales = val;
-        sb.from('pedidos').update({ costo_materiales: val }).eq('id', pedidoId).then(() => renderTarifa());
+        (async () => {
+            const val = await promptValor({ titulo: 'Costo de materiales', label: 'Monto ($)', tipo: 'number', placeholder: String(currentVal || '') });
+            if (val === null) return;
+            const pedido = allPedidos.find(p => p.id === pedidoId);
+            if (pedido) pedido.costo_materiales = val;
+            await sb.from('pedidos').update({ costo_materiales: val }).eq('id', pedidoId);
+            renderTarifa();
+        })();
         return;
     }
     const input = document.createElement('input');
@@ -3873,6 +4206,271 @@ function esc(str) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+}
+
+// ─── ENVÍOS AL PLOTTER ───────────────────────────────────────────────────────
+
+function renderEnviosTable() {
+    const el = document.getElementById('envios-table');
+    let base = filterEnvioEstado === 'todos'
+        ? allEnvios
+        : allEnvios.filter(e => e.estado === filterEnvioEstado);
+    if (filterEnvioPlotter !== 'todos') base = base.filter(e => e.plotter === filterEnvioPlotter);
+    const list = base.slice().sort((a, b) => {
+        if (a.estado === 'pagado' && b.estado !== 'pagado') return 1;
+        if (a.estado !== 'pagado' && b.estado === 'pagado') return -1;
+        return 0;
+    });
+
+    if (!list.length) {
+        el.innerHTML = '<div class="empty-state">No hay envíos que coincidan</div>';
+        return;
+    }
+    el.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Plotter</th>
+                    <th>Pedidos</th>
+                    <th>Estado</th>
+                    <th>Monto</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${list.map(e => {
+                    const plt = PLOTTERS[e.plotter] || { label: e.plotter, badge: '' };
+                    const ids = Array.isArray(e.pedidos_ids) ? e.pedidos_ids : [];
+                    const pedidosNames = ids.map(id => {
+                        const p = allPedidos.find(x => x.id === id);
+                        return p ? esc(p.cliente_nombre) : '';
+                    }).filter(Boolean).join(', ');
+                    return `
+                    <tr onclick="editEnvio('${e.id}')" style="cursor:pointer" class="${e.estado === 'pagado' ? 'row-entregado' : ''}">
+                        <td>${formatDate(e.fecha)}</td>
+                        <td><span class="badge ${plt.badge}">${plt.label}</span></td>
+                        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--gray-700)">${pedidosNames || '<span class="text-gray">—</span>'}</td>
+                        <td onclick="event.stopPropagation()">
+                            <select class="estado-select" onchange="cambiarEstadoEnvio('${e.id}', this.value, ${e.monto ?? 'null'})">
+                                ${Object.entries(ESTADOS_ENVIO).map(([k, v]) => `<option value="${k}" ${e.estado === k ? 'selected' : ''}>${v.label}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="text-bold">${e.monto ? formatPeso(e.monto) : '<span class="text-gray">—</span>'}</td>
+                        <td onclick="event.stopPropagation()">
+                            <button class="delete-row-btn" onclick="deleteRowEnvio('${e.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+                        </td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>`;
+}
+
+function setFilterEnvio(val, btn) {
+    filterEnvioEstado = val;
+    document.querySelectorAll('#fenv-todos,#fenv-enviado,#fenv-con_precio,#fenv-pagado').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderEnviosTable();
+}
+
+function setFilterEnvioPlotter(val, btn) {
+    filterEnvioPlotter = val;
+    document.querySelectorAll('#fenv-plt-todos,#fenv-plt-gutenberg,#fenv-plt-pampa').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderEnviosTable();
+}
+
+let _confirmModalResolve = null;
+
+function confirmModal(msg) {
+    document.getElementById('modal-confirm-msg').textContent = msg;
+    document.getElementById('modal-confirm').classList.add('open');
+    return new Promise(resolve => { _confirmModalResolve = resolve; });
+}
+
+function resolveConfirmModal(val) {
+    document.getElementById('modal-confirm').classList.remove('open');
+    if (_confirmModalResolve) { _confirmModalResolve(val); _confirmModalResolve = null; }
+}
+
+let _promptValorResolve = null;
+
+function promptValor({ titulo, subtitulo = '', label, tipo = 'text', placeholder = '' }) {
+    document.getElementById('modal-pv-titulo').textContent = titulo;
+    const sub = document.getElementById('modal-pv-subtitulo');
+    sub.textContent = subtitulo;
+    sub.style.display = subtitulo ? 'block' : 'none';
+    document.getElementById('modal-pv-label').textContent = label;
+    const input = document.getElementById('modal-pv-input');
+    input.type = tipo;
+    input.placeholder = placeholder;
+    input.step = tipo === 'number' ? '1' : '';
+    input.min  = tipo === 'number' ? '0' : '';
+    input.value = '';
+    document.getElementById('modal-prompt-valor').classList.add('open');
+    setTimeout(() => input.focus(), 50);
+    return new Promise(resolve => { _promptValorResolve = resolve; });
+}
+
+function resolvePromptValor(val) {
+    if (val === undefined) {
+        const input = document.getElementById('modal-pv-input');
+        if (input.type === 'number') {
+            const n = parseFloat(input.value);
+            val = (!n || isNaN(n)) ? null : n;
+        } else {
+            val = input.value.trim() || null;
+        }
+    }
+    document.getElementById('modal-prompt-valor').classList.remove('open');
+    if (_promptValorResolve) { _promptValorResolve(val); _promptValorResolve = null; }
+}
+
+function promptMonto() {
+    return promptValor({ titulo: 'Precio del plotter', subtitulo: '¿Cuánto cobró el plotter por esta lámina?', label: 'Monto ($)', tipo: 'number', placeholder: '0' });
+}
+
+async function cambiarEstadoEnvio(id, nuevoEstado, montoActual) {
+    if ((nuevoEstado === 'con_precio' || nuevoEstado === 'pagado') && !montoActual) {
+        const monto = await promptMonto();
+        if (!monto) { renderEnviosTable(); return; }
+        await sb.from('envios_plotter').update({ estado: nuevoEstado, monto }).eq('id', id);
+    } else {
+        await sb.from('envios_plotter').update({ estado: nuevoEstado }).eq('id', id);
+    }
+    await loadAll();
+}
+
+async function deleteRowEnvio(id) {
+    if (!await confirmModal('¿Eliminar este envío?')) return;
+    await sb.from('envios_plotter').delete().eq('id', id);
+    await loadAll();
+}
+
+function renderEnvioPedidosList(selectedIds) {
+    const container = document.getElementById('env-pedidos-list');
+    const activos = allPedidos.filter(p => p.estado !== 'entregado');
+    if (!activos.length) {
+        container.innerHTML = '<span class="text-gray" style="font-size:13px">No hay pedidos activos</span>';
+        return;
+    }
+    container.innerHTML = activos.map(p => `
+        <label class="env-pedido-item">
+            <input type="checkbox" value="${p.id}" ${selectedIds.includes(p.id) ? 'checked' : ''}>
+            <span style="font-weight:600">${esc(p.cliente_nombre)}</span>
+            <span class="text-gray" style="font-size:12px">— ${esc((p.descripcion || '').slice(0, 45))}</span>
+        </label>
+    `).join('');
+}
+
+function toggleEnvioMonto() {
+    const estado = document.getElementById('env-estado').value;
+    document.getElementById('env-monto-group').style.display = estado === 'enviado' ? 'none' : 'flex';
+}
+
+function resetEnvioForm() {
+    document.getElementById('envio-id').value = '';
+    document.getElementById('envio-form-title').textContent = 'Nuevo envío al plotter';
+    document.getElementById('btn-delete-envio').style.display = 'none';
+    document.getElementById('envio-form-error').style.display = 'none';
+    document.getElementById('env-fecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('env-plotter').value = 'gutenberg';
+    document.getElementById('env-estado').value = 'enviado';
+    document.getElementById('env-monto').value = '';
+    document.getElementById('env-observacion').value = '';
+    toggleEnvioMonto();
+    renderEnvioPedidosList([]);
+}
+
+function editEnvio(id) {
+    const e = allEnvios.find(x => x.id === id);
+    if (!e) return;
+    showView('nuevo-envio');
+    document.getElementById('envio-form-title').textContent = 'Editar envío';
+    document.getElementById('envio-id').value        = e.id;
+    document.getElementById('env-fecha').value       = e.fecha || '';
+    document.getElementById('env-plotter').value     = e.plotter || 'gutenberg';
+    document.getElementById('env-estado').value      = e.estado || 'enviado';
+    document.getElementById('env-monto').value       = e.monto || '';
+    document.getElementById('env-observacion').value = e.observacion || '';
+    document.getElementById('btn-delete-envio').style.display = 'inline-flex';
+    toggleEnvioMonto();
+    const ids = Array.isArray(e.pedidos_ids) ? e.pedidos_ids : [];
+    renderEnvioPedidosList(ids);
+}
+
+function cancelEnvioForm() {
+    showView(document.getElementById('envio-id').value ? 'envios-plotter' : 'gastos');
+}
+
+async function saveEnvio() {
+    const id       = document.getElementById('envio-id').value;
+    const fecha    = document.getElementById('env-fecha').value;
+    const plotter  = document.getElementById('env-plotter').value;
+    const estado   = document.getElementById('env-estado').value;
+    const monto    = parseFloat(document.getElementById('env-monto').value) || null;
+    const observacion = document.getElementById('env-observacion').value.trim();
+    const errEl    = document.getElementById('envio-form-error');
+
+    if (!fecha || !plotter) {
+        errEl.textContent = 'Fecha y plotter son obligatorios.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (estado !== 'enviado' && !monto) {
+        errEl.textContent = 'El monto es obligatorio cuando hay precio.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const checkboxes = document.querySelectorAll('#env-pedidos-list input[type=checkbox]:checked');
+    const pedidos_ids = Array.from(checkboxes).map(c => c.value);
+
+    const payload = {
+        fecha,
+        plotter,
+        estado,
+        monto: estado === 'enviado' ? null : monto,
+        observacion: observacion || null,
+        pedidos_ids,
+    };
+
+    const btnGuardar = document.getElementById('btn-guardar-envio');
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
+    const { error } = id
+        ? await sb.from('envios_plotter').update(payload).eq('id', id)
+        : await sb.from('envios_plotter').insert(payload);
+
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar';
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    await loadAll();
+    showView('envios-plotter');
+}
+
+async function deleteEnvio() {
+    const id = document.getElementById('envio-id').value;
+    if (!id || !await confirmModal('¿Eliminar este envío?')) return;
+    const btnDelete = document.getElementById('btn-delete-envio');
+    btnDelete.disabled = true;
+    const { error } = await sb.from('envios_plotter').delete().eq('id', id);
+    btnDelete.disabled = false;
+    if (error) {
+        document.getElementById('envio-form-error').textContent = 'No se pudo eliminar.';
+        document.getElementById('envio-form-error').style.display = 'block';
+        return;
+    }
+    await loadAll();
+    showView('envios-plotter');
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────────
