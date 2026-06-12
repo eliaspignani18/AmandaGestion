@@ -4236,7 +4236,7 @@ function renderEnviosTable() {
     const list = base.slice().sort((a, b) => {
         if (a.estado === 'pagado' && b.estado !== 'pagado') return 1;
         if (a.estado !== 'pagado' && b.estado === 'pagado') return -1;
-        return 0;
+        return (b.fecha || '').localeCompare(a.fecha || '');
     });
 
     if (!list.length) {
