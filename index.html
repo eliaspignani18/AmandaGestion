@@ -766,6 +766,23 @@
     </div>
 </div>
 
+<!-- MODAL: QUIEN PAGÓ -->
+<div class="modal-overlay" id="modal-quien-pago">
+    <div class="modal" style="max-width:320px">
+        <div class="modal-header">
+            <h3>¿Quién pagó?</h3>
+            <button class="close-btn" onclick="resolveQuienPago(null)">×</button>
+        </div>
+        <div class="form-actions" style="margin-top:16px;gap:12px">
+            <button class="btn btn-primary" style="flex:1;font-size:16px" onclick="resolveQuienPago('Eli')">Eli</button>
+            <button class="btn btn-primary" style="flex:1;font-size:16px" onclick="resolveQuienPago('Sofi')">Sofi</button>
+        </div>
+        <div style="margin-top:10px;text-align:center">
+            <button class="btn btn-ghost" onclick="resolveQuienPago(null)">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MOBILE TOP BAR -->
 <div class="mobile-topbar" id="mobile-topbar" style="display:none">
     <button class="hamburger-btn" onclick="toggleSidebar()">
@@ -4293,6 +4310,16 @@ function resolveConfirmModal(val) {
     if (_confirmModalResolve) { _confirmModalResolve(val); _confirmModalResolve = null; }
 }
 
+let _quienPagoResolve = null;
+function promptQuienPago() {
+    document.getElementById('modal-quien-pago').classList.add('open');
+    return new Promise(resolve => { _quienPagoResolve = resolve; });
+}
+function resolveQuienPago(val) {
+    document.getElementById('modal-quien-pago').classList.remove('open');
+    if (_quienPagoResolve) { _quienPagoResolve(val); _quienPagoResolve = null; }
+}
+
 let _promptValorResolve = null;
 
 function promptValor({ titulo, subtitulo = '', label, tipo = 'text', placeholder = '' }) {
@@ -4331,12 +4358,28 @@ function promptMonto() {
 }
 
 async function cambiarEstadoEnvio(id, nuevoEstado, montoActual) {
-    if ((nuevoEstado === 'con_precio' || nuevoEstado === 'pagado') && !montoActual) {
-        const monto = await promptMonto();
+    let monto = montoActual;
+    if ((nuevoEstado === 'con_precio' || nuevoEstado === 'pagado') && !monto) {
+        monto = await promptMonto();
         if (!monto) { renderEnviosTable(); return; }
         await sb.from('envios_plotter').update({ estado: nuevoEstado, monto }).eq('id', id);
     } else {
         await sb.from('envios_plotter').update({ estado: nuevoEstado }).eq('id', id);
+    }
+    if (nuevoEstado === 'pagado') {
+        const envio = allEnvios.find(x => x.id === id);
+        if (envio && envio.estado !== 'pagado') {
+            const pagadoPor = await promptQuienPago();
+            if (!pagadoPor) { await loadAll(); return; }
+            const obs = (PLOTTERS[envio.plotter] || { label: envio.plotter }).label;
+            await sb.from('gastos').insert({
+                fecha: envio.fecha,
+                categoria: 'plotter',
+                monto: Number(monto) || Number(envio.monto),
+                observacion: obs,
+                pagado_por: pagadoPor
+            });
+        }
     }
     await loadAll();
 }
