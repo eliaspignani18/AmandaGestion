@@ -4392,9 +4392,9 @@ async function deleteRowEnvio(id) {
 
 function renderEnvioPedidosList(selectedIds) {
     const container = document.getElementById('env-pedidos-list');
-    const activos = allPedidos.filter(p => p.estado !== 'entregado');
+    const activos = allPedidos.filter(p => p.estado === 'plotter');
     if (!activos.length) {
-        container.innerHTML = '<span class="text-gray" style="font-size:13px">No hay pedidos activos</span>';
+        container.innerHTML = '<span class="text-gray" style="font-size:13px">No hay pedidos en estado plotter</span>';
         return;
     }
     container.innerHTML = activos.map(p => `
