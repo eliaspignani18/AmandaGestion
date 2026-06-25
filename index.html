@@ -962,6 +962,10 @@
                         <label>WhatsApp</label>
                         <input type="text" id="f-whatsapp" placeholder="+54 9 341 375 4131">
                     </div>
+                    <div class="form-group">
+                        <label>Fecha del pedido</label>
+                        <input type="date" id="f-fecha-pedido">
+                    </div>
                     <div class="form-group full">
                         <label>Descripción del pedido *</label>
                         <textarea id="f-descripcion" placeholder="Ej: 100 stickers circulares 5cm, diseño logo empresa..."></textarea>
@@ -1957,7 +1961,13 @@ async function loadAll() {
         sb.from('clientes').select('*').order('nombre'),
         sb.from('envios_plotter').select('*').order('created_at', { ascending: false }),
     ]);
-    if (!resPedidos.error)   allPedidos   = resPedidos.data   || [];
+    if (!resPedidos.error) {
+        allPedidos = (resPedidos.data || []).sort((a, b) => {
+            const da = a.fecha_pedido || a.created_at.slice(0, 10);
+            const db = b.fecha_pedido || b.created_at.slice(0, 10);
+            return da < db ? 1 : da > db ? -1 : 0;
+        });
+    }
     if (!resGastos.error)    allGastos    = resGastos.data    || [];
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
@@ -2100,7 +2110,7 @@ function buildTable(pedidos, hidePrices = false) {
                         <td>
                             <div class="text-bold">${esc(p.cliente_nombre)}</div>
                             ${p.cliente_whatsapp ? `<div class="text-gray" style="font-size:12px">${esc(p.cliente_whatsapp)}</div>` : ''}
-                            ${p.created_at ? `<div class="text-gray mobile-fecha" style="font-size:11px">${fechaIngresado(p.created_at)}</div>` : ''}
+                            ${(p.fecha_pedido || p.created_at) ? `<div class="text-gray mobile-fecha" style="font-size:11px">${fechaIngresado(p.fecha_pedido || p.created_at)}</div>` : ''}
                         </td>
                         <td class="col-cargado text-gray">${esc(p.cargado_por || '—')}</td>
                         <td class="col-origen">${origenLabel(p.origen)}</td>
@@ -2119,7 +2129,7 @@ function buildTable(pedidos, hidePrices = false) {
                             }
                         </td>
                         <td><input type="text" class="plotter-input" list="plotter-options" value="${esc(p.plotter_usado || '')}" placeholder="—" onchange="cambiarPlotter('${p.id}', this.value)" onclick="event.stopPropagation()"></td>
-                        <td class="col-ingresado">${p.created_at ? fechaIngresado(p.created_at) : '<span class="text-gray">—</span>'}</td>
+                        <td class="col-ingresado">${(p.fecha_pedido || p.created_at) ? fechaIngresado(p.fecha_pedido || p.created_at) : '<span class="text-gray">—</span>'}</td>
                         <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
                         <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
                     </tr>`).join('')}
@@ -2228,7 +2238,7 @@ function resetForm() {
     document.getElementById('form-title').textContent = 'Nuevo pedido';
     document.getElementById('btn-delete').style.display = 'none';
     document.getElementById('form-error').style.display = 'none';
-    ['f-nombre','f-whatsapp','f-descripcion','f-notas','f-precio',
+    ['f-nombre','f-whatsapp','f-fecha-pedido','f-descripcion','f-notas','f-precio',
      'f-tipo-producto','f-cantidad','f-ancho-cm','f-alto-cm','f-plotter-usado',
      'f-minutos-diseno','f-minutos-corte','f-costo-materiales']
         .forEach(id => { document.getElementById(id).value = ''; });
@@ -2266,6 +2276,7 @@ function editPedido(id) {
     document.getElementById('f-cliente-id').value       = p.cliente_id || '';
     document.getElementById('f-nombre').value           = p.cliente_nombre || '';
     document.getElementById('f-whatsapp').value         = p.cliente_whatsapp || '';
+    document.getElementById('f-fecha-pedido').value     = p.fecha_pedido || '';
     document.getElementById('f-descripcion').value      = p.descripcion || '';
     document.getElementById('f-estado').value           = p.estado || 'recibido';
     document.getElementById('f-precio').value           = p.precio_cliente || '';
@@ -2325,6 +2336,7 @@ async function savePedido() {
         cliente_nombre:       nombre,
         cliente_whatsapp:     whatsapp,
         cliente_id:           clienteId,
+        fecha_pedido:         document.getElementById('f-fecha-pedido').value || new Date().toLocaleDateString('en-CA'),
         descripcion:          desc,
         estado:               document.getElementById('f-estado').value,
         precio_cliente:       parseFloat(document.getElementById('f-precio').value) || null,
@@ -4197,13 +4209,16 @@ function formatDate(d) {
 }
 
 function fechaIngresado(isoStr) {
-    const fecha = new Date(isoStr);
-    const hoy   = new Date();
-    const dias  = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
-    const dd    = String(fecha.getDate()).padStart(2, '0');
-    const mm    = String(fecha.getMonth() + 1).padStart(2, '0');
-    const aaaa  = fecha.getFullYear();
-    const etiq  = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias}d`;
+    // "YYYY-MM-DD" se parsea como UTC por JS → un día menos en UTC-3.
+    // Forzamos hora local dividiendo el string en partes.
+    const partes = isoStr.slice(0, 10).split('-');
+    const fecha  = new Date(+partes[0], +partes[1] - 1, +partes[2]);
+    const hoy    = new Date(); hoy.setHours(0, 0, 0, 0);
+    const dias   = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
+    const dd     = String(fecha.getDate()).padStart(2, '0');
+    const mm     = String(fecha.getMonth() + 1).padStart(2, '0');
+    const aaaa   = fecha.getFullYear();
+    const etiq   = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias}d`;
     return `<span style="font-size:12px">${dd}/${mm}/${aaaa}</span><br><span style="font-size:11px;color:var(--gray-500)">${etiq}</span>`;
 }
 
