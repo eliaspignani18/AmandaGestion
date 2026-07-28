@@ -709,6 +709,17 @@
         .env-pedidos-list { display:flex; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; padding:10px 12px; border:1px solid var(--gray-300); border-radius:8px; background:var(--white); }
         .env-pedido-item { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; padding:3px 0; }
         .env-pedido-item input[type=checkbox] { width:15px; height:15px; cursor:pointer; flex-shrink:0; accent-color:var(--black); }
+
+        /* IDEAS */
+        .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .idea-card { background: var(--white); border: 2px solid var(--black); border-radius: 12px; box-shadow: var(--shadow-stamp); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: transform .1s; }
+        .idea-card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--black); }
+        .idea-card-titulo { font-weight: 700; font-size: 15px; color: var(--black); }
+        .idea-card-link { font-size: 12px; color: #3b82f6; word-break: break-all; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+        .idea-card-link:hover { text-decoration: underline; }
+        .idea-card-desc { font-size: 13px; color: var(--gray-700); white-space: pre-wrap; }
+        .idea-card-fecha { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+        @media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -833,6 +844,7 @@
 
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
             <button class="nav-btn" data-view="tarifa" onclick="showView('tarifa')"><i data-lucide="clock"></i> Tarifa</button>
+            <button class="nav-btn" data-view="ideas" onclick="showView('ideas')"><i data-lucide="lightbulb"></i> Ideas</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -1783,7 +1795,44 @@
             </div>
         </div>
 
-        <!-- REGISTRO DE PRODUCCIÓN -->
+        <!-- IDEAS -->
+        <div id="view-ideas" class="view">
+            <div class="view-header">
+                <h2>Ideas</h2>
+                <button class="btn btn-yellow" onclick="resetIdeaForm();showView('nueva-idea')">＋ Nueva idea</button>
+            </div>
+            <div class="ideas-grid" id="ideas-grid"></div>
+        </div>
+
+        <!-- NUEVA IDEA / EDITAR IDEA -->
+        <div id="view-nueva-idea" class="view">
+            <div class="view-header">
+                <h2 id="idea-form-title">Nueva idea</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="idea-id">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Título</label>
+                        <input type="text" id="idea-titulo" placeholder="Ej: Stickers holográficos que vi en IG">
+                    </div>
+                    <div class="form-group full">
+                        <label>Link</label>
+                        <input type="url" id="idea-link" placeholder="https://...">
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción / detalle</label>
+                        <textarea id="idea-descripcion" placeholder="Notas, referencias, lo que quieras recordar..." style="min-height:120px"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-idea" onclick="saveIdea()">Guardar idea</button>
+                    <button class="btn btn-ghost" onclick="showView('ideas')">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-idea" style="display:none;margin-left:auto" onclick="deleteIdea()">Eliminar</button>
+                </div>
+                <p id="idea-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
 
 
     </div>
@@ -1825,6 +1874,7 @@ let filterGastoCategoria = 'todos';
 let filterClienteTipo = 'todos';
 let allEnvios = [];
 let filterEnvioEstado = 'todos';
+let allIdeas = [];
 let filterEnvioPlotter = 'todos';
 
 const CATEGORIAS_GASTO = {
@@ -1931,6 +1981,7 @@ function showView(name) {
     if (name === 'tarifa')          renderTarifa();
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
+    if (name === 'ideas')           renderIdeas();
     closeSidebar();
 }
 
@@ -1954,12 +2005,13 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock, resClientes, resEnvios] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes, resEnvios, resIdeas] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
         sb.from('clientes').select('*').order('nombre'),
         sb.from('envios_plotter').select('*').order('created_at', { ascending: false }),
+        sb.from('ideas').select('*').order('created_at', { ascending: false }),
     ]);
     if (!resPedidos.error) {
         allPedidos = (resPedidos.data || []).sort((a, b) => {
@@ -1972,6 +2024,7 @@ async function loadAll() {
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
     if (!resEnvios.error)    allEnvios    = resEnvios.data    || [];
+    if (!resIdeas.error)     allIdeas     = resIdeas.data     || [];
     loadTarifaConfig();
     renderDashboard();
     renderTarjetasTabla();
@@ -4529,6 +4582,108 @@ async function deleteEnvio() {
     }
     await loadAll();
     showView('envios-plotter');
+}
+
+// ─── IDEAS ────────────────────────────────────────────────────────────────────
+
+function renderIdeas() {
+    const grid = document.getElementById('ideas-grid');
+    if (!allIdeas.length) {
+        grid.innerHTML = '<p style="color:var(--gray-500);font-size:14px">Todavía no hay ideas. ¡Agregá la primera!</p>';
+        return;
+    }
+    grid.innerHTML = allIdeas.map(idea => {
+        const fecha = new Date(idea.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+        const linkHtml = idea.link
+            ? `<a class="idea-card-link" href="${idea.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><i data-lucide="external-link" style="width:12px;height:12px"></i> ${idea.link}</a>`
+            : '';
+        const descHtml = idea.descripcion ? `<div class="idea-card-desc">${idea.descripcion.replace(/</g,'&lt;')}</div>` : '';
+        const tituloHtml = idea.titulo
+            ? `<div class="idea-card-titulo">${idea.titulo.replace(/</g,'&lt;')}</div>`
+            : (idea.link ? '' : '<div class="idea-card-titulo" style="color:var(--gray-500)">Sin título</div>');
+        return `<div class="idea-card" onclick="editIdea('${idea.id}')">
+            ${tituloHtml}${linkHtml}${descHtml}
+            <div class="idea-card-fecha">${fecha}</div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function resetIdeaForm() {
+    document.getElementById('idea-id').value = '';
+    document.getElementById('idea-titulo').value = '';
+    document.getElementById('idea-link').value = '';
+    document.getElementById('idea-descripcion').value = '';
+    document.getElementById('idea-form-title').textContent = 'Nueva idea';
+    document.getElementById('btn-delete-idea').style.display = 'none';
+    document.getElementById('idea-form-error').style.display = 'none';
+}
+
+function editIdea(id) {
+    const idea = allIdeas.find(i => i.id === id);
+    if (!idea) return;
+    document.getElementById('idea-id').value = idea.id;
+    document.getElementById('idea-titulo').value = idea.titulo || '';
+    document.getElementById('idea-link').value = idea.link || '';
+    document.getElementById('idea-descripcion').value = idea.descripcion || '';
+    document.getElementById('idea-form-title').textContent = 'Editar idea';
+    document.getElementById('btn-delete-idea').style.display = '';
+    document.getElementById('idea-form-error').style.display = 'none';
+    showView('nueva-idea');
+}
+
+async function saveIdea() {
+    const id = document.getElementById('idea-id').value;
+    const titulo = document.getElementById('idea-titulo').value.trim();
+    const link = document.getElementById('idea-link').value.trim();
+    const descripcion = document.getElementById('idea-descripcion').value.trim();
+    const errEl = document.getElementById('idea-form-error');
+    const btn = document.getElementById('btn-guardar-idea');
+
+    if (!titulo && !link && !descripcion) {
+        errEl.textContent = 'Completá al menos un campo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    errEl.style.display = 'none';
+
+    const payload = { titulo: titulo || null, link: link || null, descripcion: descripcion || null };
+    const { error } = id
+        ? await sb.from('ideas').update(payload).eq('id', id)
+        : await sb.from('ideas').insert(payload);
+
+    btn.disabled = false;
+    btn.textContent = 'Guardar idea';
+
+    if (error) {
+        errEl.textContent = 'Error al guardar. Intentá de nuevo.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const { data } = await sb.from('ideas').select('*').order('created_at', { ascending: false });
+    if (data) allIdeas = data;
+    showView('ideas');
+}
+
+async function deleteIdea() {
+    const id = document.getElementById('idea-id').value;
+    if (!id || !await confirmModal('¿Eliminar esta idea?')) return;
+    const btn = document.getElementById('btn-delete-idea');
+    btn.disabled = true;
+    const { error } = await sb.from('ideas').delete().eq('id', id);
+    btn.disabled = false;
+    if (error) {
+        document.getElementById('idea-form-error').textContent = 'No se pudo eliminar.';
+        document.getElementById('idea-form-error').style.display = 'block';
+        return;
+    }
+    const { data } = await sb.from('ideas').select('*').order('created_at', { ascending: false });
+    if (data) allIdeas = data;
+    showView('ideas');
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────────
