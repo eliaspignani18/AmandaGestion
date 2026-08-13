@@ -1126,11 +1126,11 @@
                     </div>
                     <div class="form-group">
                         <label>Tipo de producto</label>
-                        <input type="text" id="f-tipo-producto" placeholder="Ej: stickers, planchitas, lona...">
+                        <input type="text" id="f-tipo-producto" placeholder="Ej: stickers, planchitas, lona..." onchange="autoFillMinutos(true)">
                     </div>
                     <div class="form-group">
                         <label>Cantidad</label>
-                        <input type="number" id="f-cantidad" placeholder="0" step="1" min="0" oninput="calcularArea()">
+                        <input type="number" id="f-cantidad" placeholder="0" step="1" min="0" oninput="calcularArea(); autoFillMinutos(true)">
                     </div>
                     <div class="form-group">
                         <label>Ancho del trabajo (cm)</label>
@@ -1760,6 +1760,13 @@
                         <button type="button" class="btn btn-ghost" style="margin-top:10px;font-size:12px;padding:5px 12px" onclick="tarifaAgregarMaterial()">+ Agregar tipo</button>
                         <p style="font-size:12px;color:var(--gray-500);margin-top:8px;line-height:1.5">Se auto-calcula con las dimensiones del pedido. Clic en el costo para editarlo.</p>
                     </div>
+                </div>
+
+                <div style="border-top:1px solid var(--gray-200);margin-top:24px;padding-top:20px">
+                    <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px">Tiempos de referencia por tipo de producto <span style="font-weight:400;text-transform:none;letter-spacing:0">(min / unidad)</span></div>
+                    <div id="tarifa-tiempos-config"></div>
+                    <button type="button" class="btn btn-ghost" style="margin-top:10px;font-size:12px;padding:5px 12px" onclick="tarifaAgregarTiempo()">+ Agregar tipo</button>
+                    <p style="font-size:12px;color:var(--gray-500);margin-top:8px;line-height:1.5">Al crear un pedido, si el tipo coincide, se completan los minutos automáticamente. Clic en un valor para editarlo.</p>
                 </div>
             </div>
 
@@ -4157,7 +4164,7 @@ document.addEventListener('click', e => {
 
 async function loadTarifaConfig() {
     const { data } = await sb.from('tarifa_config').select('*').eq('id', 1).single();
-    if (data) tarifaConfig = { valor_hora: data.valor_hora, margen: data.margen, materiales: data.materiales || {} };
+    if (data) tarifaConfig = { valor_hora: data.valor_hora, margen: data.margen, materiales: data.materiales || {}, tiempos_mo: data.tiempos_mo || {} };
     const valorHora = tarifaConfig.valor_hora || 0;
     if (valorHora > 0) {
         const sin_mo = allPedidos.filter(p => (p.minutos_diseno || p.minutos_corte) && p.costo_mo == null);
@@ -4174,7 +4181,7 @@ let _tarifaConfigTimer = null;
 function saveTarifaConfig() {
     clearTimeout(_tarifaConfigTimer);
     _tarifaConfigTimer = setTimeout(() => {
-        sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales });
+        sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales, tiempos_mo: tarifaConfig.tiempos_mo || {} });
     }, 600);
 }
 
@@ -4205,7 +4212,107 @@ function renderTarifaMatConfig() {
 }
 
 async function saveMateriales() {
-    await sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales });
+    await sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales, tiempos_mo: tarifaConfig.tiempos_mo || {} });
+}
+
+async function saveTiemposMO() {
+    await sb.from('tarifa_config').upsert({ id: 1, valor_hora: tarifaConfig.valor_hora, margen: tarifaConfig.margen, materiales: tarifaConfig.materiales, tiempos_mo: tarifaConfig.tiempos_mo || {} });
+}
+
+function renderTarifaTiemposConfig() {
+    const tiempos = tarifaConfig.tiempos_mo || {};
+    const tipos   = Object.keys(tiempos);
+    const el      = document.getElementById('tarifa-tiempos-config');
+    if (!el) return;
+    if (!tipos.length) {
+        el.innerHTML = '<p style="font-size:12px;color:var(--gray-500);margin:0">Sin tipos configurados aún.</p>';
+        return;
+    }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+            <th style="text-align:left;font-size:11px;color:var(--gray-500);font-weight:600;padding:3px 0;text-transform:uppercase;letter-spacing:0.05em">Tipo</th>
+            <th style="text-align:center;font-size:11px;color:var(--gray-500);font-weight:600;padding:3px 6px;text-transform:uppercase;letter-spacing:0.05em">Corte</th>
+            <th style="text-align:center;font-size:11px;color:var(--gray-500);font-weight:600;padding:3px 6px;text-transform:uppercase;letter-spacing:0.05em">Diseño</th>
+            <th></th>
+        </tr></thead>
+        <tbody>` +
+        tipos.map(tipo => `<tr>
+            <td style="padding:4px 0;font-size:13px;font-weight:600;cursor:pointer" onclick="tiempoEditNombre(this,'${esc(tipo)}')">${esc(tipo)}</td>
+            <td style="text-align:center;padding:4px 6px;cursor:pointer" onclick="tiempoEditVal(this,'${esc(tipo)}','corte')">${tiempos[tipo].corte != null ? tiempos[tipo].corte + ' min' : '<span style="color:var(--gray-400)">—</span>'}</td>
+            <td style="text-align:center;padding:4px 6px;cursor:pointer" onclick="tiempoEditVal(this,'${esc(tipo)}','diseno')">${tiempos[tipo].diseno != null ? tiempos[tipo].diseno + ' min' : '<span style="color:var(--gray-400)">—</span>'}</td>
+            <td style="width:20px;text-align:right"><span style="cursor:pointer;color:var(--gray-500);font-size:16px;line-height:1" onclick="tiempoBorrar('${esc(tipo)}')">×</span></td>
+        </tr>`).join('') +
+        `</tbody></table>`;
+}
+
+async function tarifaAgregarTiempo() {
+    const nombre = await promptValor({ titulo: 'Nuevo tipo', label: 'Nombre del tipo de producto', placeholder: 'ej: sticker mediano, planchita' });
+    if (!nombre) return;
+    if (!tarifaConfig.tiempos_mo) tarifaConfig.tiempos_mo = {};
+    tarifaConfig.tiempos_mo[nombre] = { corte: null, diseno: null };
+    await saveTiemposMO();
+    renderTarifaTiemposConfig();
+}
+
+async function tiempoBorrar(tipo) {
+    if (!await confirmModal(`¿Eliminar "${tipo}" de los tiempos de referencia?`)) return;
+    delete tarifaConfig.tiempos_mo[tipo];
+    await saveTiemposMO();
+    renderTarifaTiemposConfig();
+}
+
+function tiempoEditNombre(td, tipoViejo) {
+    if (td.querySelector('input')) return;
+    const input = document.createElement('input');
+    input.type  = 'text'; input.value = tipoViejo;
+    input.style.cssText = 'width:120px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px';
+    td.innerHTML = ''; td.appendChild(input);
+    input.focus(); input.select();
+    async function guardar() {
+        const nuevo = input.value.trim();
+        if (nuevo && nuevo !== tipoViejo) {
+            tarifaConfig.tiempos_mo[nuevo] = tarifaConfig.tiempos_mo[tipoViejo];
+            delete tarifaConfig.tiempos_mo[tipoViejo];
+            await saveTiemposMO();
+        }
+        renderTarifaTiemposConfig();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderTarifaTiemposConfig(); });
+}
+
+function tiempoEditVal(td, tipo, campo) {
+    if (td.querySelector('input')) return;
+    const cur = tarifaConfig.tiempos_mo[tipo]?.[campo];
+    const input = document.createElement('input');
+    input.type = 'number'; input.min = '0'; input.step = '0.1';
+    input.value = cur != null ? cur : '';
+    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:center';
+    td.innerHTML = ''; td.appendChild(input);
+    input.focus(); input.select();
+    async function guardar() {
+        const val = parseFloat(input.value);
+        if (!tarifaConfig.tiempos_mo[tipo]) tarifaConfig.tiempos_mo[tipo] = {};
+        tarifaConfig.tiempos_mo[tipo][campo] = isNaN(val) ? null : val;
+        await saveTiemposMO();
+        renderTarifaTiemposConfig();
+    }
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderTarifaTiemposConfig(); });
+}
+
+function autoFillMinutos(force = false) {
+    const tipo = document.getElementById('f-tipo-producto')?.value.trim();
+    const cant = parseInt(document.getElementById('f-cantidad')?.value) || 0;
+    if (!tipo || !cant) return;
+    const tiempos = tarifaConfig.tiempos_mo || {};
+    const key = Object.keys(tiempos).find(k => k.toLowerCase() === tipo.toLowerCase());
+    if (!key) return;
+    const ref = tiempos[key];
+    const elCorte  = document.getElementById('f-minutos-corte');
+    const elDiseno = document.getElementById('f-minutos-diseno');
+    if (ref.corte  != null && (force || !elCorte.value))  elCorte.value  = Math.round(ref.corte  * cant);
+    if (ref.diseno != null && (force || !elDiseno.value)) elDiseno.value = Math.round(ref.diseno * cant);
 }
 
 async function tarifaAgregarMaterial() {
@@ -4302,6 +4409,7 @@ function renderTarifa() {
     if (inputMargen.value !== '') { tarifaConfig.margen     = parseFloat(inputMargen.value) || null; saveTarifaConfig(); }
 
     renderTarifaMatConfig();
+    renderTarifaTiemposConfig();
 
     const mats      = getTarifaMateriales();
     const matPedidos = getTarifaMatPedidos();
