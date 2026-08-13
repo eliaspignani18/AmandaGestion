@@ -287,6 +287,34 @@
         .badge-packaging { background: #ccfbf1; color: #0f766e; }
         .badge-stock     { background: #fef9c3; color: #854d0e; }
 
+        .est-bar {
+            position: relative;
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            cursor: default;
+            transition: opacity 0.1s;
+        }
+        .est-bar:hover { opacity: 0.85; }
+        .est-bar::after {
+            content: attr(data-val);
+            position: absolute;
+            bottom: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--black);
+            color: var(--white);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            z-index: 10;
+        }
+        .est-bar:hover::after { opacity: 1; }
+
         .card-value.red { color: var(--red); }
 
         /* FORM */
@@ -714,11 +742,15 @@
         .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .idea-card { background: var(--white); border: 2px solid var(--black); border-radius: 12px; box-shadow: var(--shadow-stamp); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: transform .1s; }
         .idea-card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--black); }
+        .idea-card-img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--gray-200); margin-bottom: 2px; }
         .idea-card-titulo { font-weight: 700; font-size: 15px; color: var(--black); }
         .idea-card-link { font-size: 12px; color: #3b82f6; word-break: break-all; text-decoration: none; display: flex; align-items: center; gap: 4px; }
         .idea-card-link:hover { text-decoration: underline; }
         .idea-card-desc { font-size: 13px; color: var(--gray-700); white-space: pre-wrap; }
         .idea-card-fecha { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+        .idea-img-preview-wrap { display:none; flex-direction:column; gap:6px; }
+        .idea-img-preview-wrap img { max-width:100%; max-height:220px; object-fit:cover; border-radius:8px; border:2px solid var(--gray-200); display:block; }
+        .idea-img-remove { font-size:12px; color:var(--red); background:none; border:none; cursor:pointer; padding:0; text-align:left; width:fit-content; }
         @media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -811,6 +843,7 @@
         </div>
         <nav>
             <button class="nav-btn" data-view="dashboard" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+            <button class="nav-btn" data-view="estadisticas" onclick="showView('estadisticas')"><i data-lucide="bar-chart-2"></i> Estadísticas</button>
 
             <div class="nav-group">
                 <button class="nav-btn nav-parent" data-group="pedidos" onclick="navGroupClick('pedidos')"><i data-lucide="clipboard-list"></i> Pedidos<i data-lucide="chevron-right" class="nav-chevron"></i></button>
@@ -916,6 +949,64 @@
             </div>
         </div>
 
+        <!-- ESTADÍSTICAS -->
+        <div id="view-estadisticas" class="view">
+            <div class="view-header">
+                <h2>Estadísticas</h2>
+                <div style="display:flex;gap:6px">
+                    <button class="filter-btn active" id="sp-este-mes"      onclick="setPeriodo('este-mes',this)">Este mes</button>
+                    <button class="filter-btn"         id="sp-mes-anterior"  onclick="setPeriodo('mes-anterior',this)">Mes anterior</button>
+                    <button class="filter-btn"         id="sp-3-meses"       onclick="setPeriodo('3-meses',this)">Últimos 3 meses</button>
+                    <button class="filter-btn"         id="sp-todo"          onclick="setPeriodo('todo',this)">Todo</button>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-bottom:24px">
+                <div class="card">
+                    <div class="card-label">Facturado (cobrado)</div>
+                    <div class="card-value green" id="est-facturacion">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Gastos</div>
+                    <div class="card-value red" id="est-gastos">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Ganancia neta</div>
+                    <div class="card-value" id="est-ganancia">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Pedidos</div>
+                    <div class="card-value" id="est-pedidos">—</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+                <div class="pipeline">
+                    <div class="pipeline-title">Tendencia mensual (6 meses)</div>
+                    <div style="display:flex;align-items:flex-end;gap:8px;height:100px;margin-bottom:10px" id="est-tendencia"></div>
+                    <div style="display:flex;gap:16px;font-size:12px;color:var(--gray-500)">
+                        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block"></span> Cobrado</span>
+                        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#ef4444;display:inline-block"></span> Gastos</span>
+                    </div>
+                </div>
+                <div class="pipeline">
+                    <div class="pipeline-title">Gastos por categoría</div>
+                    <div id="est-cats"></div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px">
+                <div class="pipeline">
+                    <div class="pipeline-title">Clientes más frecuentes</div>
+                    <div id="est-clientes"></div>
+                </div>
+                <div class="pipeline">
+                    <div class="pipeline-title">Productos más pedidos</div>
+                    <div id="est-productos"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- PEDIDOS -->
         <div id="view-pedidos" class="view">
             <div class="view-header">
@@ -948,6 +1039,13 @@
                     <input type="date" id="filter-hasta" class="filter-input" onchange="renderPedidosTable()" title="Hasta">
                 </div>
                 <button class="btn btn-ghost" onclick="limpiarFiltrosExtra()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
+            </div>
+            <div id="filter-tipo-chip" style="display:none;margin-bottom:12px">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:var(--yellow);border:2px solid var(--black);border-radius:99px;padding:3px 12px;font-size:13px;font-weight:600">
+                    <i data-lucide="tag" style="width:13px;height:13px"></i>
+                    <span id="filter-tipo-chip-label"></span>
+                    <button onclick="clearFilterTipo()" style="background:none;border:none;cursor:pointer;padding:0;line-height:1;font-size:14px;font-weight:700;margin-left:2px">×</button>
+                </span>
             </div>
             <div class="table-wrap">
                 <div id="pedidos-table"></div>
@@ -1824,6 +1922,14 @@
                         <label>Descripción / detalle</label>
                         <textarea id="idea-descripcion" placeholder="Notas, referencias, lo que quieras recordar..." style="min-height:120px"></textarea>
                     </div>
+                    <div class="form-group full">
+                        <label>Imagen</label>
+                        <div class="idea-img-preview-wrap" id="idea-img-preview-wrap">
+                            <img id="idea-img-preview" src="" alt="preview">
+                            <button type="button" class="idea-img-remove" onclick="quitarImagenIdea()">✕ Quitar imagen</button>
+                        </div>
+                        <input type="file" id="idea-imagen" accept="image/*" onchange="previewIdeaImagen(this)">
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button class="btn btn-primary" id="btn-guardar-idea" onclick="saveIdea()">Guardar idea</button>
@@ -1982,6 +2088,7 @@ function showView(name) {
     if (name === 'clientes')        renderClientesTable();
     if (name === 'nuevo-cliente')   resetClienteForm();
     if (name === 'ideas')           renderIdeas();
+    if (name === 'estadisticas')    renderEstadisticas();
     closeSidebar();
 }
 
@@ -2137,6 +2244,153 @@ function renderDashboard() {
     }
 }
 
+// ─── ESTADÍSTICAS ─────────────────────────────────────────────────────────────
+
+let statPeriodo = 'este-mes';
+
+function setPeriodo(p, el) {
+    statPeriodo = p;
+    document.querySelectorAll('#view-estadisticas .filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderEstadisticas();
+}
+
+function filtrarPorPeriodo(items, dateField) {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    return items.filter(item => {
+        const d = new Date(item[dateField]);
+        if (isNaN(d)) return false;
+        if (statPeriodo === 'este-mes')     return d.getFullYear() === y && d.getMonth() === m;
+        if (statPeriodo === 'mes-anterior') {
+            const pm = m === 0 ? 11 : m - 1;
+            const py = m === 0 ? y - 1 : y;
+            return d.getFullYear() === py && d.getMonth() === pm;
+        }
+        if (statPeriodo === '3-meses') {
+            const desde = new Date(y, m - 2, 1);
+            return d >= desde;
+        }
+        return true;
+    });
+}
+
+function renderEstadisticas() {
+    const pedidos = filtrarPorPeriodo(allPedidos, 'created_at');
+    const gastos  = filtrarPorPeriodo(allGastos, 'fecha');
+
+    // Cards
+    const facturacion = pedidos.filter(p => p.cobrado).reduce((s, p) => s + (p.precio_cliente || 0), 0);
+    const totalGastos = gastos.reduce((s, g) => s + (g.monto || 0), 0);
+    const ganancia    = facturacion - totalGastos;
+
+    document.getElementById('est-facturacion').textContent = hideMontos ? '$***' : formatPeso(facturacion);
+    document.getElementById('est-gastos').textContent      = hideMontos ? '$***' : formatPeso(totalGastos);
+    const ganEl = document.getElementById('est-ganancia');
+    ganEl.textContent = hideMontos ? '$***' : formatPeso(ganancia);
+    ganEl.className   = 'card-value ' + (ganancia >= 0 ? 'green' : 'red');
+    document.getElementById('est-pedidos').textContent = pedidos.length;
+
+    // Clientes frecuentes (top 5)
+    const cliMap = {};
+    pedidos.forEach(p => {
+        const k = p.cliente_nombre || 'Sin nombre';
+        if (!cliMap[k]) cliMap[k] = { nombre: k, cantidad: 0, monto: 0 };
+        cliMap[k].cantidad++;
+        cliMap[k].monto += (p.precio_cliente || 0);
+    });
+    const topCli = Object.values(cliMap).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
+    const maxCli = topCli[0]?.cantidad || 1;
+    document.getElementById('est-clientes').innerHTML = topCli.length
+        ? topCli.map(c => `
+            <div onclick="irAPedidosPorCliente(this.dataset.nombre)" data-nombre="${esc(c.nombre)}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background=''">
+                <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nombre)}</div>
+                    <div style="height:5px;border-radius:3px;background:var(--gray-200);margin-top:5px;overflow:hidden">
+                        <div style="height:100%;width:${Math.round(c.cantidad/maxCli*100)}%;background:var(--yellow);border-radius:3px"></div>
+                    </div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                    <div style="font-size:12px;color:var(--gray-500)">${c.cantidad} pedido${c.cantidad !== 1 ? 's' : ''}</div>
+                    <div style="font-weight:700;font-size:13px">${hideMontos ? '$***' : formatPeso(c.monto)}</div>
+                </div>
+            </div>`).join('')
+        : '<div style="color:var(--gray-500);font-size:14px;padding:12px 0">Sin datos en el período</div>';
+
+    // Gastos por categoría
+    const catMap = {};
+    gastos.forEach(g => {
+        const k = g.categoria || 'otros';
+        catMap[k] = (catMap[k] || 0) + (g.monto || 0);
+    });
+    const cats   = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+    const maxCat = cats[0]?.[1] || 1;
+    const CAT_LABELS = { gplotter: 'Plotter', compras: 'Compras', insumos: 'Insumos', packaging: 'Packaging', stock: 'Stock' };
+    document.getElementById('est-cats').innerHTML = cats.length
+        ? cats.map(([k, monto]) => `
+            <div onclick="irAGastosPorCategoria(this.dataset.cat)" data-cat="${esc(k)}" style="padding:8px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background=''">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                    <span class="badge badge-${k}">${CAT_LABELS[k] || k}</span>
+                    <span style="font-weight:700;font-size:13px">${hideMontos ? '$***' : formatPeso(monto)}</span>
+                </div>
+                <div style="height:5px;border-radius:3px;background:var(--gray-200);overflow:hidden">
+                    <div style="height:100%;width:${Math.round(monto/maxCat*100)}%;background:var(--black);border-radius:3px"></div>
+                </div>
+            </div>`).join('')
+        : '<div style="color:var(--gray-500);font-size:14px;padding:12px 0">Sin gastos en el período</div>';
+
+    // Productos por tipo (top 6)
+    const prodMap = {};
+    pedidos.forEach(p => {
+        const k = p.tipo_producto?.trim() || 'Sin clasificar';
+        if (!prodMap[k]) prodMap[k] = { tipo: k, cantidad: 0, monto: 0 };
+        prodMap[k].cantidad++;
+        prodMap[k].monto += (p.precio_cliente || 0);
+    });
+    const prods   = Object.values(prodMap).sort((a, b) => b.cantidad - a.cantidad).slice(0, 6);
+    const maxProd = prods[0]?.cantidad || 1;
+    document.getElementById('est-productos').innerHTML = prods.length
+        ? prods.map(p => `
+            <div onclick="irAPedidosPorTipo(this.dataset.tipo)" data-tipo="${esc(p.tipo)}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background=''">
+                <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.tipo)}</div>
+                    <div style="height:5px;border-radius:3px;background:var(--gray-200);margin-top:5px;overflow:hidden">
+                        <div style="height:100%;width:${Math.round(p.cantidad/maxProd*100)}%;background:var(--orange);border-radius:3px;opacity:0.8"></div>
+                    </div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                    <div style="font-size:12px;color:var(--gray-500)">${p.cantidad} pedido${p.cantidad !== 1 ? 's' : ''}</div>
+                    <div style="font-weight:700;font-size:13px">${hideMontos ? '$***' : formatPeso(p.monto)}</div>
+                </div>
+            </div>`).join('')
+        : '<div style="color:var(--gray-500);font-size:14px;padding:12px 0">Sin datos en el período</div>';
+
+    // Tendencia mensual (últimos 6 meses) — siempre sobre allPedidos/allGastos, no filtrado por período
+    const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const now = new Date();
+    const trend = [];
+    for (let i = 5; i >= 0; i--) {
+        const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const ty = d.getFullYear(), tm = d.getMonth();
+        const ps = allPedidos.filter(p => { const pd = new Date(p.created_at); return pd.getFullYear() === ty && pd.getMonth() === tm; });
+        const gs = allGastos.filter(g => { const gd = new Date(g.fecha); return gd.getFullYear() === ty && gd.getMonth() === tm; });
+        trend.push({
+            label: MESES[tm],
+            fac:   ps.filter(p => p.cobrado).reduce((s, p) => s + (p.precio_cliente || 0), 0),
+            gas:   gs.reduce((s, g) => s + (g.monto || 0), 0),
+        });
+    }
+    const maxTrend = Math.max(...trend.map(d => Math.max(d.fac, d.gas)), 1);
+    document.getElementById('est-tendencia').innerHTML = trend.map(d => `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;display:flex;gap:3px;align-items:flex-end;height:100px">
+                <div class="est-bar" style="background:#22c55e;height:${Math.max(Math.round(d.fac/maxTrend*100), d.fac > 0 ? 3 : 0)}px" data-val="${formatPeso(d.fac)}"></div>
+                <div class="est-bar" style="background:#ef4444;height:${Math.max(Math.round(d.gas/maxTrend*100), d.gas > 0 ? 3 : 0)}px" data-val="${formatPeso(d.gas)}"></div>
+            </div>
+            <div style="font-size:11px;color:var(--gray-500);font-weight:600">${d.label}</div>
+        </div>`).join('');
+}
+
 // ─── TABLE ────────────────────────────────────────────────────────────────────
 
 function buildTable(pedidos, hidePrices = false) {
@@ -2191,11 +2445,14 @@ function buildTable(pedidos, hidePrices = false) {
 }
 
 let filterCobrado = 'todos';
+let filterTipoProducto = '';
 
 function renderPedidosTable() {
     let list = currentFilter === 'todos'
         ? allPedidos
         : allPedidos.filter(p => p.estado === currentFilter);
+
+    if (filterTipoProducto) list = list.filter(p => (p.tipo_producto?.trim() || 'Sin clasificar') === filterTipoProducto);
 
     const clienteQ = (document.getElementById('filter-cliente')?.value || '').trim().toLowerCase();
     if (clienteQ) list = list.filter(p => (p.cliente_nombre || '').toLowerCase().includes(clienteQ));
@@ -2248,7 +2505,37 @@ function limpiarFiltrosExtra() {
     filterCobrado = 'todos';
     document.querySelectorAll('#fcob-todos,#fcob-si,#fcob-no').forEach(b => b.classList.remove('active'));
     document.getElementById('fcob-todos').classList.add('active');
+    clearFilterTipo();
+}
+
+function clearFilterTipo() {
+    filterTipoProducto = '';
+    document.getElementById('filter-tipo-chip').style.display = 'none';
     renderPedidosTable();
+}
+
+function irAPedidosPorTipo(tipo) {
+    filterTipoProducto = tipo;
+    const chip = document.getElementById('filter-tipo-chip');
+    document.getElementById('filter-tipo-chip-label').textContent = tipo;
+    chip.style.display = 'block';
+    lucide.createIcons({ nodes: [chip] });
+    showView('pedidos');
+}
+
+function irAPedidosPorCliente(nombre) {
+    filterTipoProducto = '';
+    document.getElementById('filter-tipo-chip').style.display = 'none';
+    document.getElementById('filter-cliente').value = nombre;
+    showView('pedidos');
+}
+
+function irAGastosPorCategoria(cat) {
+    filterGastoCategoria = cat;
+    document.querySelectorAll('.filters [id^="fg-"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('fg-' + cat);
+    if (btn) btn.classList.add('active');
+    showView('gastos');
 }
 
 function setFilterGasto(cat, btn) {
@@ -4594,19 +4881,36 @@ function renderIdeas() {
     }
     grid.innerHTML = allIdeas.map(idea => {
         const fecha = new Date(idea.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+        const imgHtml = idea.imagen_url ? `<img class="idea-card-img" src="${idea.imagen_url}" alt="imagen">` : '';
         const linkHtml = idea.link
             ? `<a class="idea-card-link" href="${idea.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><i data-lucide="external-link" style="width:12px;height:12px"></i> ${idea.link}</a>`
             : '';
         const descHtml = idea.descripcion ? `<div class="idea-card-desc">${idea.descripcion.replace(/</g,'&lt;')}</div>` : '';
         const tituloHtml = idea.titulo
             ? `<div class="idea-card-titulo">${idea.titulo.replace(/</g,'&lt;')}</div>`
-            : (idea.link ? '' : '<div class="idea-card-titulo" style="color:var(--gray-500)">Sin título</div>');
+            : (idea.link || idea.imagen_url ? '' : '<div class="idea-card-titulo" style="color:var(--gray-500)">Sin título</div>');
         return `<div class="idea-card" onclick="editIdea('${idea.id}')">
-            ${tituloHtml}${linkHtml}${descHtml}
+            ${imgHtml}${tituloHtml}${linkHtml}${descHtml}
             <div class="idea-card-fecha">${fecha}</div>
         </div>`;
     }).join('');
     lucide.createIcons();
+}
+
+function previewIdeaImagen(input) {
+    const wrap = document.getElementById('idea-img-preview-wrap');
+    const img = document.getElementById('idea-img-preview');
+    if (input.files && input.files[0]) {
+        img.src = URL.createObjectURL(input.files[0]);
+        wrap.style.display = 'flex';
+    }
+}
+
+function quitarImagenIdea() {
+    document.getElementById('idea-imagen').value = '';
+    document.getElementById('idea-img-preview').src = '';
+    document.getElementById('idea-img-preview-wrap').style.display = 'none';
+    document.getElementById('idea-imagen').dataset.borrar = '1';
 }
 
 function resetIdeaForm() {
@@ -4614,6 +4918,10 @@ function resetIdeaForm() {
     document.getElementById('idea-titulo').value = '';
     document.getElementById('idea-link').value = '';
     document.getElementById('idea-descripcion').value = '';
+    document.getElementById('idea-imagen').value = '';
+    delete document.getElementById('idea-imagen').dataset.borrar;
+    document.getElementById('idea-img-preview').src = '';
+    document.getElementById('idea-img-preview-wrap').style.display = 'none';
     document.getElementById('idea-form-title').textContent = 'Nueva idea';
     document.getElementById('btn-delete-idea').style.display = 'none';
     document.getElementById('idea-form-error').style.display = 'none';
@@ -4626,6 +4934,17 @@ function editIdea(id) {
     document.getElementById('idea-titulo').value = idea.titulo || '';
     document.getElementById('idea-link').value = idea.link || '';
     document.getElementById('idea-descripcion').value = idea.descripcion || '';
+    document.getElementById('idea-imagen').value = '';
+    delete document.getElementById('idea-imagen').dataset.borrar;
+    const wrap = document.getElementById('idea-img-preview-wrap');
+    const previewImg = document.getElementById('idea-img-preview');
+    if (idea.imagen_url) {
+        previewImg.src = idea.imagen_url;
+        wrap.style.display = 'flex';
+    } else {
+        previewImg.src = '';
+        wrap.style.display = 'none';
+    }
     document.getElementById('idea-form-title').textContent = 'Editar idea';
     document.getElementById('btn-delete-idea').style.display = '';
     document.getElementById('idea-form-error').style.display = 'none';
@@ -4637,10 +4956,13 @@ async function saveIdea() {
     const titulo = document.getElementById('idea-titulo').value.trim();
     const link = document.getElementById('idea-link').value.trim();
     const descripcion = document.getElementById('idea-descripcion').value.trim();
+    const fileInput = document.getElementById('idea-imagen');
+    const file = fileInput.files[0];
+    const borrar = fileInput.dataset.borrar === '1';
     const errEl = document.getElementById('idea-form-error');
     const btn = document.getElementById('btn-guardar-idea');
 
-    if (!titulo && !link && !descripcion) {
+    if (!titulo && !link && !descripcion && !file) {
         errEl.textContent = 'Completá al menos un campo.';
         errEl.style.display = 'block';
         return;
@@ -4650,7 +4972,49 @@ async function saveIdea() {
     btn.textContent = 'Guardando...';
     errEl.style.display = 'none';
 
-    const payload = { titulo: titulo || null, link: link || null, descripcion: descripcion || null };
+    let imagen_url = id ? (allIdeas.find(i => i.id === id)?.imagen_url || null) : null;
+
+    if (borrar) {
+        if (id) await sb.storage.from('ideas').remove([id]);
+        imagen_url = null;
+    }
+
+    if (file) {
+        let uploadPath = id;
+        if (!uploadPath) {
+            const { data: ins, error: insErr } = await sb.from('ideas').insert(
+                { titulo: titulo || null, link: link || null, descripcion: descripcion || null }
+            ).select().single();
+            if (insErr) {
+                errEl.textContent = 'Error al guardar.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Guardar idea';
+                return;
+            }
+            uploadPath = ins.id;
+        }
+        const { error: upErr } = await sb.storage.from('ideas').upload(uploadPath, file, { upsert: true });
+        if (upErr) {
+            errEl.textContent = 'No se pudo subir la imagen.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Guardar idea';
+            return;
+        }
+        imagen_url = sb.storage.from('ideas').getPublicUrl(uploadPath).data.publicUrl;
+        await sb.from('ideas').update(
+            { titulo: titulo || null, link: link || null, descripcion: descripcion || null, imagen_url }
+        ).eq('id', uploadPath);
+        const { data } = await sb.from('ideas').select('*').order('created_at', { ascending: false });
+        if (data) allIdeas = data;
+        btn.disabled = false;
+        btn.textContent = 'Guardar idea';
+        showView('ideas');
+        return;
+    }
+
+    const payload = { titulo: titulo || null, link: link || null, descripcion: descripcion || null, imagen_url };
     const { error } = id
         ? await sb.from('ideas').update(payload).eq('id', id)
         : await sb.from('ideas').insert(payload);
@@ -4674,6 +5038,8 @@ async function deleteIdea() {
     if (!id || !await confirmModal('¿Eliminar esta idea?')) return;
     const btn = document.getElementById('btn-delete-idea');
     btn.disabled = true;
+    const idea = allIdeas.find(i => i.id === id);
+    if (idea?.imagen_url) await sb.storage.from('ideas').remove([id]);
     const { error } = await sb.from('ideas').delete().eq('id', id);
     btn.disabled = false;
     if (error) {
