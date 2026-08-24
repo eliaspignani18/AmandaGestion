@@ -286,6 +286,9 @@
         .badge-insumos   { background: #ffedd5; color: #c2410c; }
         .badge-packaging { background: #ccfbf1; color: #0f766e; }
         .badge-stock     { background: #fef9c3; color: #854d0e; }
+        .badge-imp-color { background: #dbeafe; color: #1d4ed8; }
+        .badge-imp-bn    { background: #f1f5f9; color: #475569; }
+        .badge-imp-mixto { background: #f3e8ff; color: #7c3aed; }
 
         .est-bar {
             position: relative;
@@ -783,7 +786,7 @@
         </div>
         <p id="modal-confirm-msg" style="font-size:14px;color:var(--gray-500);margin-bottom:24px"></p>
         <div class="form-actions" style="margin-top:0">
-            <button class="btn btn-danger" onclick="resolveConfirmModal(true)">Eliminar</button>
+            <button class="btn btn-danger" id="modal-confirm-btn" onclick="resolveConfirmModal(true)">Eliminar</button>
             <button class="btn btn-ghost" onclick="resolveConfirmModal(false)">Cancelar</button>
         </div>
     </div>
@@ -878,6 +881,7 @@
             <button class="nav-btn" data-view="cotizador" onclick="showView('cotizador')"><i data-lucide="calculator"></i> Cotizador</button>
             <button class="nav-btn" data-view="tarifa" onclick="showView('tarifa')"><i data-lucide="clock"></i> Tarifa</button>
             <button class="nav-btn" data-view="ideas" onclick="showView('ideas')"><i data-lucide="lightbulb"></i> Ideas</button>
+            <button class="nav-btn" data-view="impresora" onclick="showView('impresora')"><i data-lucide="printer"></i> Impresora</button>
         </nav>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
@@ -1038,6 +1042,8 @@
                     <span style="color:var(--gray-400);font-size:13px">→</span>
                     <input type="date" id="filter-hasta" class="filter-input" onchange="renderPedidosTable()" title="Hasta">
                 </div>
+                <div class="filter-sep"></div>
+                <input type="text" id="filter-plotter" class="filter-input" placeholder="Filtrar por plotter..." oninput="renderPedidosTable()" style="width:180px">
                 <button class="btn btn-ghost" onclick="limpiarFiltrosExtra()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
             </div>
             <div id="filter-tipo-chip" style="display:none;margin-bottom:12px">
@@ -1948,6 +1954,75 @@
         </div>
 
 
+        <!-- IMPRESORA -->
+        <div id="view-impresora" class="view">
+            <div class="view-header">
+                <h2>Impresora</h2>
+                <button class="btn btn-yellow" onclick="resetImpresionForm();showView('nueva-impresion')">＋ Nuevo trabajo</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:560px;margin-bottom:32px" id="cartuchos-cards"></div>
+            <div class="table-wrap">
+                <div class="table-wrap-header">
+                    <h3>Trabajos de impresión</h3>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap" id="impresion-filtros">
+                        <button class="filter-btn active" data-ftipo="todos" onclick="setImpresionFiltro('todos')">Todos</button>
+                        <button class="filter-btn" data-ftipo="color" onclick="setImpresionFiltro('color')">Color</button>
+                        <button class="filter-btn" data-ftipo="bn" onclick="setImpresionFiltro('bn')">BN</button>
+                        <button class="filter-btn" data-ftipo="mixto" onclick="setImpresionFiltro('mixto')">Mixto</button>
+                    </div>
+                </div>
+                <table>
+                    <thead><tr><th>Descripción</th><th>Tipo</th><th>Hojas</th><th>Fecha</th><th></th></tr></thead>
+                    <tbody id="impresiones-tbody"></tbody>
+                </table>
+                <p id="impresiones-empty" style="padding:32px 24px;text-align:center;color:var(--gray-500);display:none">Sin trabajos registrados aún.</p>
+            </div>
+        </div>
+
+        <!-- NUEVA IMPRESIÓN / EDITAR -->
+        <div id="view-nueva-impresion" class="view">
+            <div class="view-header">
+                <h2 id="impresion-form-title">Nuevo trabajo</h2>
+            </div>
+            <div class="form-card">
+                <input type="hidden" id="impresion-id">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Traer desde pedido <span style="color:var(--gray-500);font-weight:400">(opcional)</span></label>
+                        <select id="impresion-desde-pedido" onchange="impresionDesdePedido(this.value)">
+                            <option value="">— Elegir pedido —</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción</label>
+                        <input type="text" id="impresion-descripcion" placeholder="Ej: Folletos A5 diseño verano">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="impresion-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Hojas</label>
+                        <input type="number" id="impresion-hojas" min="1" placeholder="10">
+                    </div>
+                    <div class="form-group full">
+                        <label>Tipo</label>
+                        <select id="impresion-tipo">
+                            <option value="color">Color</option>
+                            <option value="bn">Blanco y negro</option>
+                            <option value="mixto">Mixto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btn-guardar-impresion" onclick="saveImpresion()">Guardar</button>
+                    <button class="btn btn-ghost" onclick="showView('impresora')">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-delete-impresion" style="display:none;margin-left:auto" onclick="deleteImpresion()">Eliminar</button>
+                </div>
+                <p id="impresion-form-error" class="error-msg" style="display:none"></p>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -1989,6 +2064,9 @@ let allEnvios = [];
 let filterEnvioEstado = 'todos';
 let allIdeas = [];
 let filterEnvioPlotter = 'todos';
+let allImpresiones = [];
+let allCartuchos = [];
+let filterImpresionTipo = 'todos';
 
 const CATEGORIAS_GASTO = {
     plotter:   { label: 'Plotter',   badge: 'badge-gplotter' },
@@ -2096,6 +2174,7 @@ function showView(name) {
     if (name === 'nuevo-cliente')   resetClienteForm();
     if (name === 'ideas')           renderIdeas();
     if (name === 'estadisticas')    renderEstadisticas();
+    if (name === 'impresora')       renderImpresora();
     closeSidebar();
 }
 
@@ -2119,13 +2198,15 @@ function cancelForm() {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
-    const [resPedidos, resGastos, resStock, resClientes, resEnvios, resIdeas] = await Promise.all([
+    const [resPedidos, resGastos, resStock, resClientes, resEnvios, resIdeas, resImpresiones, resCartuchos] = await Promise.all([
         sb.from('pedidos').select('*').order('created_at', { ascending: false }),
         sb.from('gastos').select('*').order('fecha', { ascending: false }),
         sb.from('stock').select('*').order('nombre'),
         sb.from('clientes').select('*').order('nombre'),
         sb.from('envios_plotter').select('*').order('created_at', { ascending: false }),
         sb.from('ideas').select('*').order('created_at', { ascending: false }),
+        sb.from('impresiones').select('*').order('created_at', { ascending: false }),
+        sb.from('cartuchos').select('*').order('created_at', { ascending: false }),
     ]);
     if (!resPedidos.error) {
         allPedidos = (resPedidos.data || []).sort((a, b) => {
@@ -2138,7 +2219,9 @@ async function loadAll() {
     if (!resStock.error)     allStock     = resStock.data     || [];
     if (!resClientes.error)  allClientes  = resClientes.data  || [];
     if (!resEnvios.error)    allEnvios    = resEnvios.data    || [];
-    if (!resIdeas.error)     allIdeas     = resIdeas.data     || [];
+    if (!resIdeas.error)       allIdeas       = resIdeas.data       || [];
+    if (!resImpresiones.error) allImpresiones = resImpresiones.data || [];
+    if (!resCartuchos.error)   allCartuchos   = resCartuchos.data   || [];
     loadTarifaConfig();
     renderDashboard();
     renderTarjetasTabla();
@@ -2472,6 +2555,9 @@ function renderPedidosTable() {
     if (desde) list = list.filter(p => p.created_at && p.created_at.slice(0, 10) >= desde);
     if (hasta)  list = list.filter(p => p.created_at && p.created_at.slice(0, 10) <= hasta);
 
+    const plotterQ = (document.getElementById('filter-plotter')?.value || '').trim().toLowerCase();
+    if (plotterQ) list = list.filter(p => (p.plotter_usado || '').toLowerCase().includes(plotterQ));
+
     list = list.slice().sort((a, b) => {
         const ai = ESTADOS.findIndex(e => e.key === a.estado);
         const bi = ESTADOS.findIndex(e => e.key === b.estado);
@@ -2509,6 +2595,7 @@ function limpiarFiltrosExtra() {
     document.getElementById('filter-cliente').value = '';
     document.getElementById('filter-desde').value   = '';
     document.getElementById('filter-hasta').value   = '';
+    document.getElementById('filter-plotter').value = '';
     filterCobrado = 'todos';
     document.querySelectorAll('#fcob-todos,#fcob-si,#fcob-no').forEach(b => b.classList.remove('active'));
     document.getElementById('fcob-todos').classList.add('active');
@@ -4762,8 +4849,11 @@ function setFilterEnvioPlotter(val, btn) {
 
 let _confirmModalResolve = null;
 
-function confirmModal(msg) {
+function confirmModal(msg, btnLabel = 'Eliminar', btnClass = 'btn-danger') {
     document.getElementById('modal-confirm-msg').textContent = msg;
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.textContent = btnLabel;
+    btn.className = 'btn ' + btnClass;
     document.getElementById('modal-confirm').classList.add('open');
     return new Promise(resolve => { _confirmModalResolve = resolve; });
 }
@@ -5158,6 +5248,206 @@ async function deleteIdea() {
     const { data } = await sb.from('ideas').select('*').order('created_at', { ascending: false });
     if (data) allIdeas = data;
     showView('ideas');
+}
+
+// ─── IMPRESORA ────────────────────────────────────────────────────────────────
+
+const TIPOS_IMP = {
+    color: { label: 'Color', badge: 'badge-imp-color' },
+    bn:    { label: 'BN',    badge: 'badge-imp-bn'    },
+    mixto: { label: 'Mixto', badge: 'badge-imp-mixto' },
+};
+
+function renderImpresora() {
+    renderCartuchosCards();
+    renderImpresionesTable();
+}
+
+function renderCartuchosCards() {
+    const el = document.getElementById('cartuchos-cards');
+    if (!el) return;
+    const actNegro = allCartuchos.find(c => c.tipo === 'negro' && !c.fecha_fin);
+    const actColor = allCartuchos.find(c => c.tipo === 'color' && !c.fecha_fin);
+
+    function hojasEnCiclo(cartucho, tipos) {
+        if (!cartucho) return 0;
+        const desde = cartucho.fecha_inicio;
+        return allImpresiones
+            .filter(i => tipos.includes(i.tipo) && (i.fecha || i.created_at.slice(0, 10)) >= desde)
+            .reduce((s, i) => s + i.hojas, 0);
+    }
+
+    function cardHtml(tipo, cartucho) {
+        const label = tipo === 'negro' ? 'Cartucho negro' : 'Cartucho color';
+        const tiposUso = tipo === 'negro' ? ['bn', 'mixto'] : ['color', 'mixto'];
+        const hojas = hojasEnCiclo(cartucho, tiposUso);
+        if (cartucho) {
+            const fecha = new Date(cartucho.fecha_inicio + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+            return `<div class="card">
+                <div class="card-label">${label}</div>
+                <div class="card-value" style="font-size:28px">${hojas}</div>
+                <div style="font-size:12px;color:var(--gray-500);margin-top:4px;margin-bottom:16px">hojas desde el ${fecha}</div>
+                <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;width:100%" onclick="agotarCartucho('${cartucho.id}','${tipo}')">Agotar y arrancar nuevo</button>
+            </div>`;
+        }
+        return `<div class="card" style="border-style:dashed">
+            <div class="card-label">${label}</div>
+            <div style="font-size:13px;color:var(--gray-500);margin:8px 0 16px">Sin cartucho activo</div>
+            <button class="btn btn-yellow" style="font-size:12px;padding:6px 10px;width:100%" onclick="arrancarCartucho('${tipo}')">＋ Arrancar cartucho</button>
+        </div>`;
+    }
+
+    el.innerHTML = cardHtml('negro', actNegro) + cardHtml('color', actColor);
+}
+
+function renderImpresionesTable() {
+    const tbody = document.getElementById('impresiones-tbody');
+    const empty = document.getElementById('impresiones-empty');
+    if (!tbody) return;
+    document.querySelectorAll('#impresion-filtros .filter-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.ftipo === filterImpresionTipo);
+    });
+    const items = filterImpresionTipo === 'todos'
+        ? allImpresiones
+        : allImpresiones.filter(i => i.tipo === filterImpresionTipo);
+    empty.style.display = items.length ? 'none' : 'block';
+    tbody.innerHTML = items.map(i => {
+        const t = TIPOS_IMP[i.tipo] || { label: i.tipo, badge: '' };
+        const fechaStr = i.fecha || i.created_at.slice(0, 10);
+        const fecha = new Date(fechaStr + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `<tr onclick="editImpresion('${i.id}')" style="cursor:pointer">
+            <td>${i.descripcion}</td>
+            <td><span class="badge ${t.badge}">${t.label}</span></td>
+            <td>${i.hojas}</td>
+            <td style="color:var(--gray-500)">${fecha}</td>
+            <td><button class="delete-row-btn" onclick="event.stopPropagation();deleteImpresionById('${i.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
+        </tr>`;
+    }).join('');
+}
+
+function setImpresionFiltro(tipo) {
+    filterImpresionTipo = tipo;
+    renderImpresionesTable();
+}
+
+function editImpresion(id) {
+    const i = allImpresiones.find(x => x.id === id);
+    if (!i) return;
+    document.getElementById('impresion-id').value = i.id;
+    document.getElementById('impresion-descripcion').value = i.descripcion;
+    document.getElementById('impresion-fecha').value = i.fecha || i.created_at.slice(0, 10);
+    document.getElementById('impresion-hojas').value = i.hojas;
+    document.getElementById('impresion-tipo').value = i.tipo;
+    const sel = document.getElementById('impresion-desde-pedido');
+    sel.innerHTML = '<option value="">— Elegir pedido —</option>';
+    if (i.pedido_id) {
+        const p = allPedidos.find(x => x.id === i.pedido_id);
+        if (p) {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.cliente_nombre || 'Sin cliente'} — ${p.descripcion || ''}`;
+            sel.appendChild(opt);
+            sel.value = p.id;
+        }
+    }
+    document.getElementById('impresion-form-title').textContent = 'Editar trabajo';
+    document.getElementById('btn-delete-impresion').style.display = 'inline-flex';
+    document.getElementById('impresion-form-error').style.display = 'none';
+    showView('nueva-impresion');
+}
+
+function resetImpresionForm() {
+    document.getElementById('impresion-id').value = '';
+    document.getElementById('impresion-descripcion').value = '';
+    document.getElementById('impresion-fecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('impresion-hojas').value = '';
+    document.getElementById('impresion-tipo').value = 'color';
+    document.getElementById('impresion-form-title').textContent = 'Nuevo trabajo';
+    document.getElementById('btn-delete-impresion').style.display = 'none';
+    document.getElementById('impresion-form-error').style.display = 'none';
+    const sel = document.getElementById('impresion-desde-pedido');
+    sel.innerHTML = '<option value="">— Elegir pedido —</option>';
+    const yaUsados = new Set(allImpresiones.map(i => i.pedido_id).filter(Boolean));
+    allPedidos.filter(p => !yaUsados.has(p.id)).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        const fecha = (p.fecha_pedido || p.created_at.slice(0, 10));
+        opt.textContent = `${p.cliente_nombre || 'Sin cliente'} — ${p.descripcion || ''} (${fecha})`;
+        sel.appendChild(opt);
+    });
+}
+
+function impresionDesdePedido(id) {
+    if (!id) return;
+    const p = allPedidos.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('impresion-descripcion').value =
+        [p.cliente_nombre, p.descripcion].filter(Boolean).join(' — ');
+    const fecha = p.fecha_pedido || p.created_at.slice(0, 10);
+    document.getElementById('impresion-fecha').value = fecha;
+}
+
+async function saveImpresion() {
+    const id          = document.getElementById('impresion-id').value;
+    const descripcion = document.getElementById('impresion-descripcion').value.trim();
+    const fecha       = document.getElementById('impresion-fecha').value;
+    const hojas       = parseInt(document.getElementById('impresion-hojas').value);
+    const tipo        = document.getElementById('impresion-tipo').value;
+    const errEl       = document.getElementById('impresion-form-error');
+    errEl.style.display = 'none';
+    if (!descripcion) { errEl.textContent = 'Completá la descripción.'; errEl.style.display = 'block'; return; }
+    if (!fecha) { errEl.textContent = 'Indicá la fecha.'; errEl.style.display = 'block'; return; }
+    if (!hojas || hojas < 1) { errEl.textContent = 'Indicá la cantidad de hojas.'; errEl.style.display = 'block'; return; }
+    const btn = document.getElementById('btn-guardar-impresion');
+    btn.disabled = true;
+    const pedidoId = document.getElementById('impresion-desde-pedido').value || null;
+    const payload = { descripcion, fecha, hojas, tipo, pedido_id: pedidoId };
+    const { error } = id
+        ? await sb.from('impresiones').update(payload).eq('id', id)
+        : await sb.from('impresiones').insert(payload);
+    btn.disabled = false;
+    if (error) { errEl.textContent = 'Error al guardar. Intentá de nuevo.'; errEl.style.display = 'block'; return; }
+    const { data } = await sb.from('impresiones').select('*').order('created_at', { ascending: false });
+    if (data) allImpresiones = data;
+    showView('impresora');
+}
+
+async function deleteImpresion() {
+    const id = document.getElementById('impresion-id').value;
+    if (!id || !await confirmModal('¿Eliminar este trabajo?')) return;
+    await sb.from('impresiones').delete().eq('id', id);
+    const { data } = await sb.from('impresiones').select('*').order('created_at', { ascending: false });
+    if (data) allImpresiones = data;
+    showView('impresora');
+}
+
+async function deleteImpresionById(id) {
+    if (!await confirmModal('¿Eliminar este trabajo?')) return;
+    await sb.from('impresiones').delete().eq('id', id);
+    const { data } = await sb.from('impresiones').select('*').order('created_at', { ascending: false });
+    if (data) allImpresiones = data;
+    renderImpresionesTable();
+}
+
+async function arrancarCartucho(tipo) {
+    const label = tipo === 'negro' ? 'negro' : 'color';
+    if (!await confirmModal(`¿Arrancar un cartucho ${label} nuevo hoy?`, 'Arrancar', 'btn-primary')) return;
+    const { error } = await sb.from('cartuchos').insert({ tipo, fecha_inicio: new Date().toISOString().slice(0, 10) });
+    if (error) { alert('Error al guardar: ' + error.message); return; }
+    const { data } = await sb.from('cartuchos').select('*').order('created_at', { ascending: false });
+    if (data) allCartuchos = data;
+    renderCartuchosCards();
+}
+
+async function agotarCartucho(id, tipo) {
+    const label = tipo === 'negro' ? 'negro' : 'color';
+    if (!await confirmModal(`¿Marcar el cartucho ${label} como agotado y arrancar uno nuevo?`, 'Confirmar', 'btn-primary')) return;
+    const hoy = new Date().toISOString().slice(0, 10);
+    await sb.from('cartuchos').update({ fecha_fin: hoy }).eq('id', id);
+    await sb.from('cartuchos').insert({ tipo, fecha_inicio: hoy });
+    const { data } = await sb.from('cartuchos').select('*').order('created_at', { ascending: false });
+    if (data) allCartuchos = data;
+    renderCartuchosCards();
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────────
