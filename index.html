@@ -1284,6 +1284,7 @@
                 <button class="filter-btn active" id="fenv-plt-todos"      onclick="setFilterEnvioPlotter('todos',this)">Todos los plotters</button>
                 <button class="filter-btn"        id="fenv-plt-gutenberg"  onclick="setFilterEnvioPlotter('gutenberg',this)">Gutenberg</button>
                 <button class="filter-btn"        id="fenv-plt-pampa"      onclick="setFilterEnvioPlotter('pampa',this)">Pampa</button>
+                <button class="filter-btn"        id="fenv-plt-dtf"        onclick="setFilterEnvioPlotter('dtf',this)">DTF</button>
             </div>
             <div class="table-wrap">
                 <div id="envios-table"></div>
@@ -1307,6 +1308,7 @@
                         <select id="env-plotter">
                             <option value="gutenberg">Gutenberg</option>
                             <option value="pampa">Pampa</option>
+                            <option value="dtf">DTF</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2078,6 +2080,7 @@ const CATEGORIAS_GASTO = {
 const PLOTTERS = {
     gutenberg: { label: 'Gutenberg', badge: 'badge-plt-gutenberg' },
     pampa:     { label: 'Pampa',     badge: 'badge-plt-pampa' },
+    dtf:       { label: 'DTF',       badge: 'badge-plt-dtf' },
 };
 const ESTADOS_ENVIO = {
     enviado:    { label: 'Sin precio', badge: 'badge-env-enviado' },
