@@ -1631,7 +1631,7 @@
                     <div class="card">
                         <div class="card-label">Multiplicador de venta</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-                            <input type="number" id="tj-multiplicador" value="13" step="0.5" min="1"
+                            <input type="number" id="tj-multiplicador" value="4" step="0.5" min="1"
                                 oninput="renderTarjetasTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
                             <span style="font-size:14px;color:var(--gray-500)">× costo</span>
@@ -3473,7 +3473,7 @@ let cotizadorTarjetasPiezas = [];
 function cotizarTarjetasCalc(qty) {
     const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 16000;
     const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 50;
-    const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 13;
+    const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 4;
     const dobleFaz      = document.getElementById('tj-doble-faz').checked;
     const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
     const costoMat      = hojas * ((costoResma / 100) + costoTinta * (dobleFaz ? 2 : 1));
