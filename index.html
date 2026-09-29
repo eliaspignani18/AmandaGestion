@@ -917,6 +917,8 @@
                 </div>
             </div>
 
+            <div id="dashboard-tareas"></div>
+
             <div class="cards-grid">
                 <div class="card">
                     <div class="card-label">Pedidos activos</div>
@@ -2333,6 +2335,43 @@ function renderDashboard() {
     if (btn) {
         btn.innerHTML = `<i data-lucide="${hideMontos ? 'eye-off' : 'eye'}" style="width:18px;height:18px;vertical-align:middle"></i>`;
         lucide.createIcons({ nodes: [btn] });
+    }
+
+    // Tareas próximas: vencidas o que vencen en los próximos 3 días
+    const dashTareas = document.getElementById('dashboard-tareas');
+    if (dashTareas) {
+        const hoyStr = new Date().toISOString().slice(0, 10);
+        const en3 = new Date(); en3.setDate(en3.getDate() + 3);
+        const en3Str = en3.toISOString().slice(0, 10);
+
+        const cercanas = allTareas
+            .filter(t => !t.completada && t.fecha_limite && t.fecha_limite <= en3Str)
+            .sort((a, b) => a.fecha_limite.localeCompare(b.fecha_limite));
+
+        if (cercanas.length === 0) {
+            dashTareas.innerHTML = '';
+        } else {
+            const filas = cercanas.map(t => {
+                const vencida = t.fecha_limite < hoyStr;
+                const esHoy   = t.fecha_limite === hoyStr;
+                const color   = vencida ? '#ef4444' : esHoy ? '#f97316' : '#d97706';
+                const badgeTxt = vencida ? 'Vencida' : esHoy ? 'Hoy'
+                    : new Date(t.fecha_limite + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+                return `<div onclick="showView('tareas')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);border:2px solid var(--black);border-radius:8px;cursor:pointer;box-shadow:2px 2px 0 var(--black)">
+                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};white-space:nowrap">${badgeTxt}</span>
+                    <span style="font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.titulo}</span>
+                    ${t.asignada_a ? `<span style="font-size:11px;color:var(--gray-500)">${t.asignada_a}</span>` : ''}
+                </div>`;
+            }).join('');
+
+            dashTareas.innerHTML = `<div style="margin-bottom:20px">
+                <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+                    <i data-lucide="alert-circle" style="width:14px;height:14px;color:#f97316;vertical-align:middle"></i> Tareas próximas
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">${filas}</div>
+            </div>`;
+            lucide.createIcons({ nodes: [dashTareas] });
+        }
     }
 }
 
