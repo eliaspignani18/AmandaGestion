@@ -1609,7 +1609,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="credit-card" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Tarjetas</h3>
 
-                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:16px;max-width:720px">
+                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;margin-bottom:16px;max-width:720px">
                     <div class="card">
                         <div class="card-label">Costo resma (100 hs.)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
@@ -1639,6 +1639,11 @@
                     </div>
                 </div>
 
+                <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:16px;user-select:none;padding:8px 14px;background:var(--white);border:2px solid var(--gray-300);border-radius:8px">
+                    <input type="checkbox" id="tj-doble-faz" onchange="renderTarjetasTabla()" style="width:16px;height:16px;accent-color:var(--black);cursor:pointer">
+                    Doble faz
+                </label>
+
                 <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500);max-width:720px">
                     <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>
                     <strong>12 tarjetas por hoja</strong> A4 · 9 × 5 cm (4 columnas × 3 filas)
@@ -1651,6 +1656,7 @@
                                 <th>Cantidad</th>
                                 <th>Hojas</th>
                                 <th>Costo mat.</th>
+                                <th>MO</th>
                                 <th>Precio venta</th>
                                 <th>Ganancia</th>
                                 <th></th>
@@ -3459,19 +3465,23 @@ function quitarUV(i) {
 
 // ─── COTIZADOR TARJETAS ───────────────────────────────────────────────────────
 
-const TARJETAS_POR_HOJA = 12;
+const TARJETAS_POR_HOJA       = 12;
+const TARJETAS_MIN_CORTE_HOJA = 10;
+const TARJETAS_VALOR_HORA_MO  = 5000;
 let cotizadorTarjetasPiezas = [];
 
 function cotizarTarjetasCalc(qty) {
     const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 16000;
     const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 50;
     const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 13;
+    const dobleFaz      = document.getElementById('tj-doble-faz').checked;
     const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
-    const costoHoja     = (costoResma / 100) + costoTinta;
-    const costo         = hojas * costoHoja;
+    const costoMat      = hojas * ((costoResma / 100) + costoTinta * (dobleFaz ? 2 : 1));
+    const costoMO       = Math.round(hojas * TARJETAS_MIN_CORTE_HOJA / 60 * TARJETAS_VALOR_HORA_MO);
+    const costo         = costoMat + costoMO;
     const venta         = Math.round(costo * multiplicador);
     const ganancia      = venta - costo;
-    return { qty, hojas, costo, venta, ganancia };
+    return { qty, hojas, costoMat, costoMO, costo, venta, ganancia, dobleFaz };
 }
 
 function renderTarjetasTabla() {
@@ -3481,7 +3491,8 @@ function renderTarjetasTabla() {
         return `<tr>
             <td class="text-bold">${qty} unidades</td>
             <td class="text-gray">${r.hojas} hojas</td>
-            <td style="color:#ea580c;font-weight:600">${formatPeso(Math.round(r.costo))}</td>
+            <td style="color:#ea580c;font-weight:600">${formatPeso(Math.round(r.costoMat))}</td>
+            <td style="color:#9333ea;font-weight:600">${r.costoMO > 0 ? formatPeso(r.costoMO) : '<span style="color:var(--gray-300)">—</span>'}</td>
             <td style="color:#16a34a;font-weight:600">${formatPeso(r.venta)}</td>
             <td class="text-bold">${formatPeso(Math.round(r.ganancia))}</td>
             <td><button class="btn btn-yellow" style="padding:4px 12px;font-size:12px" onclick="agregarTarjetas(${qty})">＋ Agregar</button></td>
@@ -3597,7 +3608,7 @@ function renderCotizFinal() {
         document.getElementById('cf-tarjetas-items').innerHTML = cotizadorTarjetasPiezas.map((p, i) => `
             <div class="st-cart-item">
                 <div class="st-cart-item-info">
-                    <div class="st-cart-item-name">Tarjetas personalizadas</div>
+                    <div class="st-cart-item-name">Tarjetas personalizadas${p.dobleFaz ? ' · doble faz' : ''}</div>
                     <div class="st-cart-item-detail">${p.qty} unidades · ${p.hojas} hojas</div>
                 </div>
                 <div class="st-cart-item-price">${formatPeso(p.venta)}</div>
@@ -3714,7 +3725,7 @@ async function cotizFinalCopiar() {
     if (hasTJ) {
         if (tiposActivos > 1) texto += '\nTarjetas:\n';
         cotizadorTarjetasPiezas.forEach(p => {
-            texto += `▸ ${p.qty} tarjetas personalizadas → ${formatPeso(p.venta)}\n`;
+            texto += `▸ ${p.qty} tarjetas personalizadas${p.dobleFaz ? ' (doble faz)' : ''} → ${formatPeso(p.venta)}\n`;
         });
     }
 
