@@ -643,6 +643,11 @@
 
             .table-wrap { overflow-x: auto; }
             .table-wrap table { min-width: 750px; }
+            #dash-pedidos-wrap { max-height: 320px; overflow-y: auto; }
+            th { padding: 8px 12px; }
+            td { padding: 8px 12px; }
+            .table-wrap table td:first-child,
+            .table-wrap table th:first-child { min-width: 150px; }
             .plotter-input { width: 110px; }
 
             .form-grid { grid-template-columns: 1fr; }
@@ -964,7 +969,7 @@
                 </div>
             </div>
 
-            <div class="table-wrap">
+            <div class="table-wrap" id="dash-pedidos-wrap">
                 <div class="table-wrap-header">
                     <h3>Pedidos en curso</h3>
                 </div>
@@ -2558,7 +2563,7 @@ function buildTable(pedidos, hidePrices = false) {
                         </td>
                         <td class="col-cargado text-gray">${esc(p.cargado_por || '—')}</td>
                         <td class="col-origen">${origenLabel(p.origen)}</td>
-                        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.descripcion)}</td>
+                        <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.descripcion)}</td>
                         <td>
                             <select class="estado-select" onchange="cambiarEstado('${p.id}', this.value)">
                                 ${ESTADOS.map(e => `<option value="${e.key}" ${p.estado === e.key ? 'selected' : ''}>${e.label}</option>`).join('')}
