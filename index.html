@@ -1628,7 +1628,7 @@
                         <div class="card-label">Costo tinta por hoja</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="tj-costo-tinta" value="50" step="10" min="0"
+                            <input type="number" id="tj-costo-tinta" value="150" step="10" min="0"
                                 oninput="renderTarjetasTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -2115,13 +2115,13 @@ function showLogin() {
     document.getElementById('mobile-topbar').style.display = 'none';
 }
 
-function showApp() {
+async function showApp() {
     document.getElementById('view-login').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
     document.getElementById('mobile-topbar').style.display = '';
     document.getElementById('dashboard-date').textContent =
         new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    loadAll();
+    await loadAll();
+    document.getElementById('app').style.display = 'block';
 }
 
 async function login() {
@@ -3477,7 +3477,7 @@ let cotizadorTarjetasPiezas = [];
 
 function cotizarTarjetasCalc(qty) {
     const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 16000;
-    const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 50;
+    const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 150;
     const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 4;
     const dobleFaz      = document.getElementById('tj-doble-faz').checked;
     const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
