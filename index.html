@@ -1395,7 +1395,7 @@
                     <div class="card">
                         <div class="card-label">Multiplicador de venta</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-                            <input type="number" id="c-multiplicador" value="2.5" step="0.1" min="1"
+                            <input type="number" id="c-multiplicador" value="3" step="0.1" min="1"
                                 oninput="cotizarPreview()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
                             <span style="font-size:14px;color:var(--gray-500)">× costo</span>
@@ -3345,7 +3345,7 @@ let cotizadorPiezas = [];
 
 function cotizarCalc(anchoCm, altoCm) {
     const costoM2   = parseFloat(document.getElementById('c-costo-m2').value)    || 20000;
-    const multi     = parseFloat(document.getElementById('c-multiplicador').value) || 2.5;
+    const multi     = parseFloat(document.getElementById('c-multiplicador').value) || 3;
     // El rollo mide 100cm de ancho. Si ambas dimensiones entran en el ancho,
     // se orienta el lado más largo a lo ancho y el más corto es el largo (menos desperdicio).
     // Si alguna dimensión supera 100cm, esa va como largo obligatoriamente.
