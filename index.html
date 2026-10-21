@@ -714,11 +714,15 @@
         }
 
         /* COTIZADOR — secciones internas */
-        .cotiz-section { margin-bottom: 20px; max-width: 720px; background: var(--white); border: 2px solid var(--black); box-shadow: var(--shadow-stamp); border-radius: 14px; padding: 24px; }
+        .cotiz-section { margin-bottom: 20px; max-width: 900px; background: var(--white); border: 2px solid var(--black); box-shadow: var(--shadow-stamp); border-radius: 14px; padding: 24px; }
         .cotiz-section-title { font-size: 16px; font-weight: 700; color: var(--gray-700); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1.5px solid var(--gray-200); }
+        /* Tablas de cotizadores (tarjetas, folletos): celdas compactas y scroll si no entran */
+        .cotiz-section .table-wrap { max-width: none !important; overflow-x: auto; }
+        .cotiz-section .form-card { max-width: none; }
+        .cotiz-section .table-wrap th, .cotiz-section .table-wrap td { padding-left: 12px; padding-right: 12px; white-space: nowrap; }
 
-        /* COTIZADOR + PACK — layout 2 columnas */
-        .cotiz-pack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+        /* COTIZADOR + PACK — layout 2 columnas (el cotizador más ancho) */
+        .cotiz-pack-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 32px; align-items: start; }
         .cotiz-pack-col-title { font-size: 24px; font-weight: 700; margin: 0 0 20px 0; font-family: 'Caveat', cursive; }
         .cotiz-pack-right { position: sticky; top: 32px; }
         .cotiz-pack-right .cotiz-section { max-width: 100%; }
@@ -1371,7 +1375,7 @@
             <div>
             <h2 class="cotiz-pack-col-title">Cotizador</h2>
 
-            <div style="max-width:720px;margin-bottom:8px">
+            <div style="max-width:900px;margin-bottom:8px">
                 <div class="form-group" style="margin:0">
                     <label style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em">Cliente / título de la cotización</label>
                     <input type="text" id="cotiz-titulo" placeholder="Ej: Pescadería Altamar" style="margin-top:6px" oninput="renderCotizFinal()">
@@ -1382,7 +1386,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="ruler" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Vinilo</h3>
 
-                <div class="c-params-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
+                <div class="c-params-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
                     <div class="card">
                         <div class="card-label">Costo plotter (por m²)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
@@ -1403,7 +1407,7 @@
                     </div>
                 </div>
 
-                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                <div class="form-card" style="margin-bottom:24px">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Ancho (cm)</label>
@@ -1451,7 +1455,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="tag" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Stickers</h3>
 
-                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                <div class="form-card" style="margin-bottom:24px">
                     <div class="st-sizes">
                         <button class="st-size-btn st-size-btn--active" data-size="Chico (5×5 cm)" onclick="stSelectSize(this)">
                             <span class="st-size-name">Chico</span>
@@ -1500,7 +1504,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="sparkles" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Stickers DTF</h3>
 
-                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                <div class="form-card" style="margin-bottom:24px">
                     <div class="st-sizes">
                         <button class="st-size-btn st-size-btn--active" data-size="Mini DTF (3×3 cm)" onclick="dtfSelectSize(this)">
                             <span class="st-size-name">Mini</span>
@@ -1543,7 +1547,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="zap" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Vinilo DTF</h3>
 
-                <div class="c-params-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;max-width:720px">
+                <div class="c-params-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
                     <div class="card">
                         <div class="card-label">Costo UV (por m²)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
@@ -1564,7 +1568,7 @@
                     </div>
                 </div>
 
-                <div class="form-card" style="max-width:720px;margin-bottom:24px">
+                <div class="form-card" style="margin-bottom:24px">
                     <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500)">
                         <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>Ancho de impresión: <strong>29 cm</strong>
                     </div>
@@ -1614,7 +1618,7 @@
             <div class="cotiz-section">
                 <h3 class="cotiz-section-title"><i data-lucide="credit-card" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Tarjetas</h3>
 
-                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;margin-bottom:16px;max-width:720px">
+                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;margin-bottom:16px">
                     <div class="card">
                         <div class="card-label">Costo resma (100 hs.)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
@@ -1649,12 +1653,12 @@
                     Doble faz
                 </label>
 
-                <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500);max-width:720px">
+                <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500)">
                     <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>
-                    <strong>12 tarjetas por hoja</strong> A4 · 9 × 5 cm (4 columnas × 3 filas)
+                    <strong>12 tarjetas por hoja</strong> A4 · 9 × 5 cm (4 columnas × 3 filas) · Papel fotográfico 200 g
                 </div>
 
-                <div class="table-wrap" style="max-width:720px">
+                <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
@@ -1672,8 +1676,65 @@
                 </div>
             </div>
 
+            <!-- Sección: Folletos -->
+            <div class="cotiz-section">
+                <h3 class="cotiz-section-title"><i data-lucide="file-image" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Folletos</h3>
+
+                <div class="c-params-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;margin-bottom:16px">
+                    <div class="card">
+                        <div class="card-label">Costo paquete papel (100 hs.)</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="fo-costo-papel" value="16000" step="500" min="0"
+                                oninput="renderFolletosTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Costo tinta por hoja</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <span style="font-size:18px;font-weight:700">$</span>
+                            <input type="number" id="fo-costo-tinta" value="150" step="10" min="0"
+                                oninput="renderFolletosTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Folletos por hoja</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                            <input type="number" id="fo-por-hoja" value="4" step="1" min="1"
+                                oninput="renderFolletosTabla()"
+                                style="font-size:20px;font-weight:700;border:none;outline:none;width:80px;background:transparent;font-family:inherit">
+                            <span style="font-size:14px;color:var(--gray-500)">por A4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:13px;color:var(--gray-500)">
+                    <i data-lucide="info" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>
+                    <strong>4 folletos por hoja</strong> · 10 × 15 cm · Papel fotográfico 115 g
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cantidad</th>
+                                <th>Hojas</th>
+                                <th>Costo mat.</th>
+                                <th>MO</th>
+                                <th>Precio venta</th>
+                                <th>Ganancia</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="fo-tabla-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Cotización final unificada -->
-            <div id="cotiz-final-wrap" style="display:none;max-width:720px">
+            <div id="cotiz-final-wrap" style="display:none;max-width:900px">
                 <div class="table-wrap">
                     <div class="table-wrap-header" style="display:flex;justify-content:space-between;align-items:center">
                         <div>
@@ -1726,6 +1787,15 @@
                             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarTarjetas()">Vaciar</button>
                         </div>
                         <div id="cf-tarjetas-items"></div>
+                    </div>
+
+                    <!-- Bloque Folletos -->
+                    <div id="cf-folletos-block" style="display:none">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-200)">
+                            <span>Folletos</span>
+                            <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="vaciarFolletos()">Vaciar</button>
+                        </div>
+                        <div id="cf-folletos-items"></div>
                     </div>
 
                     <!-- Totales combinados -->
@@ -2240,6 +2310,7 @@ async function loadAll() {
     loadTarifaConfig();
     renderDashboard();
     renderTarjetasTabla();
+    renderFolletosTabla();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
@@ -3472,6 +3543,7 @@ function quitarUV(i) {
 
 const TARJETAS_POR_HOJA       = 12;
 const TARJETAS_MIN_CORTE_HOJA = 10;
+const TARJETAS_MIN_DOBLE_FAZ  = 2;   // minutos extra por hoja si es doble faz (vuelta + alineación)
 const TARJETAS_VALOR_HORA_MO  = 5000;
 let cotizadorTarjetasPiezas = [];
 
@@ -3482,7 +3554,8 @@ function cotizarTarjetasCalc(qty) {
     const dobleFaz      = document.getElementById('tj-doble-faz').checked;
     const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
     const costoMat      = hojas * ((costoResma / 100) + costoTinta * (dobleFaz ? 2 : 1));
-    const costoMO       = Math.round(hojas * TARJETAS_MIN_CORTE_HOJA / 60 * TARJETAS_VALOR_HORA_MO);
+    const minPorHoja    = TARJETAS_MIN_CORTE_HOJA + (dobleFaz ? TARJETAS_MIN_DOBLE_FAZ : 0);
+    const costoMO       = Math.round(hojas * minPorHoja / 60 * TARJETAS_VALOR_HORA_MO);
     const costo         = costoMat + costoMO;
     const venta         = Math.round(costo * multiplicador);
     const ganancia      = venta - costo;
@@ -3522,6 +3595,59 @@ function quitarTarjeta(i) {
     renderCotizFinal();
 }
 
+// ─── COTIZADOR FOLLETOS (10×15, papel fotográfico 115 g) ──────────────────────
+
+const FOLLETOS_PRECIO_UNIT    = 300;
+const FOLLETOS_MIN_CORTE_HOJA = 3;
+const FOLLETOS_VALOR_HORA_MO  = 5000;
+let cotizadorFolletosPiezas = [];
+
+function cotizarFolletosCalc(qty) {
+    const precioUnit = FOLLETOS_PRECIO_UNIT;
+    const costoPapel = parseFloat(document.getElementById('fo-costo-papel').value) || 0;
+    const costoTinta = parseFloat(document.getElementById('fo-costo-tinta').value) || 0;
+    const porHoja    = parseInt(document.getElementById('fo-por-hoja').value) || 1;
+    const hojas      = Math.ceil(qty / porHoja);
+    const costoMat   = hojas * ((costoPapel / 100) + costoTinta);
+    const costoMO    = Math.round(hojas * FOLLETOS_MIN_CORTE_HOJA / 60 * FOLLETOS_VALOR_HORA_MO);
+    const costo      = costoMat + costoMO;
+    const venta      = Math.round(qty * precioUnit);
+    const ganancia   = venta - costo;
+    return { qty, hojas, costoMat, costoMO, costo, venta, ganancia };
+}
+
+function renderFolletosTabla() {
+    const qtys = [50, 100, 200, 300, 500, 1000];
+    document.getElementById('fo-tabla-body').innerHTML = qtys.map(qty => {
+        const r = cotizarFolletosCalc(qty);
+        return `<tr>
+            <td class="text-bold">${qty} unidades</td>
+            <td class="text-gray">${r.hojas} hojas</td>
+            <td style="color:#ea580c;font-weight:600">${formatPeso(Math.round(r.costoMat))}</td>
+            <td style="color:#9333ea;font-weight:600">${r.costoMO > 0 ? formatPeso(r.costoMO) : '<span style="color:var(--gray-300)">—</span>'}</td>
+            <td style="color:#16a34a;font-weight:600">${formatPeso(r.venta)}</td>
+            <td class="text-bold">${formatPeso(Math.round(r.ganancia))}</td>
+            <td><button class="btn btn-yellow" style="padding:4px 12px;font-size:12px" onclick="agregarFolletos(${qty})">＋ Agregar</button></td>
+        </tr>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function agregarFolletos(qty) {
+    cotizadorFolletosPiezas.push(cotizarFolletosCalc(qty));
+    renderCotizFinal();
+}
+
+function vaciarFolletos() {
+    cotizadorFolletosPiezas = [];
+    renderCotizFinal();
+}
+
+function quitarFolleto(i) {
+    cotizadorFolletosPiezas.splice(i, 1);
+    renderCotizFinal();
+}
+
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
     const hasV   = cotizadorPiezas.length > 0;
@@ -3529,7 +3655,8 @@ function renderCotizFinal() {
     const hasSTF = dtfCart.length > 0;
     const hasUV  = cotizadorUVPiezas.length > 0;
     const hasTJ  = cotizadorTarjetasPiezas.length > 0;
-    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ) { wrap.style.display = 'none'; return; }
+    const hasFO  = cotizadorFolletosPiezas.length > 0;
+    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ && !hasFO) { wrap.style.display = 'none'; return; }
     wrap.style.display = '';
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
@@ -3623,6 +3750,22 @@ function renderCotizFinal() {
         tarjetasBlock.style.display = 'none';
     }
 
+    const folletosBlock = document.getElementById('cf-folletos-block');
+    if (hasFO) {
+        folletosBlock.style.display = '';
+        document.getElementById('cf-folletos-items').innerHTML = cotizadorFolletosPiezas.map((p, i) => `
+            <div class="st-cart-item">
+                <div class="st-cart-item-info">
+                    <div class="st-cart-item-name">Folletos 10 × 15 cm · papel fotográfico 115 g</div>
+                    <div class="st-cart-item-detail">${p.qty} unidades · ${p.hojas} hojas</div>
+                </div>
+                <div class="st-cart-item-price">${formatPeso(p.venta)}</div>
+                <button class="delete-row-btn" onclick="quitarFolleto(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+            </div>`).join('');
+    } else {
+        folletosBlock.style.display = 'none';
+    }
+
     const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
     const totVVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
     const totVGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
@@ -3632,8 +3775,9 @@ function renderCotizFinal() {
     const totUVVenta    = cotizadorUVPiezas.reduce((s, p) => s + p.venta,    0);
     const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
     const totTJVenta    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
-    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta;
-    const tiposActivos  = [hasV, hasS, hasSTF, hasUV, hasTJ].filter(Boolean).length;
+    const totFOVenta    = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
+    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta + totFOVenta;
+    const tiposActivos  = [hasV, hasS, hasSTF, hasUV, hasTJ, hasFO].filter(Boolean).length;
 
     const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
     let html = '';
@@ -3644,6 +3788,7 @@ function renderCotizFinal() {
         if (hasSTF) cells.push(`<div>${lbl('Stickers DTF')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totSTF)}</div></div>`);
         if (hasS)   cells.push(`<div>${lbl('Stickers')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>`);
         if (hasTJ)  cells.push(`<div>${lbl('Tarjetas')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>`);
+        if (hasFO)  cells.push(`<div>${lbl('Folletos')}<div style="font-size:20px;font-weight:700;color:#16a34a">${formatPeso(totFOVenta)}</div></div>`);
         cells.push(`<div>${lbl('Total a cobrar')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div></div>`);
         document.getElementById('cf-totales').style.gridTemplateColumns = `repeat(${Math.min(cells.length, 4)},1fr)`;
         html = cells.join('');
@@ -3667,6 +3812,14 @@ function renderCotizFinal() {
             <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totTJCosto))}</div></div>
             <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>
             <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totTJGanancia))}</div></div>`;
+    } else if (hasFO) {
+        const totFOCosto    = cotizadorFolletosPiezas.reduce((s, p) => s + p.costo,    0);
+        const totFOGanancia = cotizadorFolletosPiezas.reduce((s, p) => s + p.ganancia, 0);
+        const pct = totFOVenta > 0 ? Math.round((totFOGanancia / totFOVenta) * 100) : 0;
+        html = `
+            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totFOCosto))}</div></div>
+            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totFOVenta)}</div></div>
+            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totFOGanancia))}</div></div>`;
     } else if (hasSTF) {
         const totalUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
         html = `
@@ -3690,11 +3843,12 @@ async function cotizFinalCopiar() {
     const hasSTF = dtfCart.length > 0;
     const hasUV  = cotizadorUVPiezas.length > 0;
     const hasTJ  = cotizadorTarjetasPiezas.length > 0;
-    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ) return;
+    const hasFO  = cotizadorFolletosPiezas.length > 0;
+    if (!hasV && !hasS && !hasSTF && !hasUV && !hasTJ && !hasFO) return;
 
     const titulo = (document.getElementById('cotiz-titulo').value || '').trim();
     const encabezado = titulo ? `Cotización ${titulo}` : 'Cotización';
-    const tiposActivos = [hasV, hasS, hasSTF, hasUV, hasTJ].filter(Boolean).length;
+    const tiposActivos = [hasV, hasS, hasSTF, hasUV, hasTJ, hasFO].filter(Boolean).length;
     let texto = `${encabezado} — Amanda Gráficos\n\n`;
 
     if (hasV) {
@@ -3734,20 +3888,30 @@ async function cotizFinalCopiar() {
         });
     }
 
+    if (hasFO) {
+        if (tiposActivos > 1) texto += '\nFolletos:\n';
+        cotizadorFolletosPiezas.forEach(p => {
+            texto += `▸ ${p.qty} folletos 10 × 15 cm en papel fotográfico 115 g → ${formatPeso(p.venta)}\n`;
+        });
+    }
+
     const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
     const totUVVenta = cotizadorUVPiezas.reduce((s, p) => s + p.venta, 0);
     const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
     const totSTF     = dtfCart.reduce((s, item) => s + dtfCalcPrice(item.size, item.qty).total, 0);
     const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
+    const totFOVenta = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
     if (tiposActivos > 1) {
-        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta)}`;
+        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta + totFOVenta)}`;
     } else if (hasV) {
         texto += `\nTotal: ${formatPeso(totVVenta)}`;
     } else if (hasUV) {
         texto += `\nTotal: ${formatPeso(totUVVenta)}`;
     } else if (hasTJ) {
         texto += `\nTotal: ${formatPeso(totTJVenta)}`;
+    } else if (hasFO) {
+        texto += `\nTotal: ${formatPeso(totFOVenta)}`;
     } else if (hasSTF) {
         const dtfUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
         texto += `\nTotal: ${dtfUnits} unidades · ${formatPeso(totSTF)}`;
@@ -3782,6 +3946,7 @@ function cotizFinalVaciar() {
     dtfCart = [];
     cotizadorUVPiezas = [];
     cotizadorTarjetasPiezas = [];
+    cotizadorFolletosPiezas = [];
     document.getElementById('cotiz-titulo').value = '';
     renderCotizFinal();
 }
