@@ -1393,7 +1393,7 @@
                         <div class="card-label">Costo plotter (por m²)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="c-costo-m2" value="20000" step="500" min="0"
+                            <input type="number" id="c-costo-m2" value="24200" step="500" min="0"
                                 oninput="cotizarPreview()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -3417,7 +3417,7 @@ const COTIZADOR_MIN_LARGO_CM = 5; // mínimo 5cm de largo
 let cotizadorPiezas = [];
 
 function cotizarCalc(anchoCm, altoCm) {
-    const costoM2   = parseFloat(document.getElementById('c-costo-m2').value)    || 20000;
+    const costoM2   = parseFloat(document.getElementById('c-costo-m2').value)    || 24200;
     const multi     = parseFloat(document.getElementById('c-multiplicador').value) || 3;
     // El rollo mide 100cm de ancho. Si ambas dimensiones entran en el ancho,
     // se orienta el lado más largo a lo ancho y el más corto es el largo (menos desperdicio).
