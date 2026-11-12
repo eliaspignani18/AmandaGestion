@@ -1535,6 +1535,17 @@
                 <h3 class="cotiz-section-title"><i data-lucide="tag" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px"></i>Stickers</h3>
 
                 <div class="form-card" style="margin-bottom:24px">
+                    <div class="st-sizes" id="st-materiales">
+                        <button class="st-size-btn st-size-btn--active" data-material="blanco" onclick="stSelectMaterial(this)">
+                            <span class="st-size-name">Vinilo blanco</span>
+                            <span class="st-size-dim">UV + corte profundo</span>
+                        </button>
+                        <button class="st-size-btn" data-material="holografico" onclick="stSelectMaterial(this)">
+                            <span class="st-size-name">Vinilo holográfico</span>
+                            <span class="st-size-dim">Tornasolado + corte profundo</span>
+                        </button>
+                    </div>
+
                     <div class="st-sizes">
                         <button class="st-size-btn st-size-btn--active" data-size="Chico (5×5 cm)" onclick="stSelectSize(this)">
                             <span class="st-size-name">Chico</span>
@@ -3783,11 +3794,11 @@ function renderCotizFinal() {
     if (hasS) {
         stickersBlock.style.display = '';
         document.getElementById('cf-stickers-items').innerHTML = stCart.map((item, i) => {
-            const r = stCalcPrice(item.size, item.qty);
+            const r = stCalcPrice(item.size, item.qty, item.material);
             const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsa` : '';
             return `<div class="st-cart-item">
                 <div class="st-cart-item-info">
-                    <div class="st-cart-item-name">${esc(item.size)}</div>
+                    <div class="st-cart-item-name">${esc(stNombreItem(item))}</div>
                     <div class="st-cart-item-detail">${item.qty} unidades${bolsaStr}</div>
                 </div>
                 <div class="st-cart-item-price">${formatPeso(r.total)}</div>
@@ -3849,7 +3860,7 @@ function renderCotizFinal() {
     const totVCosto    = cotizadorPiezas.reduce((s, p) => s + p.costo,    0);
     const totVVenta    = cotizadorPiezas.reduce((s, p) => s + p.venta,    0);
     const totVGanancia = cotizadorPiezas.reduce((s, p) => s + p.ganancia, 0);
-    const totS          = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totS          = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty, item.material).total, 0);
     const totSTF        = dtfCart.reduce((s, item) => s + dtfCalcPrice(item.size, item.qty).total, 0);
     const totUVCosto    = cotizadorUVPiezas.reduce((s, p) => s + p.costo,    0);
     const totUVVenta    = cotizadorUVPiezas.reduce((s, p) => s + p.venta,    0);
@@ -3956,8 +3967,8 @@ async function cotizFinalCopiar() {
     if (hasS) {
         if (tiposActivos > 1) texto += '\nStickers:\n';
         stCart.forEach(item => {
-            const r = stCalcPrice(item.size, item.qty);
-            texto += `▸ ${item.size} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
+            const r = stCalcPrice(item.size, item.qty, item.material);
+            texto += `▸ ${stNombreItem(item)} — ${item.qty} unidades — ${formatPeso(r.total)}\n`;
         });
     }
 
@@ -3977,7 +3988,7 @@ async function cotizFinalCopiar() {
 
     const totVVenta  = cotizadorPiezas.reduce((s, p) => s + p.venta, 0);
     const totUVVenta = cotizadorUVPiezas.reduce((s, p) => s + p.venta, 0);
-    const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty).total, 0);
+    const totS       = stCart.reduce((s, item) => s + stCalcPrice(item.size, item.qty, item.material).total, 0);
     const totSTF     = dtfCart.reduce((s, item) => s + dtfCalcPrice(item.size, item.qty).total, 0);
     const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totFOVenta = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
@@ -4155,13 +4166,33 @@ const ST_PRICE_TABLE = {
     ],
 };
 
+// Vinilo holográfico: mismos tamaños y cantidades, precio escalado por el costo del m².
+// Blanco = Pampa 20103 (UV + corte prof) $25.400/m². Holográfico = Pampa 20403 (tornasolado + blanco/laca + corte prof) $37.000/m².
+// Si cambia algún costo, actualizar estos dos valores: la tabla holográfica se recalcula sola.
+const ST_COSTO_M2 = { blanco: 25400, holografico: 37000 };
+const ST_MATERIAL_NOMBRE = { blanco: 'Vinilo blanco', holografico: 'Vinilo holográfico' };
+const stRedondeo10 = v => Math.round(v / 10) * 10;
+
+function stTabla(size, material) {
+    const base = ST_PRICE_TABLE[size];
+    if (material !== 'holografico') return base;
+    const f = ST_COSTO_M2.holografico / ST_COSTO_M2.blanco;
+    return base.map(t => ({ qty: t.qty, price: stRedondeo10(t.price * f), list: stRedondeo10(t.list * f) }));
+}
+
 let stCurrentSize = "Chico (5×5 cm)";
+let stCurrentMaterial = 'blanco';
 let stCart = [];
 
 const ST_BOLSA = { "Chico (5×5 cm)": 200, "Mediano (10×10 cm)": 200, "Grande (15×15 cm)": 400 };
 
-function stCalcPrice(size, qty) {
-    const table = ST_PRICE_TABLE[size];
+// Nombre del ítem en el carrito y en el texto copiado: el blanco queda como antes, el holográfico se aclara
+function stNombreItem(item) {
+    return item.material === 'holografico' ? `${item.size} holográfico` : item.size;
+}
+
+function stCalcPrice(size, qty, material = 'blanco') {
+    const table = stTabla(size, material);
     let tier = table[0];
     for (const t of table) { if (qty >= t.qty) tier = t; }
     const bolsa     = ST_BOLSA[size] || 0;
@@ -4173,7 +4204,7 @@ function stCalcPrice(size, qty) {
 
 function stUpdateDisplay() {
     const qty = Math.max(1, +document.getElementById('st-qty').value || 1);
-    const r = stCalcPrice(stCurrentSize, qty);
+    const r = stCalcPrice(stCurrentSize, qty, stCurrentMaterial);
     document.getElementById('st-price').textContent = formatPeso(r.total);
     const offEl    = document.getElementById('st-off');
     const listEl   = document.getElementById('st-list');
@@ -4208,6 +4239,13 @@ function stSelectSize(btn) {
     stUpdateDisplay();
 }
 
+function stSelectMaterial(btn) {
+    btn.closest('.st-sizes').querySelectorAll('.st-size-btn').forEach(b => b.classList.remove('st-size-btn--active'));
+    btn.classList.add('st-size-btn--active');
+    stCurrentMaterial = btn.dataset.material;
+    stUpdateDisplay();
+}
+
 function stSetPreset(btn) {
     document.getElementById('st-qty').value = btn.dataset.qty;
     document.querySelectorAll('.st-preset').forEach(b => b.classList.remove('st-preset--active'));
@@ -4224,8 +4262,8 @@ function stQtyAdj(delta) {
 
 function stAgregar() {
     const qty = Math.max(1, +document.getElementById('st-qty').value || 1);
-    const existing = stCart.find(i => i.size === stCurrentSize);
-    if (existing) { existing.qty += qty; } else { stCart.push({ size: stCurrentSize, qty }); }
+    const existing = stCart.find(i => i.size === stCurrentSize && i.material === stCurrentMaterial);
+    if (existing) { existing.qty += qty; } else { stCart.push({ size: stCurrentSize, qty, material: stCurrentMaterial }); }
     stRenderCart();
 }
 
