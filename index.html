@@ -4100,7 +4100,9 @@ function dtfCalcPrice(size, qty) {
     const table = ST_DTF_PRICE_TABLE[size];
     let tier = table[0];
     for (const t of table) { if (qty >= t.qty) tier = t; }
-    const total = Math.round(tier.price / tier.qty * qty);
+    // Nunca más caro que la escala siguiente (99 u no puede costar más que 100 u)
+    const tope  = Math.min(Infinity, ...table.filter(t => t.qty > qty).map(t => t.price));
+    const total = Math.min(Math.round(tier.price / tier.qty * qty), tope);
     return { total };
 }
 
@@ -4214,10 +4216,12 @@ function stCalcPrice(size, qty, material = 'blanco') {
     const table = stTabla(size, material);
     let tier = table[0];
     for (const t of table) { if (qty >= t.qty) tier = t; }
+    // Nunca más caro que la escala siguiente (19 u no puede costar más que 20 u)
+    const tope      = Math.min(Infinity, ...table.filter(t => t.qty > qty).map(t => t.price));
     const bolsa     = ST_BOLSA[size] || 0;
-    const total     = Math.round(tier.price / tier.qty * qty) + bolsa;
+    const total     = Math.min(Math.round(tier.price / tier.qty * qty), tope) + bolsa;
     const listTotal = Math.round(tier.list  / tier.qty * qty) + bolsa;
-    const pct       = Math.round((1 - (tier.price / tier.qty) / (tier.list / tier.qty)) * 100);
+    const pct       = Math.round((1 - (total - bolsa) / (listTotal - bolsa)) * 100);
     return { total, listTotal, pct, bolsa };
 }
 
