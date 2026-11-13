@@ -3758,9 +3758,14 @@ const CARGO_PEDIDO_ESCALAS = [
     { hasta: 10000, cargo: 1950 },
     { hasta: 30000, cargo: 950 },
 ];
+// Al pasar de un tramo al siguiente el cargo baja de a poco: el total nunca queda por debajo del
+// tope del tramo anterior más su cargo. Así sumar unidades nunca abarata el pedido.
 function cargoPedido(subtotal) {
-    const e = CARGO_PEDIDO_ESCALAS.find(x => subtotal <= x.hasta);
-    return e ? e.cargo : 0;
+    let cargo = 0;
+    for (const e of CARGO_PEDIDO_ESCALAS) {
+        cargo = Math.max(cargo, subtotal <= e.hasta ? e.cargo : e.hasta + e.cargo - subtotal);
+    }
+    return Math.round(cargo);
 }
 
 function renderCotizFinal() {
