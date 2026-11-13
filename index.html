@@ -1889,8 +1889,8 @@
                         <div id="cf-folletos-items"></div>
                     </div>
 
-                    <!-- Cargo fijo por pedido (CARGO_PEDIDO): se suma solo a toda cotización -->
-                    <div id="cf-cargo-block">
+                    <!-- Cargo de preparación (CARGO_PEDIDO_ESCALAS): se suma solo según el subtotal -->
+                    <div id="cf-cargo-block" style="display:none">
                         <div class="st-cart-item">
                             <div class="st-cart-item-info">
                                 <div class="st-cart-item-name">Preparación del pedido</div>
@@ -3750,10 +3750,18 @@ function quitarFolleto(i) {
     renderCotizFinal();
 }
 
-// Cargo fijo por pedido: cubre lo que no entra en ningún cotizador (cadetes/Uber a la imprenta,
-// packaging, Canva). Sale del análisis de sep-nov 2026: ~$130.800 de esos gastos en 67 pedidos.
-// Si cambian esos gastos, actualizar este valor.
-const CARGO_PEDIDO = 1950;
+// Cargo de preparación por pedido: cubre lo que no entra en ningún cotizador (cadetes/Uber a la
+// imprenta, packaging, Canva). Sale del análisis de sep-nov 2026: ~$130.800 de esos gastos en
+// 67 pedidos (~$1.950 c/u). Escalonado según el subtotal: los pedidos grandes ya tienen margen
+// para cubrirlo. Para cambiar montos o topes, tocar solo esta tabla.
+const CARGO_PEDIDO_ESCALAS = [
+    { hasta: 10000, cargo: 1950 },
+    { hasta: 30000, cargo: 950 },
+];
+function cargoPedido(subtotal) {
+    const e = CARGO_PEDIDO_ESCALAS.find(x => subtotal <= x.hasta);
+    return e ? e.cargo : 0;
+}
 
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
@@ -3883,9 +3891,11 @@ function renderCotizFinal() {
     const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
     const totTJVenta    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totFOVenta    = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
-    const cargo         = CARGO_PEDIDO;
-    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta + totFOVenta + cargo;
+    const subtotal      = totVVenta + totS + totSTF + totUVVenta + totTJVenta + totFOVenta;
+    const cargo         = cargoPedido(subtotal);
+    const totGeneral    = subtotal + cargo;
     const tiposActivos  = [hasV, hasS, hasSTF, hasUV, hasTJ, hasFO].filter(Boolean).length;
+    document.getElementById('cf-cargo-block').style.display = cargo > 0 ? '' : 'none';
     document.getElementById('cf-cargo-precio').textContent = formatPeso(cargo);
 
     const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
@@ -3995,8 +4005,8 @@ async function cotizFinalCopiar() {
     const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totFOVenta = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
-    const cargo      = CARGO_PEDIDO;
-    texto += `\n▸ Preparación del pedido → ${formatPeso(cargo)}\n`;
+    const cargo      = cargoPedido(totVVenta + totUVVenta + totS + totSTF + totTJVenta + totFOVenta);
+    if (cargo > 0) texto += `\n▸ Preparación del pedido → ${formatPeso(cargo)}\n`;
     if (tiposActivos > 1) {
         texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta + totFOVenta + cargo)}`;
     } else if (hasV) {
