@@ -1889,6 +1889,17 @@
                         <div id="cf-folletos-items"></div>
                     </div>
 
+                    <!-- Cargo fijo por pedido (CARGO_PEDIDO): se suma solo a toda cotización -->
+                    <div id="cf-cargo-block">
+                        <div class="st-cart-item">
+                            <div class="st-cart-item-info">
+                                <div class="st-cart-item-name">Preparación del pedido</div>
+                                <div class="st-cart-item-detail">Embalaje y traslados a la imprenta · se suma solo</div>
+                            </div>
+                            <div class="st-cart-item-price" id="cf-cargo-precio"></div>
+                        </div>
+                    </div>
+
                     <!-- Totales combinados -->
                     <div id="cf-totales" style="padding:16px 24px;border-top:2px solid var(--gray-200);display:grid;grid-template-columns:repeat(3,1fr);gap:16px"></div>
 
@@ -3739,6 +3750,11 @@ function quitarFolleto(i) {
     renderCotizFinal();
 }
 
+// Cargo fijo por pedido: cubre lo que no entra en ningún cotizador (cadetes/Uber a la imprenta,
+// packaging, Canva). Sale del análisis de sep-nov 2026: ~$130.800 de esos gastos en 67 pedidos.
+// Si cambian esos gastos, actualizar este valor.
+const CARGO_PEDIDO = 1950;
+
 function renderCotizFinal() {
     const wrap = document.getElementById('cotiz-final-wrap');
     const hasV   = cotizadorPiezas.length > 0;
@@ -3867,8 +3883,10 @@ function renderCotizFinal() {
     const totUVGanancia = cotizadorUVPiezas.reduce((s, p) => s + p.ganancia, 0);
     const totTJVenta    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totFOVenta    = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
-    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta + totFOVenta;
+    const cargo         = CARGO_PEDIDO;
+    const totGeneral    = totVVenta + totS + totSTF + totUVVenta + totTJVenta + totFOVenta + cargo;
     const tiposActivos  = [hasV, hasS, hasSTF, hasUV, hasTJ, hasFO].filter(Boolean).length;
+    document.getElementById('cf-cargo-precio').textContent = formatPeso(cargo);
 
     const lbl = (t) => `<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${t}</div>`;
     let html = '';
@@ -3883,44 +3901,28 @@ function renderCotizFinal() {
         cells.push(`<div>${lbl('Total a cobrar')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totGeneral)}</div></div>`);
         document.getElementById('cf-totales').style.gridTemplateColumns = `repeat(${Math.min(cells.length, 4)},1fr)`;
         html = cells.join('');
-    } else if (hasV) {
-        const pct = Math.round((totVGanancia / totVVenta) * 100);
+    } else if (hasV || hasUV || hasTJ || hasFO) {
+        // Un solo tipo con costo conocido. El cargo fijo cubre gastos que no están en el costo,
+        // así que suma a la venta y a la ganancia.
+        const piezas = hasV ? cotizadorPiezas : hasUV ? cotizadorUVPiezas : hasTJ ? cotizadorTarjetasPiezas : cotizadorFolletosPiezas;
+        const costo    = piezas.reduce((s, p) => s + p.costo, 0);
+        const venta    = piezas.reduce((s, p) => s + p.venta, 0) + cargo;
+        const ganancia = piezas.reduce((s, p) => s + p.ganancia, 0) + cargo;
+        const pct = venta > 0 ? Math.round((ganancia / venta) * 100) : 0;
         html = `
-            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totVCosto)}</div></div>
-            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totVVenta)}</div></div>
-            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(totVGanancia)}</div></div>`;
-    } else if (hasUV) {
-        const pct = Math.round((totUVGanancia / totUVVenta) * 100);
-        html = `
-            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(totUVCosto)}</div></div>
-            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totUVVenta)}</div></div>
-            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(totUVGanancia)}</div></div>`;
-    } else if (hasTJ) {
-        const totTJCosto    = cotizadorTarjetasPiezas.reduce((s, p) => s + p.costo,    0);
-        const totTJGanancia = cotizadorTarjetasPiezas.reduce((s, p) => s + p.ganancia, 0);
-        const pct = Math.round((totTJGanancia / totTJVenta) * 100);
-        html = `
-            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totTJCosto))}</div></div>
-            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totTJVenta)}</div></div>
-            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totTJGanancia))}</div></div>`;
-    } else if (hasFO) {
-        const totFOCosto    = cotizadorFolletosPiezas.reduce((s, p) => s + p.costo,    0);
-        const totFOGanancia = cotizadorFolletosPiezas.reduce((s, p) => s + p.ganancia, 0);
-        const pct = totFOVenta > 0 ? Math.round((totFOGanancia / totFOVenta) * 100) : 0;
-        html = `
-            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(totFOCosto))}</div></div>
-            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totFOVenta)}</div></div>
-            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(totFOGanancia))}</div></div>`;
+            <div>${lbl('Total costo')}<div style="font-size:22px;font-weight:700;color:#ea580c">${formatPeso(Math.round(costo))}</div></div>
+            <div>${lbl('Total venta')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(venta)}</div></div>
+            <div>${lbl('Ganancia · ' + pct + '% margen')}<div style="font-size:22px;font-weight:700">${formatPeso(Math.round(ganancia))}</div></div>`;
     } else if (hasSTF) {
         const totalUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
         html = `
-            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totSTF)}</div></div>
+            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totSTF + cargo)}</div></div>
             <div>${lbl('Unidades')}<div style="font-size:22px;font-weight:700">${totalUnits}</div></div>
             <div></div>`;
     } else {
         const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
         html = `
-            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totS)}</div></div>
+            <div>${lbl('Total')}<div style="font-size:22px;font-weight:700;color:#16a34a">${formatPeso(totS + cargo)}</div></div>
             <div>${lbl('Unidades')}<div style="font-size:22px;font-weight:700">${totalUnits}</div></div>
             <div></div>`;
     }
@@ -3993,21 +3995,23 @@ async function cotizFinalCopiar() {
     const totTJVenta = cotizadorTarjetasPiezas.reduce((s, p) => s + p.venta, 0);
     const totFOVenta = cotizadorFolletosPiezas.reduce((s, p) => s + p.venta, 0);
     const totalUnits = stCart.reduce((s, item) => s + item.qty, 0);
+    const cargo      = CARGO_PEDIDO;
+    texto += `\n▸ Preparación del pedido → ${formatPeso(cargo)}\n`;
     if (tiposActivos > 1) {
-        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta + totFOVenta)}`;
+        texto += `\nTotal: ${formatPeso(totVVenta + totUVVenta + totS + totSTF + totTJVenta + totFOVenta + cargo)}`;
     } else if (hasV) {
-        texto += `\nTotal: ${formatPeso(totVVenta)}`;
+        texto += `\nTotal: ${formatPeso(totVVenta + cargo)}`;
     } else if (hasUV) {
-        texto += `\nTotal: ${formatPeso(totUVVenta)}`;
+        texto += `\nTotal: ${formatPeso(totUVVenta + cargo)}`;
     } else if (hasTJ) {
-        texto += `\nTotal: ${formatPeso(totTJVenta)}`;
+        texto += `\nTotal: ${formatPeso(totTJVenta + cargo)}`;
     } else if (hasFO) {
-        texto += `\nTotal: ${formatPeso(totFOVenta)}`;
+        texto += `\nTotal: ${formatPeso(totFOVenta + cargo)}`;
     } else if (hasSTF) {
         const dtfUnits = dtfCart.reduce((s, item) => s + item.qty, 0);
-        texto += `\nTotal: ${dtfUnits} unidades · ${formatPeso(totSTF)}`;
+        texto += `\nTotal: ${dtfUnits} unidades · ${formatPeso(totSTF + cargo)}`;
     } else {
-        texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS)}`;
+        texto += `\nTotal: ${totalUnits} unidades · ${formatPeso(totS + cargo)}`;
     }
 
     const btn = document.getElementById('cf-copiar-btn');
