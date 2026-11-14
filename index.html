@@ -1714,7 +1714,7 @@
                         <div class="card-label">Costo resma (100 hs.)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="tj-costo-resma" value="16000" step="500" min="0"
+                            <input type="number" id="tj-costo-resma" value="19000" step="500" min="0"
                                 oninput="renderTarjetasTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -1723,7 +1723,7 @@
                         <div class="card-label">Costo tinta por hoja</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="tj-costo-tinta" value="150" step="10" min="0"
+                            <input type="number" id="tj-costo-tinta" value="180" step="10" min="0"
                                 oninput="renderTarjetasTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -1776,7 +1776,7 @@
                         <div class="card-label">Costo paquete papel (100 hs.)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="fo-costo-papel" value="16000" step="500" min="0"
+                            <input type="number" id="fo-costo-papel" value="19000" step="500" min="0"
                                 oninput="renderFolletosTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -1785,7 +1785,7 @@
                         <div class="card-label">Costo tinta por hoja</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
                             <span style="font-size:18px;font-weight:700">$</span>
-                            <input type="number" id="fo-costo-tinta" value="150" step="10" min="0"
+                            <input type="number" id="fo-costo-tinta" value="180" step="10" min="0"
                                 oninput="renderFolletosTabla()"
                                 style="font-size:20px;font-weight:700;border:none;outline:none;width:100%;background:transparent;font-family:inherit">
                         </div>
@@ -3650,8 +3650,8 @@ const TARJETAS_VALOR_HORA_MO  = 5000;
 let cotizadorTarjetasPiezas = [];
 
 function cotizarTarjetasCalc(qty) {
-    const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 16000;
-    const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 150;
+    const costoResma    = parseFloat(document.getElementById('tj-costo-resma').value) || 19000;
+    const costoTinta    = parseFloat(document.getElementById('tj-costo-tinta').value) || 180;
     const multiplicador = parseFloat(document.getElementById('tj-multiplicador').value) || 4;
     const dobleFaz      = document.getElementById('tj-doble-faz').checked;
     const hojas         = Math.ceil(qty / TARJETAS_POR_HOJA);
