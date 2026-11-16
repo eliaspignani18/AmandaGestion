@@ -1547,6 +1547,10 @@
                     </div>
 
                     <div class="st-sizes">
+                        <button class="st-size-btn" data-size="Mini (3×3 cm)" onclick="stSelectSize(this)">
+                            <span class="st-size-name">Mini</span>
+                            <span class="st-size-dim">3 × 3 cm</span>
+                        </button>
                         <button class="st-size-btn st-size-btn--active" data-size="Chico (5×5 cm)" onclick="stSelectSize(this)">
                             <span class="st-size-name">Chico</span>
                             <span class="st-size-dim">5 × 5 cm</span>
@@ -4161,6 +4165,14 @@ dtfUpdateDisplay();
 // ─── COTIZADOR STICKERS ──────────────────────────────────────────────────────
 
 const ST_PRICE_TABLE = {
+    "Mini (3×3 cm)": [
+        { qty: 10,  price: 1260,   list: 1520 },
+        { qty: 20,  price: 2260,   list: 3040 },
+        { qty: 50,  price: 5640,   list: 7590 },
+        { qty: 100, price: 10370,  list: 15180 },
+        { qty: 200, price: 20210,  list: 30320 },
+        { qty: 500, price: 45550,  list: 75820 },
+    ],
     "Chico (5×5 cm)": [
         { qty: 10,  price: 3040,   list: 3670 },
         { qty: 20,  price: 5460,   list: 7350 },
@@ -4205,7 +4217,7 @@ let stCurrentSize = "Chico (5×5 cm)";
 let stCurrentMaterial = 'blanco';
 let stCart = [];
 
-const ST_BOLSA = { "Chico (5×5 cm)": 200, "Mediano (10×10 cm)": 200, "Grande (15×15 cm)": 400 };
+const ST_BOLSA = { "Mini (3×3 cm)": 200, "Chico (5×5 cm)": 200, "Mediano (10×10 cm)": 200, "Grande (15×15 cm)": 400 };
 
 // Nombre del ítem en el carrito y en el texto copiado: el blanco queda como antes, el holográfico se aclara
 function stNombreItem(item) {
