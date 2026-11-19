@@ -4220,9 +4220,9 @@ let stCurrentMaterial = 'blanco';
 let stCart = [];
 
 // Paquete por ítem = bolsita + tarjeta "gracias + QR reseña" (costo 18/11/2026):
-// chico = bolsa 8,5×11 $114 + tarjeta 7,9×10 $149 = $263 · grande = bolsa 10,5×16 $206 + tarjeta 9,6×15 $242 = $448
+// chico = bolsa 8,5×11 $114 + tarjeta 7,9×10 $149 (6 por A4) = $263 · grande = bolsa 10,5×16 $206 + tarjeta 9,6×15 $202 (4 por A4) = $408
 // TIENE QUE SER IGUAL a BOLSA de la web (index.html y app.js).
-const ST_BOLSA = { "Mini (3×3 cm)": 263, "Chico (5×5 cm)": 263, "Mediano (10×10 cm)": 448, "Grande (15×15 cm)": 448 };
+const ST_BOLSA = { "Mini (3×3 cm)": 263, "Chico (5×5 cm)": 263, "Mediano (10×10 cm)": 408, "Grande (15×15 cm)": 408 };
 
 // Nombre del ítem en el carrito y en el texto copiado: el blanco queda como antes, el holográfico se aclara
 function stNombreItem(item) {
