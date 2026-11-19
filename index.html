@@ -26,6 +26,8 @@
 
         :root {
             --black: #1c1c20;
+            --line: #1c1c20;      /* bordes y sombras sello */
+            --on-yellow: #1c1c20; /* texto arriba del amarillo */
             /* grises cálidos (crema) como en la web */
             --gray-50: #fffdf7;
             --gray-100: #fdf6e3;
@@ -47,9 +49,9 @@
             --radius: 8px;
             --font-display: "Eloura", "Caveat", cursive;
             /* Versión más suave que la web: es para usar muchas horas */
-            --shadow-stamp: 3px 3px 0 var(--black);
-            --shadow-stamp-hover: 4px 4px 0 var(--black);
-            --shadow-stamp-press: 1px 1px 0 var(--black);
+            --shadow-stamp: 3px 3px 0 var(--line);
+            --shadow-stamp-hover: 4px 4px 0 var(--line);
+            --shadow-stamp-press: 1px 1px 0 var(--line);
         }
 
         body {
@@ -70,9 +72,9 @@
             letter-spacing: 0.04em;
             line-height: 1.1;
             color: var(--yellow);
-            -webkit-text-stroke: 3px var(--black);
+            -webkit-text-stroke: 3px var(--line);
             paint-order: stroke fill;
-            text-shadow: 2px 2px 0 var(--black);
+            text-shadow: 2px 2px 0 var(--line);
         }
         /* Títulos secundarios: Eloura negra, sin contorno */
         .modal-header h3 {
@@ -96,7 +98,7 @@
             padding: 48px 40px;
             width: 100%;
             max-width: 400px;
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
         }
 
@@ -109,7 +111,7 @@
         .sidebar {
             width: 220px;
             background: var(--cream);
-            border-right: 2px solid var(--black);
+            border-right: 2px solid var(--line);
             position: fixed;
             top: 0; left: 0;
             height: 100vh;
@@ -129,7 +131,7 @@
         .sidebar-logo {
             padding: 0 4px 16px;
             margin-bottom: 20px;
-            border-bottom: 2px solid var(--black);
+            border-bottom: 2px solid var(--line);
         }
 
         .sidebar nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -148,7 +150,7 @@
         }
 
         .nav-btn:hover { background: var(--cream-200); color: var(--black); }
-        .nav-btn.active { background: var(--yellow); color: var(--black); border-color: var(--black); box-shadow: 2px 2px 0 var(--black); font-weight: 600; }
+        .nav-btn.active { background: var(--yellow); color: var(--on-yellow); border-color: var(--line); box-shadow: 2px 2px 0 var(--line); font-weight: 600; }
         .nav-btn svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 7px; flex-shrink: 0; }
 
         .nav-group { display: flex; flex-direction: column; }
@@ -221,7 +223,7 @@
             background: var(--white);
             border-radius: var(--radius);
             padding: 24px;
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
         }
 
@@ -242,7 +244,7 @@
         .pipeline {
             background: var(--white);
             border-radius: var(--radius);
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
             padding: 24px;
             margin-bottom: 32px;
@@ -268,7 +270,7 @@
         .table-wrap {
             background: var(--white);
             border-radius: var(--radius);
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
             overflow: hidden;
         }
@@ -337,8 +339,8 @@
         /* Tareas */
         .tareas-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px; }
         @media (max-width:768px) { .tareas-grid { grid-template-columns:1fr; } }
-        .tarea-card { background:var(--white); border:2px solid var(--black); border-radius: var(--radius); box-shadow:var(--shadow-stamp); padding:16px 18px; display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:transform .1s,box-shadow .1s; }
-        .tarea-card:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--black); }
+        .tarea-card { background:var(--white); border:2px solid var(--line); border-radius: var(--radius); box-shadow:var(--shadow-stamp); padding:16px 18px; display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:transform .1s,box-shadow .1s; }
+        .tarea-card:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--line); }
         .tarea-card.completada { opacity:.5; }
         .tarea-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
         .tarea-titulo-txt { font-weight:700; font-size:14px; color:var(--black); flex:1; }
@@ -386,7 +388,7 @@
         .form-card {
             background: var(--white);
             border-radius: var(--radius);
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
             padding: 32px;
             max-width: 720px;
@@ -425,7 +427,7 @@
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--black);
+            border-color: var(--line);
             box-shadow: 0 0 0 3px rgba(253, 233, 122, 0.7);
         }
 
@@ -436,7 +438,7 @@
         .btn {
             padding: 10px 20px;
             border-radius: var(--radius);
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -445,23 +447,23 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 2px 2px 0 var(--black);
+            box-shadow: 2px 2px 0 var(--line);
             color: var(--black);
             background: var(--white);
         }
 
-        .btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--black); }
+        .btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
         .btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: var(--shadow-stamp-press); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-        .btn-primary, .btn-yellow { background: var(--yellow); color: var(--black); border-color: var(--black); font-family: var(--font-display); font-weight: 400; letter-spacing: 0.01em; font-size: 15px; }
+        .btn-primary, .btn-yellow { background: var(--yellow); color: var(--on-yellow); border-color: var(--line); font-family: var(--font-display); font-weight: 400; letter-spacing: 0.01em; font-size: 15px; }
         .btn-primary:hover:not(:disabled), .btn-yellow:hover:not(:disabled) { background: var(--yellow); }
 
         .btn-ghost { background: var(--white); color: var(--black); }
         .btn-ghost:hover:not(:disabled) { background: var(--gray-50); }
 
-        .btn-danger { background: var(--white); color: #c8102e; border-color: var(--black); }
+        .btn-danger { background: var(--white); color: #c8102e; border-color: var(--line); }
         .btn-danger:hover:not(:disabled) { background: #fff3f0; }
 
         .form-actions { display: flex; gap: 12px; margin-top: 32px; align-items: center; }
@@ -483,11 +485,11 @@
         }
 
         .filter-btn:hover { background: var(--cream-200); }
-        .filter-btn.active { background: var(--black); color: var(--yellow); border-color: var(--black); }
+        .filter-btn.active { background: var(--black); color: var(--yellow); border-color: var(--line); }
 
         .filters-extra { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; align-items:center; padding:12px 16px; background:var(--gray-50); border:1px solid var(--gray-300); border-radius:var(--radius); }
         .filter-input { border:1px solid var(--gray-300); border-radius:20px; padding:6px 14px; font-size:13px; font-family:inherit; outline:none; background:var(--white); color:var(--black); }
-        .filter-input:focus { border-color:var(--black); }
+        .filter-input:focus { border-color: var(--line); }
         .filter-input[type="date"] { padding:5px 12px; }
         .filter-group { display:flex; gap:6px; align-items:center; }
         .filter-sep { width:1px; height:24px; background:var(--gray-200); margin:0 4px; }
@@ -502,7 +504,7 @@
             cursor: pointer;
             transition: all 0.15s;
         }
-        .cobro-btn:hover { background: var(--yellow); border-color: var(--black); }
+        .cobro-btn:hover { background: var(--yellow); border-color: var(--line); }
         .cobro-cobrado {
             display: inline-flex;
             align-items: center;
@@ -521,7 +523,7 @@
             padding: 0 2px;
         }
         .cobro-deshacer:hover { color: var(--red); }
-        .cobro-btn-active { background: var(--yellow); border-color: var(--black); }
+        .cobro-btn-active { background: var(--yellow); border-color: var(--line); }
 
         .estado-select {
             border: 1px solid var(--gray-300);
@@ -533,7 +535,7 @@
             background: var(--white);
             font-family: inherit;
         }
-        .estado-select:focus { outline: none; border-color: var(--black); }
+        .estado-select:focus { outline: none; border-color: var(--line); }
 
         .plotter-input {
             border: 1px solid var(--gray-300);
@@ -546,7 +548,7 @@
             width: 150px;
             color: var(--black);
         }
-        .plotter-input:focus { outline: none; border-color: var(--black); }
+        .plotter-input:focus { outline: none; border-color: var(--line); }
         .plotter-input::placeholder { color: var(--gray-300); font-weight: 400; }
 
         .delete-row-btn {
@@ -575,7 +577,7 @@
         .modal {
             background: var(--white);
             border-radius: var(--radius);
-            border: 2px solid var(--black);
+            border: 2px solid var(--line);
             box-shadow: var(--shadow-stamp);
             padding: 32px;
             width: 100%;
@@ -644,7 +646,7 @@
             top: 0; left: 0; right: 0;
             height: 56px;
             background: var(--cream);
-            border-bottom: 2px solid var(--black);
+            border-bottom: 2px solid var(--line);
             align-items: center;
             padding: 0 16px;
             z-index: 200;
@@ -773,7 +775,7 @@
         }
 
         /* COTIZADOR — secciones internas */
-        .cotiz-section { margin-bottom: 20px; max-width: 900px; background: var(--white); border: 2px solid var(--black); box-shadow: var(--shadow-stamp); border-radius: var(--radius); padding: 24px; }
+        .cotiz-section { margin-bottom: 20px; max-width: 900px; background: var(--white); border: 2px solid var(--line); box-shadow: var(--shadow-stamp); border-radius: var(--radius); padding: 24px; }
         .cotiz-section-title { font-size: 18px; font-weight: 400; font-family: var(--font-display); color: var(--black); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1px solid var(--gray-300); }
         /* Tablas de cotizadores (tarjetas, folletos): celdas compactas y scroll si no entran */
         .cotiz-section .table-wrap { max-width: none !important; overflow-x: auto; }
@@ -799,12 +801,12 @@
         /* COTIZADOR STICKERS */
         .st-sizes { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
         .st-size-btn { flex: 1; min-width: 120px; padding: 14px 16px; border: 2px solid var(--gray-200); border-radius: var(--radius); background: var(--white); color: var(--black); cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
-        .st-size-btn--active { border-color: var(--black); background: var(--gray-50); }
+        .st-size-btn--active { border-color: var(--line); background: var(--gray-50); }
         .st-size-name { display: block; font-weight: 700; font-size: 15px; margin-bottom: 2px; }
         .st-size-dim { display: block; font-size: 12px; color: var(--gray-500); }
         .st-presets { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .st-preset { padding: 6px 14px; border: 1px solid var(--gray-300); border-radius: 20px; background: none; color: var(--black); cursor: pointer; font-size: 14px; font-weight: 600; transition: all .15s; font-family: inherit; }
-        .st-preset--active { background: var(--black); color: var(--white); border-color: var(--black); }
+        .st-preset--active { background: var(--black); color: var(--white); border-color: var(--line); }
         .st-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
         .st-qty-control { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 8px; overflow: hidden; }
         .st-qty-control button { width: 36px; height: 40px; border: none; background: var(--gray-100); color: var(--black); cursor: pointer; font-size: 18px; font-weight: 700; font-family: inherit; }
@@ -838,8 +840,8 @@
 
         /* IDEAS */
         .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .idea-card { background: var(--white); border: 2px solid var(--black); border-radius: var(--radius); box-shadow: var(--shadow-stamp); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: transform .1s; }
-        .idea-card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--black); }
+        .idea-card { background: var(--white); border: 2px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-stamp); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: transform .1s; }
+        .idea-card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--line); }
         .idea-card-img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--gray-200); margin-bottom: 2px; }
         .idea-card-titulo { font-weight: 700; font-size: 15px; color: var(--black); }
         .idea-card-link { font-size: 12px; color: #3b82f6; word-break: break-all; text-decoration: none; display: flex; align-items: center; gap: 4px; }
@@ -850,7 +852,119 @@
         .idea-img-preview-wrap img { max-width:100%; max-height:220px; object-fit:cover; border-radius:8px; border:2px solid var(--gray-200); display:block; }
         .idea-img-remove { font-size:12px; color:var(--red); background:none; border:none; cursor:pointer; padding:0; text-align:left; width:fit-content; }
         @media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr; } }
+
+        /* ===== BOTÓN DE TEMA ===== */
+        .theme-toggle { display: flex; align-items: center; gap: 7px; }
+        .theme-toggle svg { width: 15px; height: 15px; }
+        .theme-toggle .t-dark, .theme-toggle .t-light { display: inline-flex; align-items: center; gap: 7px; }
+        .theme-toggle .t-dark { display: none; }
+        html[data-theme="dark"] .theme-toggle .t-dark { display: inline-flex; }
+        html[data-theme="dark"] .theme-toggle .t-light { display: none; }
+
+        /* ===== MODO OSCURO =====
+           Misma identidad: sellos con borde y sombra negra, títulos amarillos,
+           y el lila del brillo del logo como acento. */
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --black: #f4ecd8;       /* acá pasa a ser el color del texto (crema) */
+            --line: #000000;        /* bordes y sombras sello */
+            --on-yellow: #1c1c20;
+            --white: #26252c;       /* superficie de tarjetas */
+            --gray-50: #1e1d23;
+            --gray-100: #2d2c34;
+            --gray-200: #36353e;
+            --gray-300: #4a4853;
+            --gray-400: #75737f;
+            --gray-500: #a7a4b0;
+            --gray-600: #c2bfca;
+            --gray-700: #dcd8e0;
+            --cream: #121115;
+            --cream-200: #2e2c35;
+            --cream-300: #3a3842;
+            --lila: #d88cf0;
+        }
+        html[data-theme="dark"] body {
+            background-color: #18171c;
+            background-image: radial-gradient(rgba(216,140,240,0.07) 1.2px, transparent 1.4px);
+        }
+        html[data-theme="dark"] .view-header h2,
+        html[data-theme="dark"] .login-card h1,
+        html[data-theme="dark"] .cotiz-pack-col-title {
+            text-shadow: 2px 2px 0 #000, 0 0 22px rgba(216,140,240,0.35);
+        }
+        html[data-theme="dark"] .sidebar { box-shadow: 1px 0 0 rgba(216,140,240,0.12); }
+        html[data-theme="dark"] .brand-logo { filter: drop-shadow(0 0 6px rgba(216,140,240,0.35)); }
+        html[data-theme="dark"] .nav-btn:not(.active):hover svg { color: var(--yellow); }
+
+        html[data-theme="dark"] input:focus,
+        html[data-theme="dark"] select:focus,
+        html[data-theme="dark"] textarea:focus {
+            border-color: var(--lila);
+            box-shadow: 0 0 0 3px rgba(216,140,240,0.3);
+        }
+        html[data-theme="dark"] .filter-btn.active { background: var(--yellow); color: var(--on-yellow); }
+        html[data-theme="dark"] .filter-input:focus,
+        html[data-theme="dark"] .estado-select:focus,
+        html[data-theme="dark"] .plotter-input:focus { border-color: var(--lila); }
+        html[data-theme="dark"] .cobro-btn { color: var(--black); }
+        html[data-theme="dark"] .cobro-btn:hover,
+        html[data-theme="dark"] .cobro-btn-active { color: var(--on-yellow); }
+        html[data-theme="dark"] .st-preset--active { background: var(--yellow); color: var(--on-yellow); }
+        html[data-theme="dark"] .st-size-btn--active { border-color: var(--yellow); }
+        html[data-theme="dark"] .btn-danger { color: #ff7b88; }
+        html[data-theme="dark"] .btn-danger:hover:not(:disabled) { background: #3a1f25; }
+        html[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
+        html[data-theme="dark"] .modal { box-shadow: 4px 4px 0 #000, 0 0 40px rgba(216,140,240,0.12); }
+        html[data-theme="dark"] .ac-dropdown { box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+        html[data-theme="dark"] .idea-card-link { color: #c4b5fd; }
+        html[data-theme="dark"] tr.row-entregado { background: #1f1e24; }
+
+        /* Números de plata: versiones más claras para que se lean en oscuro */
+        html[data-theme="dark"] .card-value.green,
+        html[data-theme="dark"] .text-green,
+        html[data-theme="dark"] .cobro-cobrado,
+        html[data-theme="dark"] .st-cart-item-price,
+        html[data-theme="dark"] [style*="color:#16a34a"] { color: #4ade80 !important; }
+        html[data-theme="dark"] .card-value.orange,
+        html[data-theme="dark"] [style*="color:#ea580c"] { color: #fb923c !important; }
+        html[data-theme="dark"] [style*="color:#9333ea"] { color: #d8a4f5 !important; }
+
+        /* Badges: fondo translúcido + texto claro */
+        html[data-theme="dark"] .badge-recibido    { background: rgba(148,163,184,.18); color: #cbd5e1; }
+        html[data-theme="dark"] .badge-diseno,
+        html[data-theme="dark"] .badge-compras,
+        html[data-theme="dark"] .badge-eli,
+        html[data-theme="dark"] .badge-particular,
+        html[data-theme="dark"] .badge-plt-pampa   { background: rgba(59,130,246,.2); color: #93c5fd; }
+        html[data-theme="dark"] .badge-plotter,
+        html[data-theme="dark"] .badge-gplotter,
+        html[data-theme="dark"] .badge-plt-gutenberg { background: rgba(216,140,240,.2); color: #e4b5f7; }
+        html[data-theme="dark"] .badge-retirar,
+        html[data-theme="dark"] .badge-insumos,
+        html[data-theme="dark"] .badge-env-enviado { background: rgba(249,115,22,.2); color: #fdba74; }
+        html[data-theme="dark"] .badge-preparacion,
+        html[data-theme="dark"] .badge-stock,
+        html[data-theme="dark"] .badge-empresa,
+        html[data-theme="dark"] .badge-env-con_precio { background: rgba(253,233,122,.18); color: #fde97a; }
+        html[data-theme="dark"] .badge-cortar      { background: rgba(244,63,94,.2); color: #fda4af; }
+        html[data-theme="dark"] .badge-listo,
+        html[data-theme="dark"] .badge-packaging   { background: rgba(20,184,166,.2); color: #5eead4; }
+        html[data-theme="dark"] .badge-entregado,
+        html[data-theme="dark"] .badge-env-pagado,
+        html[data-theme="dark"] .st-price-off      { background: rgba(34,197,94,.2); color: #86efac; }
+        html[data-theme="dark"] .badge-sofi        { background: rgba(236,72,153,.2); color: #f9a8d4; }
+        html[data-theme="dark"] .tarea-vence.vencida { background: rgba(239,68,68,.2); color: #fca5a5; }
     </style>
+    <script>
+        // Aplica el tema guardado antes de pintar (oscuro por defecto)
+        try { document.documentElement.dataset.theme = localStorage.getItem('ag-tema') || 'dark'; }
+        catch (e) { document.documentElement.dataset.theme = 'dark'; }
+        function toggleTema() {
+            const nuevo = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = nuevo;
+            try { localStorage.setItem('ag-tema', nuevo); } catch (e) {}
+        }
+    </script>
 </head>
 <body>
 
@@ -979,6 +1093,7 @@
             <button class="nav-btn" data-view="ideas" onclick="showView('ideas')"><i data-lucide="lightbulb"></i> Ideas</button>
             <button class="nav-btn" data-view="tareas" onclick="showView('tareas')"><i data-lucide="check-square"></i> Tareas</button>
         </nav>
+        <button class="logout-btn theme-toggle" onclick="toggleTema()"><span class="t-dark"><i data-lucide="sun"></i> Modo claro</span><span class="t-light"><i data-lucide="moon"></i> Modo oscuro</span></button>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
 
@@ -1145,7 +1260,7 @@
                 <button class="btn btn-ghost" onclick="limpiarFiltrosExtra()" style="font-size:12px;padding:5px 12px;margin-left:4px">✕ Limpiar</button>
             </div>
             <div id="filter-tipo-chip" style="display:none;margin-bottom:12px">
-                <span style="display:inline-flex;align-items:center;gap:6px;background:var(--yellow);border:2px solid var(--black);border-radius:99px;padding:3px 12px;font-size:13px;font-weight:600">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:var(--yellow);color:var(--on-yellow);border:2px solid var(--line);border-radius:99px;padding:3px 12px;font-size:13px;font-weight:600">
                     <i data-lucide="tag" style="width:13px;height:13px"></i>
                     <span id="filter-tipo-chip-label"></span>
                     <button onclick="clearFilterTipo()" style="background:none;border:none;cursor:pointer;padding:0;line-height:1;font-size:14px;font-weight:700;margin-left:2px">×</button>
@@ -2545,7 +2660,7 @@ function renderDashboard() {
                 const color   = vencida ? '#ef4444' : esHoy ? '#f97316' : '#d97706';
                 const badgeTxt = vencida ? 'Vencida' : esHoy ? 'Hoy'
                     : new Date(t.fecha_limite + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-                return `<div onclick="showView('tareas')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);border:2px solid var(--black);border-radius:8px;cursor:pointer;box-shadow:2px 2px 0 var(--black)">
+                return `<div onclick="showView('tareas')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);border:2px solid var(--line);border-radius:8px;cursor:pointer;box-shadow:2px 2px 0 var(--line)">
                     <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};white-space:nowrap">${badgeTxt}</span>
                     <span style="font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.titulo}</span>
                     ${t.asignada_a ? `<span style="font-size:11px;color:var(--gray-500)">${t.asignada_a}</span>` : ''}
@@ -4742,7 +4857,7 @@ function tiempoEditNombre(td, tipoViejo) {
     if (td.querySelector('input')) return;
     const input = document.createElement('input');
     input.type  = 'text'; input.value = tipoViejo;
-    input.style.cssText = 'width:120px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px';
+    input.style.cssText = 'width:120px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px';
     td.innerHTML = ''; td.appendChild(input);
     input.focus(); input.select();
     async function guardar() {
@@ -4764,7 +4879,7 @@ function tiempoEditVal(td, tipo, campo) {
     const input = document.createElement('input');
     input.type = 'number'; input.min = '0'; input.step = '0.1';
     input.value = cur != null ? cur : '';
-    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:center';
+    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px;text-align:center';
     td.innerHTML = ''; td.appendChild(input);
     input.focus(); input.select();
     async function guardar() {
@@ -4822,7 +4937,7 @@ function tarifaEditMatNombre(td, tipoViejo) {
     const input = document.createElement('input');
     input.type  = 'text';
     input.value = tipoViejo;
-    input.style.cssText = 'width:100px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px';
+    input.style.cssText = 'width:100px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px';
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
@@ -4851,7 +4966,7 @@ function tarifaEditMatCosto(td, tipo) {
     const input = document.createElement('input');
     input.type  = 'number'; input.min = '0'; input.step = '100';
     input.value = tarifaConfig.materiales[tipo] || '';
-    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px;text-align:right';
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
@@ -5034,7 +5149,7 @@ function tarifaEditMO(td, pedidoId) {
     input.type = 'number'; input.min = '0'; input.step = '100';
     input.value = sugerido;
     input.placeholder = '$';
-    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    input.style.cssText = 'width:90px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px;text-align:right';
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
@@ -5070,7 +5185,7 @@ function tarifaEditCell(td, pedidoId, field, currentVal) {
     input.step  = isMin ? '1' : '100';
     input.value = currentVal || '';
     input.placeholder = isMin ? 'min' : '$';
-    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:center';
+    input.style.cssText = 'width:70px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px;text-align:center';
     td.innerHTML = '';
     td.appendChild(input);
     input.focus(); input.select();
@@ -5103,7 +5218,7 @@ function tarifaEditMatManual(el, pedidoId, currentVal) {
     input.type = 'number'; input.min = '0'; input.step = '100';
     input.value = currentVal || '';
     input.placeholder = '$';
-    input.style.cssText = 'width:80px;padding:2px 6px;font-size:13px;border:1.5px solid var(--black);border-radius:6px;text-align:right';
+    input.style.cssText = 'width:80px;padding:2px 6px;font-size:13px;border:1.5px solid var(--line);border-radius:6px;text-align:right';
     el.innerHTML = '';
     el.appendChild(input);
     input.focus(); input.select();
