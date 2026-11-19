@@ -3828,7 +3828,7 @@ function renderCotizFinal() {
         stickersBlock.style.display = '';
         document.getElementById('cf-stickers-items').innerHTML = stCart.map((item, i) => {
             const r = stCalcPrice(item.size, item.qty, item.material);
-            const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsa` : '';
+            const bolsaStr = r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsita y tarjeta` : '';
             return `<div class="st-cart-item">
                 <div class="st-cart-item-info">
                     <div class="st-cart-item-name">${esc(stNombreItem(item))}</div>
@@ -4217,7 +4217,10 @@ let stCurrentSize = "Chico (5×5 cm)";
 let stCurrentMaterial = 'blanco';
 let stCart = [];
 
-const ST_BOLSA = { "Mini (3×3 cm)": 200, "Chico (5×5 cm)": 200, "Mediano (10×10 cm)": 200, "Grande (15×15 cm)": 400 };
+// Paquete por ítem = bolsita + tarjeta "gracias + QR reseña" (costo 18/11/2026):
+// chico = bolsa 8,5×11 $114 + tarjeta 7,9×10 $149 = $263 · grande = bolsa 10,5×16 $206 + tarjeta 9,6×15 $242 = $448
+// TIENE QUE SER IGUAL a BOLSA de la web (index.html y app.js).
+const ST_BOLSA = { "Mini (3×3 cm)": 263, "Chico (5×5 cm)": 263, "Mediano (10×10 cm)": 448, "Grande (15×15 cm)": 448 };
 
 // Nombre del ítem en el carrito y en el texto copiado: el blanco queda como antes, el holográfico se aclara
 function stNombreItem(item) {
@@ -4254,7 +4257,7 @@ function stUpdateDisplay() {
         listEl.style.display = 'none';
     }
     if (r.bolsa > 0) {
-        bolsaEl.textContent  = '+ ' + formatPeso(r.bolsa) + ' bolsa incluida';
+        bolsaEl.textContent  = '+ ' + formatPeso(r.bolsa) + ' bolsita y tarjeta incluidas';
         bolsaEl.style.display = '';
     } else {
         bolsaEl.style.display = 'none';
