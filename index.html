@@ -3814,7 +3814,7 @@ function renderCotizFinal() {
             return `<div class="st-cart-item">
                 <div class="st-cart-item-info">
                     <div class="st-cart-item-name">${esc(item.size)}</div>
-                    <div class="st-cart-item-detail">${item.qty} unidades</div>
+                    <div class="st-cart-item-detail">${item.qty} unidades${r.bolsa > 0 ? ` · +${formatPeso(r.bolsa)} bolsita y tarjeta` : ''}</div>
                 </div>
                 <div class="st-cart-item-price">${formatPeso(r.total)}</div>
                 <button class="delete-row-btn" onclick="dtfQuitarItem(${i})" title="Quitar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button>
@@ -4106,8 +4106,10 @@ function dtfCalcPrice(size, qty) {
     for (const t of table) { if (qty >= t.qty) tier = t; }
     // Nunca más caro que la escala siguiente (99 u no puede costar más que 100 u)
     const tope  = Math.min(Infinity, ...table.filter(t => t.qty > qty).map(t => t.price));
-    const total = Math.min(Math.round(tier.price / tier.qty * qty), tope);
-    return { total };
+    // Paquete (bolsita + tarjeta) igual que en vinilo: mismo ST_BOLSA según el tamaño
+    const bolsa = ST_BOLSA[size.replace(' DTF', '')] || 0;
+    const total = Math.min(Math.round(tier.price / tier.qty * qty), tope) + bolsa;
+    return { total, bolsa };
 }
 
 function dtfUpdateDisplay() {
