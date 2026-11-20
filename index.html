@@ -5284,27 +5284,38 @@ function diasParaEntrega(iso) {
     return Math.round((new Date(y, m - 1, d) - hoy) / 86400000);
 }
 
-// Alerta "sin movimiento": no entregado, faltan 3 días o menos (o venció) y el estado no cambió en 3 días o más.
-// Devuelve los días sin movimiento, o null si no hay alerta. Si nunca se registró un cambio, usa la fecha de carga.
-const ALERTA_DIAS_ENTREGA = 3, ALERTA_DIAS_QUIETO = 3;
-function diasSinMovimiento(p) {
-    if (p.estado === 'entregado' || !p.fecha_entrega) return null;
-    if (diasParaEntrega(p.fecha_entrega) > ALERTA_DIAS_ENTREGA) return null;
+// Alerta "sin movimiento" (devuelve los días sin cambiar de estado, o null si no hay alerta). No aplica a entregados.
+//  a) el estado no cambió en ALERTA_DIAS_QUIETO_SIEMPRE días o más (con o sin fecha de entrega), o
+//  b) faltan ALERTA_DIAS_ENTREGA días o menos para entregar (o venció) y el estado no cambió en ALERTA_DIAS_QUIETO días o más.
+// Si nunca se registró un cambio de estado, usa la fecha de carga.
+const ALERTA_DIAS_ENTREGA = 3, ALERTA_DIAS_QUIETO = 3, ALERTA_DIAS_QUIETO_SIEMPRE = 5;
+function diasQuieto(p) {
     const ref = p.estado_cambiado_at || p.fecha_pedido || p.created_at;
     if (!ref) return null;
     const [y, m, d] = ref.slice(0, 10).split('-').map(Number);
     const base = p.estado_cambiado_at ? new Date(p.estado_cambiado_at) : new Date(y, m - 1, d);
     base.setHours(0, 0, 0, 0);
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    const dias = Math.round((hoy - base) / 86400000);
-    return dias >= ALERTA_DIAS_QUIETO ? dias : null;
+    return Math.round((hoy - base) / 86400000);
+}
+function entregaCerca(p) {
+    return !!p.fecha_entrega && diasParaEntrega(p.fecha_entrega) <= ALERTA_DIAS_ENTREGA;
+}
+function diasSinMovimiento(p) {
+    if (p.estado === 'entregado') return null;
+    const dias = diasQuieto(p);
+    if (dias == null) return null;
+    if (dias >= ALERTA_DIAS_QUIETO_SIEMPRE) return dias;
+    if (entregaCerca(p) && dias >= ALERTA_DIAS_QUIETO) return dias;
+    return null;
 }
 
 // Campanita de notificación (al lado del nombre) cuando el pedido está "sin movimiento".
 function campanitaAlerta(p) {
     const d = diasSinMovimiento(p);
     if (d == null) return '';
-    return `<span class="campanita" title="Sin movimiento hace ${d} días y se acerca la entrega"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>`;
+    const motivo = entregaCerca(p) ? `Sin movimiento hace ${d} días y se acerca la entrega` : `Sin movimiento hace ${d} días`;
+    return `<span class="campanita" title="${motivo}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>`;
 }
 
 // Etiqueta de entrega: rojo vencido, naranja ≤ 2 días, normal si falta más. Gris si ya se entregó.
