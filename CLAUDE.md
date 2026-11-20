@@ -56,6 +56,7 @@ Datos del cliente / pedido:
 - `cobrado` (boolean) y `cobrado_por` (Eli/Sofi)
 - `notas`
 - `fecha_entrega` — fecha límite para entregar (opcional). En la lista se ve en rojo si venció y en naranja si faltan 2 días o menos; en el inicio aparece en "Entregas próximas" (vence en 3 días o menos).
+- `estado_cambiado_at` — cuándo cambió el estado por última vez (lo completa el front en `cambiarEstado` y en `savePedido` si es nuevo o cambió el estado). Se usa para la alerta "sin movimiento": no entregado, entrega en 3 días o menos (o vencida) y estado quieto 3 días o más (`diasSinMovimiento`). Si es null, se toma la fecha de carga.
 - `cargado_por` — Eli o Sofi (quién lo cargó)
 - `origen`, `tipo_producto`
 
