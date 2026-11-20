@@ -2857,11 +2857,11 @@ function buildTable(pedidos, hidePrices = false) {
                     <th>Cliente</th>
                     <th>Descripción</th>
                     <th>Estado</th>
-                    <th>Entrega</th>
                     <th>Precio</th>
                     <th>Cobrado</th>
                     <th>Plotter</th>
                     <th class="col-ingresado">Ingresado</th>
+                    <th>Entrega</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -2880,7 +2880,6 @@ function buildTable(pedidos, hidePrices = false) {
                                 ${ESTADOS.map(e => `<option value="${e.key}" ${p.estado === e.key ? 'selected' : ''}>${e.label}</option>`).join('')}
                             </select>
                         </td>
-                        <td>${badgeEntrega(p)}</td>
                         <td>${hidePrices ? '$***' : (p.precio_cliente ? formatPeso(p.precio_cliente) : '<span class="text-gray">—</span>')}</td>
                         <td>
                             ${p.cobrado
@@ -2891,6 +2890,7 @@ function buildTable(pedidos, hidePrices = false) {
                         </td>
                         <td><input type="text" class="plotter-input" list="plotter-options" value="${esc(p.plotter_usado || '')}" placeholder="—" onchange="cambiarPlotter('${p.id}', this.value)" onclick="event.stopPropagation()"></td>
                         <td class="col-ingresado">${(p.fecha_pedido || p.created_at) ? fechaIngresado(p.fecha_pedido || p.created_at) : '<span class="text-gray">—</span>'}</td>
+                        <td>${badgeEntrega(p)}</td>
                         <td><button class="delete-row-btn" onclick="deleteRowPedido('${p.id}')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></button></td>
                         <td><button class="delete-row-btn" onclick="editPedido('${p.id}')" title="Editar" style="opacity:0.4;filter:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z" stroke="#1c1c20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>
                     </tr>`).join('')}
