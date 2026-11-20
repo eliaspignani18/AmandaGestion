@@ -55,6 +55,7 @@ Datos del cliente / pedido:
 - `precio_cliente` — lo que se le cobra al cliente
 - `cobrado` (boolean) y `cobrado_por` (Eli/Sofi)
 - `notas`
+- `fecha_entrega` — fecha límite para entregar (opcional). En la lista se ve en rojo si venció y en naranja si faltan 2 días o menos; en el inicio aparece en "Entregas próximas" (vence en 3 días o menos).
 - `cargado_por` — Eli o Sofi (quién lo cargó)
 - `origen`, `tipo_producto`
 
