@@ -2656,7 +2656,7 @@ function renderDashboard() {
                 <i data-lucide="calendar-clock" style="width:14px;height:14px;color:#ef4444;vertical-align:middle"></i> Entregas próximas
             </div>
             <div style="display:flex;flex-direction:column;gap:6px">${prox.map(p => `<div onclick="editPedido('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);border:2px solid var(--line);border-radius:8px;cursor:pointer;box-shadow:2px 2px 0 var(--line)">
-                ${badgeEntrega(p)}
+                <div style="min-width:86px">${badgeEntrega(p)}</div>
                 <span style="font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.cliente_nombre)} · ${esc(p.descripcion)}</span>
             </div>`).join('')}</div></div>`;
         if (prox.length) lucide.createIcons({ nodes: [dashEnt] });
@@ -2855,8 +2855,6 @@ function buildTable(pedidos, hidePrices = false) {
             <thead>
                 <tr>
                     <th>Cliente</th>
-                    <th class="col-cargado">Cargado por</th>
-                    <th class="col-origen">Origen</th>
                     <th>Descripción</th>
                     <th>Estado</th>
                     <th>Entrega</th>
@@ -2876,8 +2874,6 @@ function buildTable(pedidos, hidePrices = false) {
                             ${p.cliente_whatsapp ? `<div class="text-gray" style="font-size:12px">${esc(p.cliente_whatsapp)}</div>` : ''}
                             ${(p.fecha_pedido || p.created_at) ? `<div class="text-gray mobile-fecha" style="font-size:11px">${fechaIngresado(p.fecha_pedido || p.created_at)}</div>` : ''}
                         </td>
-                        <td class="col-cargado text-gray">${esc(p.cargado_por || '—')}</td>
-                        <td class="col-origen">${origenLabel(p.origen)}</td>
                         <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.descripcion)}</td>
                         <td>
                             <select class="estado-select" onchange="cambiarEstado('${p.id}', this.value)">
@@ -5285,14 +5281,14 @@ function diasParaEntrega(iso) {
 function badgeEntrega(p) {
     if (!p.fecha_entrega) return '<span class="text-gray">—</span>';
     const [y, m, d] = p.fecha_entrega.split('-');
-    const txt = `${d}/${m}`;
-    if (p.estado === 'entregado') return `<span class="text-gray" style="font-size:12px">${txt}</span>`;
+    const fecha = `${d}/${m}/${y}`;
+    if (p.estado === 'entregado') return `<span class="text-gray" style="font-size:12px">${fecha}</span>`;
     const dias = diasParaEntrega(p.fecha_entrega);
     const color = dias < 0 ? '#ef4444' : dias <= 2 ? '#f97316' : null;
-    const extra = dias < 0 ? ' · vencido' : dias === 0 ? ' · hoy' : dias === 1 ? ' · mañana' : '';
+    const falta = dias < 0 ? `vencido hace ${-dias}d` : dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : `en ${dias} días`;
     return color
-        ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};white-space:nowrap">${txt}${extra}</span>`
-        : `<span style="font-size:12px;white-space:nowrap">${txt}</span>`;
+        ? `<div style="font-size:12px;font-weight:700;color:${color};white-space:nowrap">${fecha}</div><div style="font-size:11px;font-weight:700;color:${color}">${falta}</div>`
+        : `<div style="font-size:12px;white-space:nowrap">${fecha}</div><div class="text-gray" style="font-size:11px">${falta}</div>`;
 }
 
 function fechaIngresado(isoStr) {
